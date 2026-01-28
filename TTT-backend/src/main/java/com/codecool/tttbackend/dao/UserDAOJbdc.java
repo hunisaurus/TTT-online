@@ -1,4 +1,4 @@
 package com.codecool.tttbackend.dao;
 
-public interface UserDAO {
+public class UserDAOJbdc {
 }
