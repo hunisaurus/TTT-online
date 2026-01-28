@@ -1,4 +1,3 @@
 package com.codecool.tttbackend.controller.dto;
 
-public class UserDTO {
-}
+public record UserDTO (String username, String password) {}
