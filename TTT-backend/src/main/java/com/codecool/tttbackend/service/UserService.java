@@ -42,13 +42,6 @@ public class UserService {
 
         return sessionManager.createSession(user.getId());
     }
-    public User getUserById(Long id) {
-        User user = userDAO.findUserById(id);
-        if (user == null) {
-            throw new IllegalArgumentException("User not found with id: " + id);
-        }
-        return user;
-    }
 
     public void logout(String token) {
         sessionManager.invalidateSession(token);

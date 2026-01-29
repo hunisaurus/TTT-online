@@ -23,6 +23,7 @@ public class UserDAOJdbc implements UserDAO {
         u.setEmail("email");
         u.setUsername(rs.getString("username"));
         u.setPasswordHash(rs.getString("password_hash"));
+        u.setRegistrationDate(rs.getTimestamp("registration_date").toLocalDateTime());
         return u;
     };
 
@@ -35,7 +36,7 @@ public class UserDAOJdbc implements UserDAO {
                     username
             );
         } catch (Exception e) {
-            return null; // Username not found
+            return null;
         }
     }
 

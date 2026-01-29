@@ -1,5 +1,6 @@
 package com.codecool.tttbackend.dao.model;
 
+import java.time.LocalDateTime;
 
 public class User {
 
@@ -7,6 +8,7 @@ public class User {
     private String username;
     private String passwordHash;
     private Long id;
+    private LocalDateTime registrationDate;
 
     public User() {
     }
@@ -27,6 +29,10 @@ public class User {
         this.id = id;
     }
 
+    public void setRegistrationDate(LocalDateTime date) {
+        this.registrationDate = date;
+    }
+
     public Long getId() {
         return id;
     }
@@ -41,5 +47,9 @@ public class User {
 
     public String getPasswordHash() {
         return passwordHash;
+    }
+
+    public LocalDateTime getRegistrationDate() {
+        return registrationDate;
     }
 }
