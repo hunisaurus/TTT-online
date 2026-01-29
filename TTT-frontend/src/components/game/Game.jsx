@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect } from "react";
-import Home from "./components/Home";
-import GiantBoard from "./components/GiantBoard";
-import { useAudio } from "./hooks/useAudio";
+import Home from "../Home";
+import GiantBoard from "./GiantBoard";
+import { useAudio } from "../../hooks/useAudio";
 import {
   makeSmallBoards,
   makeBigBoard,
@@ -9,10 +9,10 @@ import {
   isFull3,
   nextActiveFromCell,
   anyPlayableBigs,
-} from "./state/gameLogic";
-import "./styles.css";
+} from "../../state/gameLogic";
+import "../../styles.css";
 
-export default function App() {
+export default function Game() {
   const [config, setConfig] = useState(null);
   const [state, setState] = useState(null);
   const { play } = useAudio();
