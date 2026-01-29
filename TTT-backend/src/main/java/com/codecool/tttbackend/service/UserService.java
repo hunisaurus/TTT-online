@@ -21,12 +21,13 @@ public class UserService {
         this.sessionManager = new SessionManager();
     }
 
-    public void register(String username, String password) {
-        if (userDAO.findByUsername(username) != null) {
+    public void register(String email, String username, String password) {
+        if (userDAO.findByEmail(email) != null) {
             throw new RuntimeException("Username is already in use");
         }
 
         User user = new User();
+        user.setEmail(email);
         user.setUsername(username);
         user.setPasswordHash(passwordHasher.hash(password));
 

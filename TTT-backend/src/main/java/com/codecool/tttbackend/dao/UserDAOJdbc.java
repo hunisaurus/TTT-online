@@ -26,6 +26,18 @@ public class UserDAOJdbc implements UserDAO {
         u.setRegistrationDate(rs.getTimestamp("registration_date").toLocalDateTime());
         return u;
     };
+    @Override
+    public User findByEmail(String email) {
+        try {
+            return jdbcTemplate.queryForObject(
+                    "SELECT * FROM users WHERE email = ?",
+                    userMapper,
+                    email
+            );
+        } catch (Exception e) {
+            return null;
+        }
+    }
 
     @Override
     public User findByUsername(String username) {
@@ -56,11 +68,10 @@ public class UserDAOJdbc implements UserDAO {
     @Override
     public void addNewUser(User user) {
         jdbcTemplate.update(
-                "INSERT INTO users (username, password_hash, register_date) VALUES (?, ?, ?, ?)",
+                "INSERT INTO users (email, username, password_hash) VALUES (?, ?, ?)",
                 user.getEmail(),
                 user.getUsername(),
-                user.getPasswordHash(),
-                Timestamp.valueOf(LocalDateTime.now())
+                user.getPasswordHash()
         );
     }
 

@@ -22,7 +22,6 @@ public class Configuration {
     @Value("${tttonline.database.password}")
     private String dataBasePassword;
 
-
     @Bean
     public DataSource dataSource() {
         DriverManagerDataSource dataSource = new DriverManagerDataSource();

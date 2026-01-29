@@ -27,7 +27,7 @@ public class UserController {
 
     @PostMapping("/register")
     public ResponseEntity<String> register(@RequestBody RegisterRequest req) throws SQLException {
-        userService.register(req.username(), req.password());
+        userService.register(req.email(), req.username(), req.password());
 
         return ResponseEntity.ok("Registered");
     }
