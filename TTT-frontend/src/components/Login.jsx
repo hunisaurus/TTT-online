@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { api } from "../state/config";
 
 function Login({ className = "", style, onSubmit, onRegister }) {
   const emptyData = {
@@ -46,7 +47,7 @@ function Login({ className = "", style, onSubmit, onRegister }) {
 
     // with POST:
     try {
-      const resp = await fetch(`/api/auth/login`, {
+      const resp = await fetch(api(`/user/login`), {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -57,7 +58,8 @@ function Login({ className = "", style, onSubmit, onRegister }) {
         alert("Successful login!");
         onSubmit && onSubmit(data);
       } else {
-        alert("Failed to log in!");
+        const msg = await resp.text().catch(() => "");
+        alert(`Failed to log in (${resp.status}). ${msg || ""}`);
       }
     } catch (err) {
       alert("Network error during login");

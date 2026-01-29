@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useAudio } from "../hooks/useAudio";
+import { api } from "../state/config";
 
 export default function Register({ className = "", style, onBack, onSubmit }) {
     const { play } = useAudio();
@@ -38,20 +39,23 @@ export default function Register({ className = "", style, onBack, onSubmit }) {
       return;
     }
     try {
-      const resp = await fetch(`/api/users/register`, {
+      const resp = await fetch(api(`/user/register`), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           username: data.username,
           email: data.email,
           password: data.password,
+          // Backend expects 'birthDate' (camelCase), not 'birth-date'
+          birthDate: data["birth-date"],
         }),
       });
       if (resp.ok) {
         alert("Registration successful");
         onSubmit && onSubmit({ username: data.username, email: data.email });
       } else {
-        alert("Registration failed");
+        const msg = await resp.text().catch(() => "");
+        alert(`Registration failed (${resp.status}). ${msg || ""}`);
       }
     } catch (err) {
       alert("Network error during registration");

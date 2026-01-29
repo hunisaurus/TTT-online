@@ -7,6 +7,8 @@ import com.codecool.tttbackend.security.SessionManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+
 @Service
 public class UserService {
 
@@ -21,15 +23,16 @@ public class UserService {
         this.sessionManager = new SessionManager();
     }
 
-    public void register(String email, String username, String password) {
+    public void register(String email, String username, String password, LocalDate birthDate) {
         if (userDAO.findByEmail(email) != null) {
-            throw new RuntimeException("Username is already in use");
+            throw new RuntimeException("There is already a user with that email!");
         }
 
         User user = new User();
         user.setEmail(email);
         user.setUsername(username);
         user.setPasswordHash(passwordHasher.hash(password));
+        user.setBirthDate(birthDate);
 
         userDAO.addNewUser(user);
     }

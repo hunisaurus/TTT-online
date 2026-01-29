@@ -8,10 +8,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.sql.SQLException;
+import java.time.LocalDate;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/user")
 public class UserController {
 
     private final UserService userService;
@@ -27,7 +28,7 @@ public class UserController {
 
     @PostMapping("/register")
     public ResponseEntity<String> register(@RequestBody RegisterRequest req) throws SQLException {
-        userService.register(req.email(), req.username(), req.password());
+        userService.register(req.email(), req.username(), req.password(), req.birthDate());
 
         return ResponseEntity.ok("Registered");
     }
