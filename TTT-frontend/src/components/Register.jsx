@@ -15,7 +15,6 @@ export default function Register({ className = "", style, onBack, onSubmit }) {
   function handleChange(event) {
     play('type');
     const { name, value } = event.target;
-    // Do not store confirm password in state
     if (name === 'confirm') return;
     setData((prev) => ({ ...prev, [name]: value }));
   }
@@ -31,13 +30,14 @@ export default function Register({ className = "", style, onBack, onSubmit }) {
       alert("Please fill all fields");
       return;
     }
-    // Read confirm password directly from the submitted form without storing it in state
+
     const formData = new FormData(e.target);
     const confirm = formData.get('confirm') || '';
     if (data.password !== confirm) {
       alert("Passwords do not match");
       return;
     }
+
     try {
       const resp = await fetch(api(`/user/register`), {
         method: "POST",
@@ -46,7 +46,6 @@ export default function Register({ className = "", style, onBack, onSubmit }) {
           username: data.username,
           email: data.email,
           password: data.password,
-          // Backend expects 'birthDate' (camelCase), not 'birth-date'
           birthDate: data["birth-date"],
         }),
       });

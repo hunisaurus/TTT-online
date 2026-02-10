@@ -402,7 +402,6 @@ button:hover {
   cursor: pointer;
 }
 
-/* Login panel styling to match existing palette */
 .loginPanel {
   display: flex;
   flex-direction: column;
@@ -428,13 +427,11 @@ button:hover {
     opacity 600ms ease-in-out;
 }
 
-/* Transform-based slide from below for reliable animation */
 .slideFromBelow {
   transform: translate(-50%, 120%);
   opacity: 0.001; /* tiny value to allow fade-in if desired */
 }
 
-/* Slide out towards below when deactivating */
 .slideToBelow {
   transform: translate(-50%, 120%);
   opacity: 0; /* fade while sliding out */
