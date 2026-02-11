@@ -1,12 +1,9 @@
 package com.codecool.tttbackend.dao.model;
 
-import org.springframework.web.servlet.tags.ArgumentAware;
-
 import com.codecool.tttbackend.service.game.BigBoard;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
 public class Game {
@@ -14,7 +11,7 @@ public class Game {
    private int id;
    private String name;
    private User creator;
-   private ArrayList<GameUser> gameUsers;
+   private ArrayList<Player> players;
    private LocalDateTime timeCreated;
    private GameState gameState;
    private User currentPlayer;
@@ -25,16 +22,16 @@ public class Game {
       board = new BigBoard();
    }
 
-   public void addUser(GameUser user) {
-      if (gameUsers == null) {
-         gameUsers = new ArrayList<>();
+   public void addUser(Player user) {
+      if (players == null) {
+         players = new ArrayList<>();
       }
-      gameUsers.add(user);
+      players.add(user);
    }
 
-   public void removeUser(GameUser gameUser) {
-      if (gameUsers != null) {
-         gameUsers.removeIf(u -> u.getUser().getId().equals(gameUser.getUser().getId()));
+   public void removeUser(Player player) {
+      if (players != null) {
+         players.removeIf(u -> u.getUser().getId().equals(player.getUser().getId()));
       }
    }
 
@@ -46,8 +43,8 @@ public class Game {
       return gameState;
    }
 
-   public List<GameUser> getUsers() {
-      return gameUsers;
+   public List<Player> getPlayers() {
+      return players;
    }
 
    public int getId() {
@@ -58,8 +55,8 @@ public class Game {
       return timeCreated;
    }
 
-   public void setUsers(ArrayList<GameUser> gameUsers) {
-      this.gameUsers = gameUsers;
+   public void setPlayers(ArrayList<Player> players) {
+      this.players = players;
    }
 
    public void setId(int id) {

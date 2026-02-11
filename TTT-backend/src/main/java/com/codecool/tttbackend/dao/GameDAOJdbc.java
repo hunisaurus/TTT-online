@@ -2,19 +2,16 @@ package com.codecool.tttbackend.dao;
 
 import com.codecool.tttbackend.dao.model.Game;
 import com.codecool.tttbackend.dao.model.GameState;
-import com.codecool.tttbackend.dao.model.GameUser;
-import com.codecool.tttbackend.dao.model.GameState;
+import com.codecool.tttbackend.dao.model.Player;
 import com.codecool.tttbackend.dao.model.User;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 
 import java.sql.Timestamp;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @Repository
 public class GameDAOJdbc implements GameDAO {
@@ -25,7 +22,7 @@ public class GameDAOJdbc implements GameDAO {
         this.jdbcTemplate = jdbcTemplate;
     }
 
-    private RowMapper<GameUser> gameUserMapper = (rs, rowNum) -> {
+    private RowMapper<Player> gameUserMapper = (rs, rowNum) -> {
         User u = new User();
         u.setId(rs.getLong("id"));
         u.setEmail(rs.getString("email"));
@@ -34,7 +31,7 @@ public class GameDAOJdbc implements GameDAO {
         u.setRegistrationDate(rs.getTimestamp("registration_date").toLocalDateTime());
         u.setBirthDate(rs.getDate("birth_date").toLocalDate());
 
-        GameUser gu = new GameUser();
+        Player gu = new Player();
         gu.setUser(u);
         gu.setCharacter(rs.getString("character").charAt(0));
         return gu;
@@ -54,14 +51,14 @@ public class GameDAOJdbc implements GameDAO {
         List<Game> games = jdbcTemplate.query("SELECT * FROM games", gameMapper);
 
         for (Game game : games) {
-            game.setUsersAndCharacters(new HashMap<User, Character>(findUsersByGameId(game.getId())));
+            game.setPlayers(new ArrayList<>(findPlayersByGameId(game.getId())));
         }
 
         return games;
     }
 
     @Override
-    public List<GameUser> findUsersByGameId(int gameId) {
+    public List<Player> findPlayersByGameId(int gameId) {
         return jdbcTemplate.query(
                 """
                 SELECT u.*, gu.character
@@ -85,8 +82,7 @@ public class GameDAOJdbc implements GameDAO {
             );
 
             if (game != null) {
-                List<User> users = new ArrayList<>(findUsersByGameId(game.getId()));
-                game.setUsersAndCharacters();
+                game.setPlayers(new ArrayList<>(findPlayersByGameId(game.getId())));
             }
             return game;
         } catch (Exception e) {
@@ -96,7 +92,7 @@ public class GameDAOJdbc implements GameDAO {
 
     @Override
     public void addGame(Game game) {
-        String sql = "INSERT INTO games (name, time_created, game_state) VALUES (?, ?, ?) RETURNING id";
+        String sql = "INSERT INTO games (name, creation_date, game_state) VALUES (?, ?, ?) RETURNING id";
 
         Integer gameId = jdbcTemplate.queryForObject(
                 sql,
@@ -110,10 +106,10 @@ public class GameDAOJdbc implements GameDAO {
 
         game.setId(gameId);
 
-        if (game.getUsers() != null) {
+        if (game.getPlayers() != null) {
             String joinSql = "INSERT INTO game_users (game_id, user_id) VALUES (?, ?)";
-            for (GameUser gameUser : game.getUsers()) {
-                jdbcTemplate.update(joinSql, gameId, gameUser.getUser().getId());
+            for (Player player : game.getPlayers()) {
+                jdbcTemplate.update(joinSql, gameId, player.getUser().getId());
             }
         }
     }
@@ -131,10 +127,10 @@ public class GameDAOJdbc implements GameDAO {
 
         jdbcTemplate.update("DELETE FROM game_users WHERE game_id = ?", game.getId());
 
-        if (game.getUsers() != null) {
+        if (game.getPlayers() != null) {
             String joinSql = "INSERT INTO game_users (game_id, user_id) VALUES (?, ?)";
-            for (GameUser gameUser : game.getUsers()) {
-                jdbcTemplate.update(joinSql, game.getId(), gameUser.getUser().getId());
+            for (Player player : game.getPlayers()) {
+                jdbcTemplate.update(joinSql, game.getId(), player.getUser().getId());
             }
         }
     }
