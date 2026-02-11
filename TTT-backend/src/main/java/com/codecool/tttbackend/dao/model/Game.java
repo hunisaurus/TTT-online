@@ -1,8 +1,11 @@
 package com.codecool.tttbackend.dao.model;
 
+import org.springframework.web.servlet.tags.ArgumentAware;
+
 import com.codecool.tttbackend.service.game.BigBoard;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
@@ -11,7 +14,7 @@ public class Game {
    private int id;
    private String name;
    private User creator;
-   private HashMap<User, Character> usersAndCharacters;
+   private ArrayList<GameUser> gameUsers;
    private LocalDateTime timeCreated;
    private GameState gameState;
    private User currentPlayer;
@@ -22,17 +25,17 @@ public class Game {
       board = new BigBoard();
    }
 
-   public void addUserAndCharacter(User user, char character) {
-      if (usersAndCharacters == null) {
-         usersAndCharacters = new HashMap<>();
+   public void addUser(GameUser user) {
+      if (gameUsers == null) {
+         gameUsers = new ArrayList<>();
       }
-      usersAndCharacters.put(user, character);
+      gameUsers.add(user);
    }
 
-   public void removeUser(User user) {
-      if (usersAndCharacters == null) throw new IllegalArgumentException("Cannot remove user: User is null!");
-      if (!usersAndCharacters.containsKey(user)) throw new NullPointerException("Cannot remove user: There is no such user!");
-      usersAndCharacters.remove(user);
+   public void removeUser(GameUser gameUser) {
+      if (gameUsers != null) {
+         gameUsers.removeIf(u -> u.getUser().getId().equals(gameUser.getUser().getId()));
+      }
    }
 
    public String getName() {
@@ -43,12 +46,8 @@ public class Game {
       return gameState;
    }
 
-   public List<User> getUsers() {
-      return usersAndCharacters.keySet().stream().toList();
-   }
-
-   public void setUsersAndCharacters(HashMap<User, Character> usersAndCharacters) {
-      this.usersAndCharacters = usersAndCharacters;
+   public List<GameUser> getUsers() {
+      return gameUsers;
    }
 
    public int getId() {
@@ -57,6 +56,10 @@ public class Game {
 
    public LocalDateTime getTimeCreated() {
       return timeCreated;
+   }
+
+   public void setUsers(ArrayList<GameUser> gameUsers) {
+      this.gameUsers = gameUsers;
    }
 
    public void setId(int id) {

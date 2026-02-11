@@ -3,6 +3,7 @@ package com.codecool.tttbackend.service;
 import com.codecool.tttbackend.dao.GameDAO;
 import com.codecool.tttbackend.dao.model.Game;
 import com.codecool.tttbackend.dao.model.GameState;
+import com.codecool.tttbackend.dao.model.GameUser;
 import com.codecool.tttbackend.dao.model.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -44,7 +45,13 @@ public class GameService {
       if (game == null) {
          throw new IllegalArgumentException("Game not found: " + id);
       }
-      game.addUserAndCharacter(userService.getUserByUserName(userName), character);
+
+      GameUser gameUser = new GameUser();
+
+      gameUser.setUser(userService.getUserByUserName(userName));
+      gameUser.setCharacter(character);
+
+      game.addUser(gameUser);
       gameDAO.updateGame(game);
    }
 
@@ -53,7 +60,15 @@ public class GameService {
       if (game == null) {
          throw new IllegalArgumentException("Game not found: " + id);
       }
-      game.removeUser(user);
+
+      List<GameUser> users = gameDAO.findUsersByGameId(game.getId());
+
+      for(GameUser gameUser : users) {
+         if (gameUser.getUser().getId().equals(user.getId())){
+            game.removeUser(gameUser);
+         }
+      }
+
       gameDAO.updateGame(game);
    }
 

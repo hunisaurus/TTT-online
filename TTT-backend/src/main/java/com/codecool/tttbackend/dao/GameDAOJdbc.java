@@ -2,15 +2,19 @@ package com.codecool.tttbackend.dao;
 
 import com.codecool.tttbackend.dao.model.Game;
 import com.codecool.tttbackend.dao.model.GameState;
+import com.codecool.tttbackend.dao.model.GameUser;
+import com.codecool.tttbackend.dao.model.GameState;
 import com.codecool.tttbackend.dao.model.User;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 
 import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Repository
 public class GameDAOJdbc implements GameDAO {
@@ -21,7 +25,7 @@ public class GameDAOJdbc implements GameDAO {
         this.jdbcTemplate = jdbcTemplate;
     }
 
-    private RowMapper<User> userMapper = (rs, rowNum) -> {
+    private RowMapper<GameUser> gameUserMapper = (rs, rowNum) -> {
         User u = new User();
         u.setId(rs.getLong("id"));
         u.setEmail(rs.getString("email"));
@@ -29,7 +33,11 @@ public class GameDAOJdbc implements GameDAO {
         u.setPasswordHash(rs.getString("password_hash"));
         u.setRegistrationDate(rs.getTimestamp("registration_date").toLocalDateTime());
         u.setBirthDate(rs.getDate("birth_date").toLocalDate());
-        return u;
+
+        GameUser gu = new GameUser();
+        gu.setUser(u);
+        gu.setCharacter(rs.getString("character").charAt(0));
+        return gu;
     };
 
     private RowMapper<Game> gameMapper = (rs, rowNum) -> {
@@ -53,18 +61,19 @@ public class GameDAOJdbc implements GameDAO {
     }
 
     @Override
-    public List<User> findUsersByGameId(int gameId) {
+    public List<GameUser> findUsersByGameId(int gameId) {
         return jdbcTemplate.query(
                 """
-                SELECT u.*
+                SELECT u.*, gu.character
                 FROM users u
                 JOIN game_users gu ON u.id = gu.user_id
                 WHERE gu.game_id = ?
                 """,
-                userMapper,
+                gameUserMapper,
                 gameId
         );
     }
+
 
     @Override
     public Game findGameById(int id) {
@@ -103,8 +112,8 @@ public class GameDAOJdbc implements GameDAO {
 
         if (game.getUsers() != null) {
             String joinSql = "INSERT INTO game_users (game_id, user_id) VALUES (?, ?)";
-            for (User user : game.getUsers()) {
-                jdbcTemplate.update(joinSql, gameId, user.getId());
+            for (GameUser gameUser : game.getUsers()) {
+                jdbcTemplate.update(joinSql, gameId, gameUser.getUser().getId());
             }
         }
     }
@@ -124,8 +133,8 @@ public class GameDAOJdbc implements GameDAO {
 
         if (game.getUsers() != null) {
             String joinSql = "INSERT INTO game_users (game_id, user_id) VALUES (?, ?)";
-            for (User user : game.getUsers()) {
-                jdbcTemplate.update(joinSql, game.getId(), user.getId());
+            for (GameUser gameUser : game.getUsers()) {
+                jdbcTemplate.update(joinSql, game.getId(), gameUser.getUser().getId());
             }
         }
     }
