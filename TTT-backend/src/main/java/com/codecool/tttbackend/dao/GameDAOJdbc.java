@@ -16,12 +16,14 @@ import java.util.List;
 public class GameDAOJdbc implements GameDAO {
 
     private final JdbcTemplate jdbcTemplate;
+    private UserDAO userDAO;
 
     public GameDAOJdbc(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
+        this.userDAO = new UserDAOJdbc(jdbcTemplate);
     }
 
-    private RowMapper<Player> gameUserMapper = (rs, rowNum) -> {
+    private RowMapper<Player> playerMapper = (rs, rowNum) -> {
         User u = new User();
         u.setId(rs.getLong("id"));
         u.setEmail(rs.getString("email"));
@@ -39,8 +41,12 @@ public class GameDAOJdbc implements GameDAO {
     private RowMapper<Game> gameMapper = (rs, rowNum) -> {
         Game game = new Game();
         game.setId(rs.getInt("id"));
-        game.setGameState(GameState.valueOf(rs.getString("game_state")));
         game.setName(rs.getString("name"));
+        game.setCreator(userDAO.findUserById(rs.getLong("creator_id")));
+        game.setMaxPlayers(rs.getInt("max_players"));
+        game.setPlayers(findPlayersByGameId(rs.getInt("id")));
+        game.setCurrentPlayer(userDAO.findUserById(rs.getLong("current_player")));
+        game.setGameState(GameState.valueOf(rs.getString("game_state")));
         game.setTimeCreated(rs.getTimestamp("creation_date").toLocalDateTime());
         return game;
     };
@@ -50,7 +56,7 @@ public class GameDAOJdbc implements GameDAO {
         List<Game> games = jdbcTemplate.query("SELECT * FROM games", gameMapper);
 
         for (Game game : games) {
-            game.setUsers(new ArrayList<>(findPlayersByGameId(game.getId())));
+            game.setPlayers(new ArrayList<>(findPlayersByGameId(game.getId())));
         }
 
         return games;
@@ -60,12 +66,12 @@ public class GameDAOJdbc implements GameDAO {
     public List<Player> findPlayersByGameId(int gameId) {
         return jdbcTemplate.query(
                 """
-                SELECT u.*, gu.character
+                SELECT u.*, p.character
                 FROM users u
                 JOIN players p ON u.id = p.user_id
-                WHERE gu.game_id = ?
+                WHERE p.game_id = ?
                 """,
-                gameUserMapper,
+                playerMapper,
                 gameId
         );
     }
@@ -81,7 +87,7 @@ public class GameDAOJdbc implements GameDAO {
             );
 
             if (game != null) {
-                game.setUsers(new ArrayList<>(findPlayersByGameId(game.getId())));
+                game.setPlayers(new ArrayList<>(findPlayersByGameId(game.getId())));
             }
             return game;
         } catch (Exception e) {
@@ -105,9 +111,9 @@ public class GameDAOJdbc implements GameDAO {
 
         game.setId(gameId);
 
-        if (game.getUsers() != null) {
+        if (game.getPlayers() != null) {
             String joinSql = "INSERT INTO players (game_id, user_id) VALUES (?, ?)";
-            for (Player player : game.getUsers()) {
+            for (Player player : game.getPlayers()) {
                 jdbcTemplate.update(joinSql, gameId, player.getUser().getId());
             }
         }
@@ -126,9 +132,9 @@ public class GameDAOJdbc implements GameDAO {
 
         jdbcTemplate.update("DELETE FROM players WHERE game_id = ?", game.getId());
 
-        if (game.getUsers() != null) {
+        if (game.getPlayers() != null) {
             String joinSql = "INSERT INTO players (game_id, user_id) VALUES (?, ?)";
-            for (Player player : game.getUsers()) {
+            for (Player player : game.getPlayers()) {
                 jdbcTemplate.update(joinSql, game.getId(), player.getUser().getId());
             }
         }

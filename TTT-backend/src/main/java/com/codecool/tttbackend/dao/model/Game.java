@@ -8,25 +8,25 @@ public class Game {
 
    private int id;
    private String name;
+
    private User creator;
-   private ArrayList<Player> players;
+   private List<Player> players;
    private LocalDateTime timeCreated;
    private GameState gameState;
    private User currentPlayer;
    private int maxPlayers;
 
    public Game() {
-
    }
 
-   public void addUser(Player user) {
+   public void addPlayer(Player user) {
       if (players == null) {
          players = new ArrayList<>();
       }
       players.add(user);
    }
 
-   public void removeUser(Player player) {
+   public void removePlayer(Player player) {
       if (players != null) {
          players.removeIf(u -> u.getUser().getId().equals(player.getUser().getId()));
       }
@@ -40,7 +40,7 @@ public class Game {
       return gameState;
    }
 
-   public List<Player> getUsers() {
+   public List<Player> getPlayers() {
       return players;
    }
 
@@ -52,7 +52,31 @@ public class Game {
       return timeCreated;
    }
 
-   public void setUsers(ArrayList<Player> players) {
+   public User getCreator() {
+      return creator;
+   }
+
+   public User getCurrentPlayer() {
+      return currentPlayer;
+   }
+
+   public int getMaxPlayers() {
+      return maxPlayers;
+   }
+
+   public void setCreator(User creator) {
+      this.creator = creator;
+   }
+
+   public void setCurrentPlayer(User currentPlayer) {
+      this.currentPlayer = currentPlayer;
+   }
+
+   public void setMaxPlayers(int maxPlayers) {
+      this.maxPlayers = maxPlayers;
+   }
+
+   public void setPlayers(List<Player> players) {
       this.players = players;
    }
 
