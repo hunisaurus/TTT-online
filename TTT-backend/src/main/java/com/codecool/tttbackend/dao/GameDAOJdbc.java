@@ -36,8 +36,20 @@ public class GameDAOJdbc implements GameDAO {
         game.setId(rs.getInt("id"));
         game.setGameState(rs.getString("game_state"));
         game.setName(rs.getString("name"));
+        game.setTimeCreated(rs.getTimestamp("creation_date").toLocalDateTime());
         return game;
     };
+
+    @Override
+    public List<Game> getAllGames() {
+        List<Game> games = jdbcTemplate.query("SELECT * FROM games", gameMapper);
+
+        for (Game game : games) {
+            game.setUsers(new ArrayList<>(findUsersByGameId(game.getId())));
+        }
+
+        return games;
+    }
 
     @Override
     public List<User> findUsersByGameId(int gameId) {

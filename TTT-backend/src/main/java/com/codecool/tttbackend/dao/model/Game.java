@@ -15,13 +15,19 @@ public class Game {
 
     }
 
-    public void addUser(User user){
+    public void addUser(User user) {
+        if (users == null) {
+            users = new ArrayList<>();
+        }
         users.add(user);
     }
 
-    public void removeUser(User user){
-        users.remove(user);
+    public void removeUser(User user) {
+        if (users != null) {
+            users.removeIf(u -> u.getId().equals(user.getId()));
+        }
     }
+
 
     public String getName(){
         return name;

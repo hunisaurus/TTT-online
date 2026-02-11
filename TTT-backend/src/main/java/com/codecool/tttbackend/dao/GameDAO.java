@@ -8,6 +8,7 @@ import java.util.List;
 public interface GameDAO {
 
     Game findGameById(int id);
+    List<Game> getAllGames();
     List<User> findUsersByGameId(int id);
     void addGame(Game game);
     void removeGame(Game game);
