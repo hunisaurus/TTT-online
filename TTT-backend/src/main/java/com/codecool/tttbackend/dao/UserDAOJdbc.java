@@ -20,7 +20,7 @@ public class UserDAOJdbc implements UserDAO {
    private RowMapper<User> userMapper = (rs, rowNum) -> {
       User u = new User();
       u.setId(rs.getLong("id"));
-      u.setEmail("email");
+      u.setEmail(rs.getString("email"));
       u.setUsername(rs.getString("username"));
       u.setPasswordHash(rs.getString("password_hash"));
       u.setRegistrationDate(rs.getTimestamp("registration_date").toLocalDateTime());
