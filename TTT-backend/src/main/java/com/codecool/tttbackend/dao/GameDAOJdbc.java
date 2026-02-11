@@ -10,7 +10,6 @@ import org.springframework.stereotype.Repository;
 
 import java.sql.Timestamp;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
 @Repository
@@ -63,7 +62,7 @@ public class GameDAOJdbc implements GameDAO {
                 """
                 SELECT u.*, gu.character
                 FROM users u
-                JOIN game_users gu ON u.id = gu.user_id
+                JOIN players p ON u.id = p.user_id
                 WHERE gu.game_id = ?
                 """,
                 gameUserMapper,
@@ -125,10 +124,10 @@ public class GameDAOJdbc implements GameDAO {
                 game.getId()
         );
 
-        jdbcTemplate.update("DELETE FROM game_users WHERE game_id = ?", game.getId());
+        jdbcTemplate.update("DELETE FROM players WHERE game_id = ?", game.getId());
 
         if (game.getPlayers() != null) {
-            String joinSql = "INSERT INTO game_users (game_id, user_id) VALUES (?, ?)";
+            String joinSql = "INSERT INTO players (game_id, user_id) VALUES (?, ?)";
             for (Player player : game.getPlayers()) {
                 jdbcTemplate.update(joinSql, game.getId(), player.getUser().getId());
             }

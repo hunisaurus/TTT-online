@@ -1,7 +1,7 @@
 CREATE EXTENSION IF NOT EXISTS citext;
 DROP TABLE IF EXISTS users;
 DROP TABLE IF EXISTS games;
-DROP TABLE IF EXISTS game_users;
+DROP TABLE IF EXISTS players;
 
 CREATE TABLE users
 (
@@ -26,7 +26,7 @@ CREATE TABLE games
     current_player INTEGER REFERENCES users (id)
 );
 
-CREATE TABLE game_users
+CREATE TABLE players
 (
     game_id   INTEGER REFERENCES games (id) NOT NULL,
     user_id   INTEGER REFERENCES users (id) NOT NULL,
