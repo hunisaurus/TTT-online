@@ -53,4 +53,8 @@ public class UserService {
    public void logout(String token) {
       sessionManager.invalidateSession(token);
    }
+
+   public User getUserByUserName(String userName){
+      return userDAO.findByUsername(userName);
+   }
 }
