@@ -1,14 +1,15 @@
 package com.codecool.tttbackend.dao;
 
 import com.codecool.tttbackend.dao.model.Game;
+import com.codecool.tttbackend.dao.model.GameState;
 import com.codecool.tttbackend.dao.model.User;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 
 import java.sql.Timestamp;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 @Repository
@@ -34,7 +35,7 @@ public class GameDAOJdbc implements GameDAO {
     private RowMapper<Game> gameMapper = (rs, rowNum) -> {
         Game game = new Game();
         game.setId(rs.getInt("id"));
-        game.setGameState(rs.getString("game_state"));
+        game.setGameState(GameState.valueOf(rs.getString("game_state")));
         game.setName(rs.getString("name"));
         game.setTimeCreated(rs.getTimestamp("creation_date").toLocalDateTime());
         return game;
@@ -45,7 +46,7 @@ public class GameDAOJdbc implements GameDAO {
         List<Game> games = jdbcTemplate.query("SELECT * FROM games", gameMapper);
 
         for (Game game : games) {
-            game.setUsers(new ArrayList<>(findUsersByGameId(game.getId())));
+            game.setUsersAndCharacters(new HashMap<User, Character>(findUsersByGameId(game.getId())));
         }
 
         return games;
@@ -75,7 +76,8 @@ public class GameDAOJdbc implements GameDAO {
             );
 
             if (game != null) {
-                game.setUsers(new ArrayList<>(findUsersByGameId(game.getId())));
+                List<User> users = new ArrayList<>(findUsersByGameId(game.getId()));
+                game.setUsersAndCharacters();
             }
             return game;
         } catch (Exception e) {
@@ -109,7 +111,7 @@ public class GameDAOJdbc implements GameDAO {
 
     @Override
     public void updateGame(Game game) {
-        String sql = "UPDATE games SET name = ?, game_state = ?, time_created = ? WHERE id = ?";
+        String sql = "UPDATE games SET name = ?, game_state = ?, creation_date = ? WHERE id = ?";
         jdbcTemplate.update(
                 sql,
                 game.getName(),

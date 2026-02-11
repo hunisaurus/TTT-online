@@ -1,35 +1,38 @@
 package com.codecool.tttbackend.dao.model;
 
+import com.codecool.tttbackend.service.game.BigBoard;
+
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 public class Game {
 
    private int id;
    private String name;
    private User creator;
-   private HashMap<User, Character> users;
+   private HashMap<User, Character> usersAndCharacters;
    private LocalDateTime timeCreated;
    private GameState gameState;
    private User currentPlayer;
    private int maxPlayers;
+   private BigBoard board;
 
    public Game() {
-
+      board = new BigBoard();
    }
 
-   public void addUser(User user, char character) {
-      if (users == null) {
-         users = new HashMap<>();
+   public void addUserAndCharacter(User user, char character) {
+      if (usersAndCharacters == null) {
+         usersAndCharacters = new HashMap<>();
       }
-      users.put(user, character);
+      usersAndCharacters.put(user, character);
    }
 
    public void removeUser(User user) {
-      if (users == null) throw new IllegalArgumentException("Cannot remove user: User is null!");
-      if (!users.containsKey(user)) throw new NullPointerException("Cannot remove user: There is no such user!");
-      users.remove(user);
+      if (usersAndCharacters == null) throw new IllegalArgumentException("Cannot remove user: User is null!");
+      if (!usersAndCharacters.containsKey(user)) throw new NullPointerException("Cannot remove user: There is no such user!");
+      usersAndCharacters.remove(user);
    }
 
    public String getName() {
@@ -40,8 +43,12 @@ public class Game {
       return gameState;
    }
 
-   public HashMap<User, Character> getUsers() {
-      return users;
+   public List<User> getUsers() {
+      return usersAndCharacters.keySet().stream().toList();
+   }
+
+   public void setUsersAndCharacters(HashMap<User, Character> usersAndCharacters) {
+      this.usersAndCharacters = usersAndCharacters;
    }
 
    public int getId() {
@@ -50,10 +57,6 @@ public class Game {
 
    public LocalDateTime getTimeCreated() {
       return timeCreated;
-   }
-
-   public void setUsers(ArrayList<User> users) {
-      this.users = users;
    }
 
    public void setId(int id) {
@@ -70,5 +73,13 @@ public class Game {
 
    public void setGameState(GameState gameState) {
       this.gameState = gameState;
+   }
+
+   public BigBoard getBoard() {
+      return board;
+   }
+
+   public void setBoard(BigBoard board) {
+      this.board = board;
    }
 }

@@ -44,7 +44,7 @@ public class GameService {
       if (game == null) {
          throw new IllegalArgumentException("Game not found: " + id);
       }
-      game.addUser(userService.getUserByUserName(userName), character);
+      game.addUserAndCharacter(userService.getUserByUserName(userName), character);
       gameDAO.updateGame(game);
    }
 
