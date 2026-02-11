@@ -1,15 +1,18 @@
 package com.codecool.tttbackend.dao.model;
 
+import org.springframework.web.servlet.tags.ArgumentAware;
+
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 public class Game {
 
    private int id;
    private String name;
    private User creator;
-   private HashMap<User, Character> users;
+   private ArrayList<GameUser> gameUsers;
    private LocalDateTime timeCreated;
    private GameState gameState;
    private User currentPlayer;
@@ -19,17 +22,17 @@ public class Game {
 
    }
 
-   public void addUser(User user, char character) {
-      if (users == null) {
-         users = new HashMap<>();
+   public void addUser(GameUser user) {
+      if (gameUsers == null) {
+         gameUsers = new ArrayList<>();
       }
-      users.put(user, character);
+      gameUsers.add(user);
    }
 
-   public void removeUser(User user) {
-      if (users == null) throw new IllegalArgumentException("Cannot remove user: User is null!");
-      if (!users.containsKey(user)) throw new NullPointerException("Cannot remove user: There is no such user!");
-      users.remove(user);
+   public void removeUser(GameUser gameUser) {
+      if (gameUsers != null) {
+         gameUsers.removeIf(u -> u.getUser().getId().equals(gameUser.getUser().getId()));
+      }
    }
 
    public String getName() {
@@ -40,8 +43,8 @@ public class Game {
       return gameState;
    }
 
-   public HashMap<User, Character> getUsers() {
-      return users;
+   public List<GameUser> getUsers() {
+      return gameUsers;
    }
 
    public int getId() {
@@ -52,8 +55,8 @@ public class Game {
       return timeCreated;
    }
 
-   public void setUsers(ArrayList<User> users) {
-      this.users = users;
+   public void setUsers(ArrayList<GameUser> gameUsers) {
+      this.gameUsers = gameUsers;
    }
 
    public void setId(int id) {
