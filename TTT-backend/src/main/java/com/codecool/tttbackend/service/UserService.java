@@ -27,6 +27,9 @@ public class UserService {
         if (userDAO.findByEmail(email) != null) {
             throw new RuntimeException("There is already a user with that email!");
         }
+        if (userDAO.findByUsername(username) != null) {
+            throw new RuntimeException("There is already a user with that username!");
+        }
 
         User user = new User();
         user.setEmail(email);

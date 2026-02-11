@@ -5,9 +5,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 
-import java.sql.Timestamp;
-import java.time.LocalDateTime;
-
 @Repository
 public class UserDAOJdbc implements UserDAO {
 
@@ -17,10 +14,10 @@ public class UserDAOJdbc implements UserDAO {
       this.jdbcTemplate = jdbcTemplate;
    }
 
-   private RowMapper<User> userMapper = (rs, rowNum) -> {
+   private final RowMapper<User> userMapper = (rs, rowNum) -> {
       User u = new User();
       u.setId(rs.getLong("id"));
-      u.setEmail("email");
+      u.setEmail(rs.getString("email"));
       u.setUsername(rs.getString("username"));
       u.setPasswordHash(rs.getString("password_hash"));
       u.setRegistrationDate(rs.getTimestamp("registration_date").toLocalDateTime());
@@ -82,9 +79,9 @@ public class UserDAOJdbc implements UserDAO {
    public void updateUser(User user) {
       jdbcTemplate.update(
           "UPDATE users SET username = ?, password_hash = ?, email = ?, birth_date = ? WHERE id = ?",
-          user.getEmail(),
           user.getUsername(),
           user.getPasswordHash(),
+          user.getEmail(),
           user.getBirthDate(),
           user.getId()
       );
