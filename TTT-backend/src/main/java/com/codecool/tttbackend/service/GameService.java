@@ -1,9 +1,9 @@
 package com.codecool.tttbackend.service;
 
 import com.codecool.tttbackend.dao.GameDAO;
-import com.codecool.tttbackend.dao.model.Game;
-import com.codecool.tttbackend.dao.model.GameState;
-import com.codecool.tttbackend.dao.model.Player;
+import com.codecool.tttbackend.dao.model.game.Game;
+import com.codecool.tttbackend.dao.model.game.GameState;
+import com.codecool.tttbackend.dao.model.game.Player;
 import com.codecool.tttbackend.dao.model.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

@@ -1,9 +1,12 @@
-package com.codecool.tttbackend.dao.model;
+package com.codecool.tttbackend.dao.model.game;
+
+import com.codecool.tttbackend.dao.model.User;
 
 public class Player {
 
     private User user;
     private Character character;
+    private int numberOfWins;
 
     public Player(){
     }
@@ -23,4 +26,12 @@ public class Player {
     public Character getCharacter() {
         return character;
     }
+
+   public int getNumberOfWins() {
+      return numberOfWins;
+   }
+
+   public void setNumberOfWins(int numberOfWins) {
+      this.numberOfWins = numberOfWins;
+   }
 }

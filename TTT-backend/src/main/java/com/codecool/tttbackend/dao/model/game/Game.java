@@ -1,6 +1,7 @@
-package com.codecool.tttbackend.dao.model;
+package com.codecool.tttbackend.dao.model.game;
 
-import com.codecool.tttbackend.service.game.BigBoard;
+import com.codecool.tttbackend.dao.model.User;
+import com.codecool.tttbackend.domain.game.BigBoard;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;

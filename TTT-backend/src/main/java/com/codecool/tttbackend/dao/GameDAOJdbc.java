@@ -1,8 +1,8 @@
 package com.codecool.tttbackend.dao;
 
-import com.codecool.tttbackend.dao.model.Game;
-import com.codecool.tttbackend.dao.model.GameState;
-import com.codecool.tttbackend.dao.model.Player;
+import com.codecool.tttbackend.dao.model.game.Game;
+import com.codecool.tttbackend.dao.model.game.GameState;
+import com.codecool.tttbackend.dao.model.game.Player;
 import com.codecool.tttbackend.dao.model.User;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;

@@ -2,7 +2,7 @@ package com.codecool.tttbackend.controller;
 
 import com.codecool.tttbackend.controller.dto.CreateGameRequest;
 import com.codecool.tttbackend.controller.dto.JoinGameRequest;
-import com.codecool.tttbackend.dao.model.Game;
+import com.codecool.tttbackend.dao.model.game.Game;
 import com.codecool.tttbackend.service.GameService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

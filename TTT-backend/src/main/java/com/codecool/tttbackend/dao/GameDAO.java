@@ -1,7 +1,7 @@
 package com.codecool.tttbackend.dao;
 
-import com.codecool.tttbackend.dao.model.Game;
-import com.codecool.tttbackend.dao.model.Player;
+import com.codecool.tttbackend.dao.model.game.Game;
+import com.codecool.tttbackend.dao.model.game.Player;
 
 import java.util.List;
 
