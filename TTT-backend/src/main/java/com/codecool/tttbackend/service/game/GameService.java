@@ -1,4 +1,4 @@
-package com.codecool.tttbackend.service;
+package com.codecool.tttbackend.service.game;
 
 import com.codecool.tttbackend.dao.GameDAO;
 import com.codecool.tttbackend.dao.model.Game;
@@ -7,7 +7,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 
 @Service

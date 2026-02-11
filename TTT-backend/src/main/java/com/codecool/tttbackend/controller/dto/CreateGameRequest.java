@@ -1,9 +1,6 @@
 package com.codecool.tttbackend.controller.dto;
 
-public class CreateGameRequest {
-    private String name;
+import java.util.List;
 
-    public String getName() {
-        return name;
-    }
+public record CreateGameRequest (String userName, String gameName, int maxPlayerCount) {
 }

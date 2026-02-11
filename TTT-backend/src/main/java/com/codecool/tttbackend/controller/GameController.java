@@ -3,8 +3,7 @@ package com.codecool.tttbackend.controller;
 import com.codecool.tttbackend.controller.dto.CreateGameRequest;
 import com.codecool.tttbackend.controller.dto.JoinGameRequest;
 import com.codecool.tttbackend.dao.model.Game;
-import com.codecool.tttbackend.dao.model.User;
-import com.codecool.tttbackend.service.GameService;
+import com.codecool.tttbackend.service.game.GameService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -35,6 +34,12 @@ public class GameController {
     @PatchMapping("/{id}/join")
     public ResponseEntity<Void> joinGame(@PathVariable int id, @RequestBody JoinGameRequest request) {
         gameService.joinGame(id, request.getUser());
+        return ResponseEntity.ok().build();
+    }
+
+    @PatchMapping("/{id}/start")
+    public ResponseEntity<Void> startGame(@PathVariable int id){
+        gameService.
         return ResponseEntity.ok().build();
     }
 }
