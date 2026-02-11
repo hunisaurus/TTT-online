@@ -2,6 +2,7 @@ package com.codecool.tttbackend.domain.game;
 
 public class SmallBoard implements Board{
    private Character[][] cells;
+   private boolean isActive;
 
    public SmallBoard() {
       cells = new Character[3][3];
@@ -64,5 +65,13 @@ public class SmallBoard implements Board{
          }
       }
       return true;
+   }
+
+   public boolean isActive() {
+      return isActive;
+   }
+
+   public void setActive(boolean active) {
+      isActive = active;
    }
 }

@@ -2,6 +2,7 @@ package com.codecool.tttbackend.controller;
 
 import com.codecool.tttbackend.controller.dto.CreateGameRequest;
 import com.codecool.tttbackend.controller.dto.JoinGameRequest;
+import com.codecool.tttbackend.controller.dto.MoveRequest;
 import com.codecool.tttbackend.dao.model.game.Game;
 import com.codecool.tttbackend.service.GameService;
 import org.springframework.http.HttpStatus;
@@ -39,6 +40,12 @@ public class GameController {
 
     @PatchMapping("/{id}/start")
     public ResponseEntity<Void> startGame(@PathVariable int id){
+        // gameService.
+        return ResponseEntity.ok().build();
+    }
+
+    @PatchMapping("/{id}/move")
+    public ResponseEntity<Void> makeMove(@PathVariable int id, @RequestBody MoveRequest moveRequest){
         // gameService.
         return ResponseEntity.ok().build();
     }

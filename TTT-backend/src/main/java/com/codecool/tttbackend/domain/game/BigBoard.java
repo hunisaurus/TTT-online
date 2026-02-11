@@ -88,4 +88,30 @@ public class BigBoard implements Board{
       }
       return numberOfSmallWins;
    }
+
+   @Override
+   public String toString(){
+      StringBuilder sb = new StringBuilder(81);
+
+      for (int bigRow = 0; bigRow < 9; bigRow++) {
+         int sr = bigRow / 3;      // which small-board row
+         int innerRow = bigRow % 3; // row within that small board
+
+         for (int bigCol = 0; bigCol < 9; bigCol++) {
+            int sc = bigCol / 3;       // which small-board column
+            int innerCol = bigCol % 3; // col within that small board
+
+            SmallBoard small = smallBoards[sr][sc];
+            if (small == null || small.getCells() == null) {
+               sb.append('_');
+               continue;
+            }
+
+            Character ch = small.getCells()[innerRow][innerCol];
+            sb.append(ch == null ? '_' : ch);
+         }
+      }
+
+      return sb.toString();
+   }
 }
