@@ -1,5 +1,4 @@
 import { useState, useMemo, useEffect } from "react";
-import Home from "../Home";
 import GiantBoard from "./GiantBoard";
 import { useAudio } from "../../hooks/useAudio";
 import {
@@ -12,14 +11,17 @@ import {
 } from "../../state/gameLogic";
 import "../../styles.css";
 
-export default function Game() {
-  const [config, setConfig] = useState(null);
+export default function Game({ config, onExit }) {
   const [state, setState] = useState(null);
   const { play } = useAudio();
   const [boardEntering, setBoardEntering] = useState(false);
   const [playersEntering, setPlayersEntering] = useState(false);
 
-  const startGame = (cfg) => {
+  useEffect(() => {
+    if (!config) {
+      setState(null);
+      return;
+    }
     const smallBoards = makeSmallBoards();
     const bigBoard = makeBigBoard();
     const activeBigs = new Set([
@@ -33,17 +35,16 @@ export default function Game() {
       "2,1",
       "2,2",
     ]);
-    setConfig(cfg);
     setState({
       smallBoards,
       bigBoard,
       activeBigs,
-      rotation: cfg.rotation,
+      rotation: config.rotation,
       moves: [],
     });
     setBoardEntering(true);
     setPlayersEntering(true);
-  };
+  }, [config]);
 
   useEffect(() => {
     if (config && state && boardEntering) {
@@ -159,56 +160,58 @@ export default function Game() {
 
   const onHover = () => play("hover");
 
-  if (!config) {
-    return <Home onStart={startGame} />;
-  }
+  if (!config || !state) return null;
 
   return (
-    <main>
-      <div
-        id="playerOneElement"
-        className={`playerElement leftPlayer ${playersEntering ? "outLeft" : ""} ${currentPlayer === state.rotation[0] ? "activePlayer" : ""}`}
-      >
-        {state.rotation[0]}
-      </div>
-      <div
-        id="playerTwoElement"
-        className={`playerElement rightPlayer ${playersEntering ? "outRight" : ""} ${currentPlayer === state.rotation[1] ? "activePlayer" : ""}`}
-      >
-        {state.rotation[1]}
-      </div>
-      {config.mode === "pvp" && config.playerCount === 3 && (
-        <div
-          id="playerThreeElement"
-          className={`playerElement rightPlayer ${playersEntering ? "outAbove" : ""} ${currentPlayer === state.rotation[2] ? "activePlayer" : ""}`}
-          style={{ top: "12%" }}
-        >
-          {state.rotation[2]}
-        </div>
-      )}
+    <>
+      <main>
+          <div
+            id="playerOneElement"
+            className={`playerElement leftPlayer ${playersEntering ? "outLeft" : ""} ${currentPlayer === state.rotation[0] ? "activePlayer" : ""}`}
+          >
+            {state.rotation[0]}
+          </div>
+          <div
+            id="playerTwoElement"
+            className={`playerElement rightPlayer ${playersEntering ? "outRight" : ""} ${currentPlayer === state.rotation[1] ? "activePlayer" : ""}`}
+          >
+            {state.rotation[1]}
+          </div>
+          {config.mode === "pvp" && config.playerCount === 3 && (
+            <div
+              id="playerThreeElement"
+              className={`playerElement rightPlayer ${playersEntering ? "outAbove" : ""} ${currentPlayer === state.rotation[2] ? "activePlayer" : ""}`}
+              style={{ top: "12%" }}
+            >
+              {state.rotation[2]}
+            </div>
+          )}
 
-      {!resolvedWinner && !resolvedDraw && (
-        <GiantBoard
-          smallBoards={state.smallBoards}
-          bigBoard={state.bigBoard}
-          activeBigs={state.activeBigs}
-          onPlay={handlePlay}
-          onHover={onHover}
-          entering={boardEntering}
-        />
-      )}
+          {!resolvedWinner && !resolvedDraw && (
+            <GiantBoard
+              smallBoards={state.smallBoards}
+              bigBoard={state.bigBoard}
+              activeBigs={state.activeBigs}
+              onPlay={handlePlay}
+              onHover={onHover}
+              entering={boardEntering}
+            />
+          )}
 
-      {(resolvedWinner || resolvedDraw) && (
-        <div
-          className={resolvedWinner ? "wonBigBoard" : "drawBigBoard"}
-          onClick={(e) => {
-            e.currentTarget.classList.add("fade-out");
-            setTimeout(() => setConfig(null), 500);
-          }}
-        >
-          {resolvedWinner ? resolvedWinner : state.rotation.join("/")}
-        </div>
-      )}
-    </main>
+          {(resolvedWinner || resolvedDraw) && (
+            <div
+              className={resolvedWinner ? "wonBigBoard" : "drawBigBoard"}
+              onClick={(e) => {
+                e.currentTarget.classList.add("fade-out");
+                setTimeout(() => {
+                  if (onExit) onExit();
+                }, 500);
+              }}
+            >
+              {resolvedWinner ? resolvedWinner : state.rotation.join("/")}
+            </div>
+          )}
+        </main>
+    </>
   );
 }

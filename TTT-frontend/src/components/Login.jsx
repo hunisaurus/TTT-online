@@ -39,7 +39,7 @@ function Login({ className = "", style, onSubmit, onRegister }) {
 
   async function handleSubmit(e) {
     e.preventDefault();
-    // Basic client-side validation
+    
     if (!data.username || !data.password) {
       alert("Please enter username and password");
       return;
@@ -54,7 +54,9 @@ function Login({ className = "", style, onSubmit, onRegister }) {
         },
         body: JSON.stringify(data),
       });
+
       if (resp.ok) {
+        {/* TODO: Save Auth string in state or http cookie! (attach every time)*/}
         alert("Successful login!");
         onSubmit && onSubmit(data);
       } else {
