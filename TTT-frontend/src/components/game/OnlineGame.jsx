@@ -12,7 +12,7 @@ import {
 } from "../../state/gameLogic";
 import "../../styles.css";
 
-export default function Game({ config, onExit }) {
+export default function OnlineGame({ config, onExit }) {
   const [state, setState] = useState(null);
   const { play } = useAudio();
   const [boardEntering, setBoardEntering] = useState(false);
@@ -39,9 +39,7 @@ export default function Game({ config, onExit }) {
     setState({
       smallBoards,
       bigBoard,
-      activeBigs,
-      rotation: config.rotation,
-      moves: [],
+      activeBigs
     });
     setBoardEntering(true);
     setPlayersEntering(true);
@@ -62,13 +60,9 @@ export default function Game({ config, onExit }) {
   }, [config, state, playersEntering]);
 
   const currentPlayer = useMemo(() => {
-    if (!state || !config) return "";
-    const n = state.moves.length;
-    if (config.mode === "pvp" && config.playerCount === 3) {
-      return state.rotation[n % 3];
-    }
-    return state.rotation[n % 2];
-  }, [state, config]);
+    if (!state) return "";
+    return state.currentPlayer;
+  }, [state]);
 
   const resolvedWinner = useMemo(() => {
     if (!state) return "";
@@ -166,53 +160,53 @@ export default function Game({ config, onExit }) {
   return (
     <>
       <main>
+        <div
+          id="playerOneElement"
+          className={`playerElement leftPlayer ${playersEntering ? "outLeft" : ""} ${currentPlayer === state.rotation[0] ? "activePlayer" : ""}`}
+        >
+          {state.rotation[0]}
+        </div>
+        <div
+          id="playerTwoElement"
+          className={`playerElement rightPlayer ${playersEntering ? "outRight" : ""} ${currentPlayer === state.rotation[1] ? "activePlayer" : ""}`}
+        >
+          {state.rotation[1]}
+        </div>
+        {config.mode === "pvp" && config.playerCount === 3 && (
           <div
-            id="playerOneElement"
-            className={`playerElement leftPlayer ${playersEntering ? "outLeft" : ""} ${currentPlayer === state.rotation[0] ? "activePlayer" : ""}`}
+            id="playerThreeElement"
+            className={`playerElement rightPlayer ${playersEntering ? "outAbove" : ""} ${currentPlayer === state.rotation[2] ? "activePlayer" : ""}`}
+            style={{ top: "12%" }}
           >
-            {state.rotation[0]}
+            {state.rotation[2]}
           </div>
+        )}
+
+        {!resolvedWinner && !resolvedDraw && (
+          <GiantBoard
+            smallBoards={state.smallBoards}
+            bigBoard={state.bigBoard}
+            activeBigs={state.activeBigs}
+            onPlay={handlePlay}
+            onHover={onHover}
+            entering={boardEntering}
+          />
+        )}
+
+        {(resolvedWinner || resolvedDraw) && (
           <div
-            id="playerTwoElement"
-            className={`playerElement rightPlayer ${playersEntering ? "outRight" : ""} ${currentPlayer === state.rotation[1] ? "activePlayer" : ""}`}
+            className={resolvedWinner ? "wonBigBoard" : "drawBigBoard"}
+            onClick={(e) => {
+              e.currentTarget.classList.add("fade-out");
+              setTimeout(() => {
+                if (onExit) onExit();
+              }, 500);
+            }}
           >
-            {state.rotation[1]}
+            {resolvedWinner ? resolvedWinner : state.rotation.join("/")}
           </div>
-          {config.mode === "pvp" && config.playerCount === 3 && (
-            <div
-              id="playerThreeElement"
-              className={`playerElement rightPlayer ${playersEntering ? "outAbove" : ""} ${currentPlayer === state.rotation[2] ? "activePlayer" : ""}`}
-              style={{ top: "12%" }}
-            >
-              {state.rotation[2]}
-            </div>
-          )}
-
-          {!resolvedWinner && !resolvedDraw && (
-            <GiantBoard
-              smallBoards={state.smallBoards}
-              bigBoard={state.bigBoard}
-              activeBigs={state.activeBigs}
-              onPlay={handlePlay}
-              onHover={onHover}
-              entering={boardEntering}
-            />
-          )}
-
-          {(resolvedWinner || resolvedDraw) && (
-            <div
-              className={resolvedWinner ? "wonBigBoard" : "drawBigBoard"}
-              onClick={(e) => {
-                e.currentTarget.classList.add("fade-out");
-                setTimeout(() => {
-                  if (onExit) onExit();
-                }, 500);
-              }}
-            >
-              {resolvedWinner ? resolvedWinner : state.rotation.join("/")}
-            </div>
-          )}
-        </main>
+        )}
+      </main>
     </>
   );
 }

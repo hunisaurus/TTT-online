@@ -1,6 +1,6 @@
 
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import Game from "./components/game/Game";
+import Home from "./components/Home";
 import "./styles.css";
 
 export default function App() {
@@ -8,7 +8,7 @@ export default function App() {
     <main>
       <Router>
         <Routes>
-          <Route path="/" element={<Game />} />
+          <Route path="/" element={<Home />} />
         </Routes>
       </Router>
     </main>
