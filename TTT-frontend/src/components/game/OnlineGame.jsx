@@ -59,7 +59,10 @@ export default function OnlineGame({ config, onExit }) {
     }
   }, [config, state, playersEntering]);
 
+
+  // TODO currentPlayer-t state-be rakni majd backendbol
   const currentPlayer = useMemo(() => {
+    if (!state) return "";
     if (!state) return "";
     return state.currentPlayer;
   }, [state]);
@@ -118,41 +121,7 @@ export default function OnlineGame({ config, onExit }) {
       moves,
     });
   };
-
-  const maybeAiTurn = async () => {
-    if (!config || !state) return;
-    if (config.mode !== "pve") return;
-    const ai = config.rotation[1];
-    const next = currentPlayer;
-    if (next !== ai) return;
-
-    await new Promise((r) => setTimeout(r, 300));
-
-    const playable = [];
-    state.activeBigs.forEach((key) => {
-      const [br, bc] = key.split(",").map(Number);
-      const board = state.smallBoards[br][bc];
-      for (let sr = 0; sr < 3; sr++)
-        for (let sc = 0; sc < 3; sc++) {
-          if (!board[sr][sc]) playable.push([br, bc, sr, sc]);
-        }
-    });
-    if (!playable.length) return;
-    const choice = playable[Math.floor(Math.random() * playable.length)];
-    handlePlay(...choice);
-    play("computer");
-  };
-
-  if (
-    config &&
-    state &&
-    config.mode === "pve" &&
-    !resolvedWinner &&
-    !resolvedDraw
-  ) {
-    queueMicrotask(maybeAiTurn);
-  }
-
+  
   const onHover = () => play("hover");
 
   if (!config || !state) return null;
