@@ -26,7 +26,7 @@ CREATE TABLE games
     current_player INTEGER REFERENCES users (id)
 );
 
-CREATE TABLE game_users
+CREATE TABLE players
 (
     game_id   INTEGER REFERENCES games (id) NOT NULL,
     user_id   INTEGER REFERENCES users (id) NOT NULL,

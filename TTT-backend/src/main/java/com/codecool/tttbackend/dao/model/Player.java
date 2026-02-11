@@ -1,11 +1,11 @@
 package com.codecool.tttbackend.dao.model;
 
-public class GameUser {
+public class Player {
 
     private User user;
     private Character character;
 
-    public GameUser(){
+    public Player(){
     }
 
     public void setUser(User user) {
