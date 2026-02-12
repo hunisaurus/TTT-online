@@ -3,6 +3,7 @@ package com.codecool.tttbackend.controller;
 import com.codecool.tttbackend.controller.dto.CreateGameRequest;
 import com.codecool.tttbackend.controller.dto.JoinGameRequest;
 import com.codecool.tttbackend.controller.dto.MoveRequest;
+import com.codecool.tttbackend.controller.dto.LeaveGameRequest;
 import com.codecool.tttbackend.dao.model.game.Game;
 import com.codecool.tttbackend.service.GameService;
 import org.springframework.http.HttpStatus;
@@ -21,9 +22,9 @@ public class GameController {
         this.gameService = gameService;
     }
 
-    @PostMapping
+    @PostMapping("/create")
     public ResponseEntity<Void> createGame(@RequestBody CreateGameRequest request) {
-        gameService.createGame(request.userName());
+        gameService.createGame(request.userName(), request.gameName(), request.maxPlayerCount());
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
@@ -38,9 +39,21 @@ public class GameController {
         return ResponseEntity.ok().build();
     }
 
+    @PatchMapping("/{id}/leave")
+    public ResponseEntity<Void> leaveGame(@PathVariable int id, @RequestBody LeaveGameRequest leaveGameRequest) {
+        gameService.leaveGame(id, leaveGameRequest.userName());
+        return ResponseEntity.ok().build();
+    }
+
     @PatchMapping("/{id}/start")
     public ResponseEntity<Void> startGame(@PathVariable int id){
-        // gameService.
+        gameService.startGame(id);
+        return ResponseEntity.ok().build();
+    }
+
+    @PatchMapping("/{id}/end")
+    public ResponseEntity<Void> endGame(@PathVariable int id){
+        gameService.endGame(id);
         return ResponseEntity.ok().build();
     }
 

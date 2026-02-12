@@ -16,12 +16,14 @@ import java.util.List;
 public class GameDAOJdbc implements GameDAO {
 
     private final JdbcTemplate jdbcTemplate;
+    private UserDAO userDAO;
 
     public GameDAOJdbc(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
+        this.userDAO = new UserDAOJdbc(jdbcTemplate);
     }
 
-    private RowMapper<Player> gameUserMapper = (rs, rowNum) -> {
+    private RowMapper<Player> playerMapper = (rs, rowNum) -> {
         User u = new User();
         u.setId(rs.getLong("id"));
         u.setEmail(rs.getString("email"));
@@ -39,8 +41,12 @@ public class GameDAOJdbc implements GameDAO {
     private RowMapper<Game> gameMapper = (rs, rowNum) -> {
         Game game = new Game();
         game.setId(rs.getInt("id"));
-        game.setGameState(GameState.valueOf(rs.getString("game_state")));
         game.setName(rs.getString("name"));
+        game.setCreator(userDAO.findUserById(rs.getLong("creator_id")));
+        game.setMaxPlayers(rs.getInt("max_players"));
+        game.setPlayers(findPlayersByGameId(rs.getInt("id")));
+        game.setCurrentPlayer(userDAO.findUserById(rs.getLong("current_player")));
+        game.setGameState(GameState.valueOf(rs.getString("game_state")));
         game.setTimeCreated(rs.getTimestamp("creation_date").toLocalDateTime());
         return game;
     };
@@ -60,12 +66,12 @@ public class GameDAOJdbc implements GameDAO {
     public List<Player> findPlayersByGameId(int gameId) {
         return jdbcTemplate.query(
                 """
-                SELECT u.*, gu.character
+                SELECT u.*, p.character
                 FROM users u
                 JOIN players p ON u.id = p.user_id
-                WHERE gu.game_id = ?
+                WHERE p.game_id = ?
                 """,
-                gameUserMapper,
+                playerMapper,
                 gameId
         );
     }
@@ -98,7 +104,7 @@ public class GameDAOJdbc implements GameDAO {
                 Integer.class,
                 game.getName(),
                 Timestamp.valueOf(game.getTimeCreated()),
-                game.getGameState()
+                game.getGameState().name()
         );
 
         if (gameId == null) return;
@@ -106,7 +112,7 @@ public class GameDAOJdbc implements GameDAO {
         game.setId(gameId);
 
         if (game.getPlayers() != null) {
-            String joinSql = "INSERT INTO game_users (game_id, user_id) VALUES (?, ?)";
+            String joinSql = "INSERT INTO players (game_id, user_id) VALUES (?, ?)";
             for (Player player : game.getPlayers()) {
                 jdbcTemplate.update(joinSql, gameId, player.getUser().getId());
             }
@@ -119,7 +125,7 @@ public class GameDAOJdbc implements GameDAO {
         jdbcTemplate.update(
                 sql,
                 game.getName(),
-                game.getGameState(),
+                game.getGameState().name(),
                 Timestamp.valueOf(game.getTimeCreated()),
                 game.getId()
         );

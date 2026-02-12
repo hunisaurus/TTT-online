@@ -16,20 +16,35 @@ public class GameService {
 
    private final GameDAO gameDAO;
    private final UserService userService;
+   private final UserDAO userDAO;
 
    @Autowired
-   public GameService(GameDAO gameDAO, UserService userService) {
+   public GameService(GameDAO gameDAO, UserService userService, UserDAO userDAO) {
       this.gameDAO = gameDAO;
       this.userService = userService;
+      this.userDAO = userDAO;
    }
 
-   public void createGame(String name) {
+   public void createGame(String creatorName, String gameName, int maxPlayers) {
+      User creator = userDAO.findByUsername(creatorName);
       Game game = new Game();
-      game.setName(name);
+      game.setCreator(creator);
+      game.setName(gameName);
+      game.setMaxPlayers(maxPlayers);
       game.setTimeCreated(LocalDateTime.now());
       game.setGameState(GameState.WAITING);
 
       gameDAO.addGame(game);
+   }
+
+   public void startGame(int id){
+      Game game = gameDAO.findGameById(id);
+      if (game == null){
+         throw new IllegalArgumentException("Game not found: " + id);
+      }
+      game.setGameState(GameState.IN_PROGRESS);
+
+      gameDAO.updateGame(game);
    }
 
    public void endGame(int id) {
@@ -37,7 +52,9 @@ public class GameService {
       if (game == null) {
          throw new IllegalArgumentException("Game not found: " + id);
       }
-      gameDAO.removeGame(game);
+      game.setGameState(GameState.ENDED);
+
+      gameDAO.updateGame(game);
    }
 
    public void joinGame(int id, String userName, char character) {
@@ -51,21 +68,23 @@ public class GameService {
       player.setUser(userService.getUserByUserName(userName));
       player.setCharacter(character);
 
-      game.addUser(player);
+      game.addPlayer(player);
       gameDAO.updateGame(game);
    }
 
-   public void leaveGame(int id, User user) {
+   public void leaveGame(int id, String userName) {
       Game game = gameDAO.findGameById(id);
       if (game == null) {
          throw new IllegalArgumentException("Game not found: " + id);
       }
 
-      List<Player> users = gameDAO.findPlayersByGameId(game.getId());
+      User user = userDAO.findByUsername(userName);
+
+      List<Player> players = gameDAO.findPlayersByGameId(game.getId());
 
       for(Player player : users) {
          if (player.getUser().getId().equals(user.getId())){
-            game.removeUser(player);
+            game.removePlayer(player);
          }
       }
 
