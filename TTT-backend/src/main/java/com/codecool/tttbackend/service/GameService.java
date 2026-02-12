@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -140,6 +141,13 @@ public class GameService {
       player.setUser(user);
       return player;
    }
+
+    public List<Game> listUserGames(String username) {
+        User user = userService.getUserByUserName(username);
+        if (user == null) return new ArrayList<>();
+
+        return gameDAO.getAllGamesByUserId(user.getId());
+    }
 
 }
 
