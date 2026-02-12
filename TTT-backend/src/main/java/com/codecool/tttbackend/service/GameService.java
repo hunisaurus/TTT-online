@@ -106,5 +106,6 @@ public class GameService {
    public List<Game> listAllGames() {
       return gameDAO.getAllGames();
    }
+
 }
 

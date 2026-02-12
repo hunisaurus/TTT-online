@@ -29,8 +29,8 @@ CREATE TABLE games
 
 CREATE TABLE players
 (
-    game_id   INTEGER REFERENCES games (id) NOT NULL,
-    user_id   INTEGER REFERENCES users (id) NOT NULL,
-    character VARCHAR(1),
+    game_id    INTEGER REFERENCES games (id) NOT NULL,
+    user_id    INTEGER REFERENCES users (id) NOT NULL,
+    character  VARCHAR(1),
     PRIMARY KEY (game_id, user_id)
 );
