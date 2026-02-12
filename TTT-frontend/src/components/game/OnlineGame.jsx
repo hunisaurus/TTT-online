@@ -19,29 +19,33 @@ export default function OnlineGame({ config, onExit }) {
   const [boardEntering, setBoardEntering] = useState(false);
   const [playersEntering, setPlayersEntering] = useState(false);
 
+
   useEffect(() => {
-    if (!config) {
-      setState(null);
-      return;
-    }
-    const smallBoards = makeSmallBoards();
-    const bigBoard = makeEmptyBoard();
-    const activeBigs = new Set([
-      "0,0",
-      "0,1",
-      "0,2",
-      "1,0",
-      "1,1",
-      "1,2",
-      "2,0",
-      "2,1",
-      "2,2"
-    ]);
-    setState({
-      smallBoards,
-      bigBoard,
-      activeBigs
+    if (!config?.gameId) return;
+
+    const client = new Client({
+      webSocketFactory: () => new SockJS("http://localhost:8080/ws"),
+      reconnectDelay: 5000,
+      onConnect: () => {
+        client.subscribe(`/topic/games/${config.gameId}`, (msg) => {
+          const body = JSON.parse(msg.body);
+
+          setState({
+            smallBoards: body.smallBoards,
+            bigBoard: body.bigBoard,
+            activeBigs: new Set(body.activeBoards),
+            currentPlayer: body.currentPlayer,  // maybe body.currentPlayer.character
+            winner: body.winner
+          });
+        });
+      },
     });
+
+    client.activate();
+    return () => client.deactivate();
+  }, [config?.gameId]);
+
+  useEffect(() => {
     setBoardEntering(true);
     setPlayersEntering(true);
   }, [config]);
@@ -61,17 +65,10 @@ export default function OnlineGame({ config, onExit }) {
   }, [config, state, playersEntering]);
 
 
-  // TODO currentPlayer-t state-be rakni majd backendbol
-  const currentPlayer = useMemo(() => {
-    if (!state) return "";
-    if (!state) return "";
-    return state.currentPlayer;
-  }, [state]);
-
-  const resolvedWinner = useMemo(() => {
-    if (!state) return "";
-    return getWinner(state.bigBoard);
-  }, [state]);
+  const resolvedWinner = useMemo(()=>{
+    if (!state) return false;
+    if (state.winner) return state.winner.character;
+  }, [state])
 
   const resolvedDraw = useMemo(() => {
     if (!state) return false;
@@ -91,7 +88,7 @@ export default function OnlineGame({ config, onExit }) {
       return;
     }
     play("click");
-    sb[br][bc][sr][sc] = currentPlayer;
+    sb[br][bc][sr][sc] = currentPlayer.character;
 
     const bb = state.bigBoard.map((r) => [...r]);
 
@@ -111,7 +108,7 @@ export default function OnlineGame({ config, onExit }) {
 
     const moves = [
       ...state.moves,
-      { bb: [br, bc], cell: [sr, sc], player: currentPlayer },
+      { bb: [br, bc], cell: [sr, sc], player: currentPlayer.character },
     ];
 
     setState({
@@ -132,20 +129,20 @@ export default function OnlineGame({ config, onExit }) {
       <main>
         <div
           id="playerOneElement"
-          className={`playerElement leftPlayer ${playersEntering ? "outLeft" : ""} ${currentPlayer === state.rotation[0] ? "activePlayer" : ""}`}
+          className={`playerElement leftPlayer ${playersEntering ? "outLeft" : ""} ${currentPlayer.character === state.rotation[0] ? "activePlayer" : ""}`}
         >
           {state.rotation[0]}
         </div>
         <div
           id="playerTwoElement"
-          className={`playerElement rightPlayer ${playersEntering ? "outRight" : ""} ${currentPlayer === state.rotation[1] ? "activePlayer" : ""}`}
+          className={`playerElement rightPlayer ${playersEntering ? "outRight" : ""} ${currentPlayer.character === state.rotation[1] ? "activePlayer" : ""}`}
         >
           {state.rotation[1]}
         </div>
         {config.playerCount === 3 && (
           <div
             id="playerThreeElement"
-            className={`playerElement rightPlayer ${playersEntering ? "outAbove" : ""} ${currentPlayer === state.rotation[2] ? "activePlayer" : ""}`}
+            className={`playerElement rightPlayer ${playersEntering ? "outAbove" : ""} ${currentPlayer.character === state.rotation[2] ? "activePlayer" : ""}`}
             style={{ top: "12%" }}
           >
             {state.rotation[2]}
