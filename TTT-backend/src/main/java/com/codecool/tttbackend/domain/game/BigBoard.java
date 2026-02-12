@@ -25,7 +25,7 @@ public class BigBoard implements Board{
       this.smallBoards = smallBoards;
    }
 
-   public static BigBoard createBigBoard(String boardState, List<Position> activeBoards) {
+   public static BigBoard createBigBoard(String boardState, Position activeBoard) {
       if (boardState == null) {
          throw new NullPointerException("Big board cannot be created: input string is null!");
       }
@@ -55,7 +55,7 @@ public class BigBoard implements Board{
             }
             SmallBoard smallBoard = SmallBoard.smallBoardFromString(sb.toString());
             Position smallBoardPosition = new Position(sr, sc);
-            if (activeBoards.contains(smallBoardPosition)) smallBoard.setActive(true);
+            if (activeBoard == null && !smallBoard.isFull() || activeBoard.equals(smallBoardPosition)) smallBoard.setActive(true);
             newBigBoard.setSmallBoard(smallBoardPosition, smallBoard);
          }
       }

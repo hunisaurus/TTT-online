@@ -65,7 +65,7 @@ public class SmallBoard implements Board{
       return null;
    }
 
-   private boolean isFull() {
+   public boolean isFull() {
       for (int r = 0; r < 3; r++) {
          for (int c = 0; c < 3; c++) {
             if (cells[r][c] == null || cells[r][c] == '_') return false;

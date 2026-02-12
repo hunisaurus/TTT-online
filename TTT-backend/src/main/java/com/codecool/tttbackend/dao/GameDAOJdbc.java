@@ -5,6 +5,7 @@ import com.codecool.tttbackend.dao.model.game.GameState;
 import com.codecool.tttbackend.dao.model.game.Player;
 import com.codecool.tttbackend.dao.model.User;
 import com.codecool.tttbackend.dao.model.game.Position;
+import com.codecool.tttbackend.domain.game.BigBoard;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
@@ -43,13 +44,20 @@ public class GameDAOJdbc implements GameDAO {
         Game game = new Game();
         game.setId(rs.getInt("id"));
         game.setName(rs.getString("name"));
-        game.setCreator(userDAO.findUserById(rs.getLong("creator_id")));
         game.setMaxPlayers(rs.getInt("max_players"));
+        game.setCreator(userDAO.findUserById(rs.getLong("creator_id")));
         game.setPlayers(findPlayersByGameId(rs.getInt("id")));
         game.setCurrentPlayer(findPlayer(game.getId(), rs.getInt("current_player")));
         game.setGameState(GameState.valueOf(rs.getString("game_state")));
         game.setTimeCreated(rs.getTimestamp("creation_date").toLocalDateTime());
+        game.setBoard(BigBoard.createBigBoard(rs.getString("board_state"), getActiveBoardByGameId(game.getId())));
         return game;
+    };
+
+    private final RowMapper<Position> positionMapper = (rs, rowNum) ->  {
+        String activeBoard = rs.getString("active_board");
+        if (activeBoard == null) return null;
+        return Position.positionFromString(activeBoard);
     };
 
 
@@ -141,12 +149,25 @@ public class GameDAOJdbc implements GameDAO {
 
     @Override
     public void updateGame(Game game) {
-        String sql = "UPDATE games SET name = ?, game_state = ?, creation_date = ? WHERE id = ?";
+        String sql = "UPDATE games SET name = ?, game_state = ?, creation_date = ?, active_board = ?, current_player = ?, board_state = ? WHERE id = ?";
+
+        Position activeBoardPosition = getActiveBoardPosition(game.getBoard());
+        String activeBoardDbValue = activeBoardPosition == null ? null : activeBoardPosition.toString();
+
+        Long currentPlayerId = game.getCurrentPlayer() == null || game.getCurrentPlayer().getUser() == null
+                ? null
+                : game.getCurrentPlayer().getUser().getId();
+
+        String boardState = game.getBoard() == null ? null : game.getBoard().toString();
+
         jdbcTemplate.update(
                 sql,
                 game.getName(),
                 game.getGameState().name(),
                 Timestamp.valueOf(game.getTimeCreated()),
+                activeBoardDbValue,
+                currentPlayerId,
+                boardState,
                 game.getId()
         );
 
@@ -162,18 +183,22 @@ public class GameDAOJdbc implements GameDAO {
 
     @Override
     public Position getActiveBoardByGameId(int id) {
-            Game game = jdbcTemplate.queryForObject(
-                "SELECT active_board FROM games WHERE id = ?",
-                gameMapper,
-                id
-            );
-
-
-            return game;
+       return jdbcTemplate.queryForObject(
+           "SELECT active_board FROM games WHERE id = ?",
+           positionMapper,
+           id
+       );
     }
 
     @Override
     public void removeGame(Game game){
         jdbcTemplate.update("DELETE FROM games WHERE id = ?", game.getId());
+    }
+
+    private Position getActiveBoardPosition(BigBoard bigBoard){
+        if (bigBoard == null) return null;
+        List<Position> activeBoardPositions = bigBoard.getActiveBoardPositions();
+        if (activeBoardPositions == null || activeBoardPositions.size() != 1) return null;
+        return activeBoardPositions.getFirst();
     }
 }
