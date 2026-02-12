@@ -149,7 +149,7 @@ public class GameDAOJdbc implements GameDAO {
 
     @Override
     public void updateGame(Game game) {
-        String sql = "UPDATE games SET name = ?, game_state = ?, creation_date = ?, active_board = ?, current_player = ?, board_state = ? WHERE id = ?";
+        String sql = "UPDATE games SET name = ?, game_state = ?, creation_date = ?, active_board = ?, current_player = ?, board_state = ?, winner = ? WHERE id = ?";
 
         Position activeBoardPosition = getActiveBoardPosition(game.getBoard());
         String activeBoardDbValue = activeBoardPosition == null ? null : activeBoardPosition.toString();
@@ -169,6 +169,7 @@ public class GameDAOJdbc implements GameDAO {
                 currentPlayerId,
                 boardState,
                 game.getId()
+//                game.setWinner();
         );
 
         jdbcTemplate.update("DELETE FROM players WHERE game_id = ?", game.getId());

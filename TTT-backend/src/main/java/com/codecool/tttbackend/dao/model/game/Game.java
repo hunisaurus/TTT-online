@@ -18,6 +18,7 @@ public class Game {
    private Player currentPlayer;
    private int maxPlayers;
    private BigBoard board;
+   private Player winner;
 
    public Game() {
       board = new BigBoard();
@@ -106,5 +107,9 @@ public class Game {
 
    public void setBoard(BigBoard board) {
       this.board = board;
+   }
+
+   public void setWinner(Player winner) {
+      this.winner = winner;
    }
 }
