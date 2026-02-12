@@ -46,8 +46,10 @@ public class GameDAOJdbc implements GameDAO {
       game.setId(rs.getInt("id"));
       game.setName(rs.getString("name"));
       game.setMaxPlayers(rs.getInt("max_players"));
+
       game.setCreator(userDAO.findUserById(rs.getInt("creator_id")));
       game.setPlayers(findPlayersByGameId(rs.getInt("id")));
+
       game.setCurrentPlayer(findPlayer(game.getId(), rs.getInt("current_player")));
       game.setGameState(GameState.valueOf(rs.getString("game_state")));
       game.setTimeCreated(rs.getTimestamp("creation_date").toLocalDateTime());
