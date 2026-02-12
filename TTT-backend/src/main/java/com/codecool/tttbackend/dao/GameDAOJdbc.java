@@ -14,6 +14,7 @@ import org.springframework.stereotype.Repository;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @Repository
 public class GameDAOJdbc implements GameDAO {
@@ -52,6 +53,7 @@ public class GameDAOJdbc implements GameDAO {
       game.setGameState(GameState.valueOf(rs.getString("game_state")));
       game.setTimeCreated(rs.getTimestamp("creation_date").toLocalDateTime());
       game.setBoard(BigBoard.createBigBoard(rs.getString("board_state"), getActiveBoardByGameId(game.getId())));
+      game.setWinner(findPlayer(game.getId(), rs.getInt("winner_id")));
       return game;
    };
 
@@ -151,7 +153,7 @@ public class GameDAOJdbc implements GameDAO {
 
    @Override
    public void updateGame(Game game) {
-      String sql = "UPDATE games SET name = ?, game_state = ?, active_board = ?, current_player = ?, board_state = ?, winner = ? WHERE id = ?";
+      String sql = "UPDATE games SET name = ?, game_state = ?, active_board = ?, current_player = ?, board_state = ?, winner_id = ? WHERE id = ?";
 
       Position activeBoardPosition = getActiveBoardPosition(game.getBoard());
       String activeBoardDbValue = activeBoardPosition == null ? null : activeBoardPosition.toString();
@@ -169,7 +171,7 @@ public class GameDAOJdbc implements GameDAO {
           activeBoardDbValue,
           currentPlayerId,
           boardState,
-          GameLogic.getWinningPlayer(game),
+          game.getWinner().getUser().getId(),
           game.getId()
       );
 

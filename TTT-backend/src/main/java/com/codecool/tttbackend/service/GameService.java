@@ -5,6 +5,7 @@ import com.codecool.tttbackend.dao.model.game.Game;
 import com.codecool.tttbackend.dao.model.game.GameState;
 import com.codecool.tttbackend.dao.model.game.Player;
 import com.codecool.tttbackend.dao.model.User;
+import com.codecool.tttbackend.domain.game.GameLogic;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -94,15 +95,13 @@ public class GameService {
       gameDAO.updateGame(game);
    }
 
-   public void winGame(int id, String winnerName){
+   public void winGame(int id){
       Game game = gameDAO.findGameById(id);
       if (game == null) {
          throw new IllegalArgumentException("Game not found: " + id);
       }
 
-      User user = userService.getUserByUserName(winnerName);
-
-      Player winner = gameDAO.findPlayer(game.getId(), user.getId().intValue());
+      Player winner = GameLogic.getWinningPlayer(game);
 
       game.setWinner(winner);
 

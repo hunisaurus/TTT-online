@@ -2,6 +2,7 @@ package com.codecool.tttbackend.dao.model.game;
 
 import com.codecool.tttbackend.dao.model.User;
 import com.codecool.tttbackend.domain.game.BigBoard;
+import org.jspecify.annotations.Nullable;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -111,5 +112,9 @@ public class Game {
 
    public void setWinner(Player winner) {
       this.winner = winner;
+   }
+
+   public Player getWinner() {
+      return winner;
    }
 }

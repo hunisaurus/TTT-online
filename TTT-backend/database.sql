@@ -20,7 +20,7 @@ CREATE TABLE games
     creator_id     INTEGER REFERENCES users (id),
     name           VARCHAR(255) NOT NULL,
     game_state     VARCHAR(100) NOT NULL CHECK (game_state IN ('WAITING', 'IN_PROGRESS', 'ENDED')),
-    winner         INTEGER REFERENCES users (id),
+    winner_id      INTEGER REFERENCES users (id),
     max_players    INTEGER,
     board_state    VARCHAR(100),
     current_player INTEGER REFERENCES users (id),
