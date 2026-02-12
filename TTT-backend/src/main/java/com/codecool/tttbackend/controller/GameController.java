@@ -63,4 +63,11 @@ public class GameController {
         gameService.makeMove(int gameId, new Move);
         return ResponseEntity.ok().build();
     }
+
+    @PatchMapping("/{id}/win")
+    public ResponseEntity<Void> winGame(@PathVariable int id, @RequestBody WinGameRequest winGameRequest){
+        gameService.winGame(id, winGameRequest.winnerName());
+        gameService.endGame(id);
+        return ResponseEntity.ok().build();
+    }
 }

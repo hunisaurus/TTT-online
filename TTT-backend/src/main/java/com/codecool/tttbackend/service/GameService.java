@@ -95,6 +95,21 @@ public class GameService {
       gameDAO.updateGame(game);
    }
 
+   public void winGame(int id, String winnerName){
+      Game game = gameDAO.findGameById(id);
+      if (game == null) {
+         throw new IllegalArgumentException("Game not found: " + id);
+      }
+
+      User user = userService.getUserByUserName(winnerName);
+
+      Player winner = gameDAO.findPlayer(game.getId(), user.getId().intValue());
+
+      game.setWinner(winner);
+
+      gameDAO.updateGame(game);
+   }
+
    public void updateGameState(int id, GameState gameState) {
       Game game = gameDAO.findGameById(id);
       if (game == null) {
