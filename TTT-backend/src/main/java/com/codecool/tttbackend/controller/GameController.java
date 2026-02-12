@@ -15,7 +15,7 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-
+@CrossOrigin(origins = "http://localhost:5173")
 @RestController
 @RequestMapping("/games")
 public class GameController {
@@ -34,10 +34,13 @@ public class GameController {
       return ResponseEntity.status(HttpStatus.CREATED).build();
    }
 
-   @GetMapping
-   public ResponseEntity<List<Game>> getAllGames() {
-      return ResponseEntity.ok(gameService.listAllGames());
-   }
+    @GetMapping
+    public ResponseEntity<List<Game>> getMyGames(@RequestParam(required = false) String username) {
+        System.out.println("Beérkező kérés username: " + username); // LOG
+        List<Game> games = gameService.listUserGames(username);
+        System.out.println("Talált játékok száma: " + games.size()); // LOG
+        return ResponseEntity.ok(games);
+    }
 
    @PatchMapping("/{id}/join")
    public ResponseEntity<Void> joinGame(@PathVariable int id, @RequestBody JoinGameRequest joinGameRequest) {

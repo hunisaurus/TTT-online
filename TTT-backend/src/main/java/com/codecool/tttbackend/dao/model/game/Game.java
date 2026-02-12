@@ -33,7 +33,7 @@ public class Game {
 
    public void removePlayer(Player player) {
       if (players != null) {
-         players.removeIf(u -> u.getUser().getId().equals(player.getUser().getId()));
+         players.removeIf(u -> u.getUser().getId() == (player.getUser().getId()));
       }
    }
 

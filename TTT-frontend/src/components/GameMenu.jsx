@@ -322,8 +322,7 @@ export default function GameMenu({onStart}) {
                 </button>
             </>)}
             {step === "createGame" && (
-                <CreateGame onContinue={(game) => {
-                    setCurrentGameId(game.id);
+                <CreateGame onContinue={() => {
                     go("char");
                 }} />
             )}
@@ -337,7 +336,7 @@ export default function GameMenu({onStart}) {
 
             {step === "onlineLoadList" && (
                 <OnlineLoadList
-                    currentUserId={localStorage.getItem('userId')}
+                    currentUserId={localStorage.getItem('userName')}
                     onSelect={(game) => {
                         play("click");
                         setCurrentGameId(game.id);

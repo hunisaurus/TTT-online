@@ -3,54 +3,56 @@ import { useState, useEffect } from "react";
 export default function OnlineLoadList({ onSelect, currentUserId }) {
     const [savedGames, setSavedGames] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
 
     useEffect(() => {
-
-        // fetch(`/api/games/user/${currentUserId}?state=IN_PROGRESS`)
-
+        console.log("Fetch indítása, felhasználó:", currentUserId);
         const fetchSavedGames = async () => {
             try {
-                const mockData = [
-                    { id: 101, name: "Esti Csata", creation_date: "2026-02-11", board_state: "XO_X_____" },
-                    { id: 105, name: "Revans", creation_date: "2026-02-12", board_state: "_________" }
-                ];
-                setSavedGames(mockData);
+                setLoading(true);
+
+                const response = await fetch(`http://localhost:8080/games?username=${currentUserId}`);
+
+                if (!response.ok) throw new Error("Cant reach the games");
+                const data = await response.json();
+
+                setSavedGames(data);
             } catch (err) {
-                console.error("Unsuccessfull load", err);
+                console.error("Error in Loading:", err);
+                setError(err.message);
             } finally {
                 setLoading(false);
             }
         };
 
-        fetchSavedGames();
+        if (currentUserId) {
+            fetchSavedGames();
+        }
     }, [currentUserId]);
+
     return (
         <div className="loginPanel" style={{ opacity: 1 }}>
             <h2 className="helptext">RESUME ONLINE GAME</h2>
             <div className="loginForm">
-                {loading ? (
-                    <p style={{ color: 'aquamarine', textAlign: 'center' }}>Loading saves...</p>
-                ) : savedGames.length > 0 ? (
+                {loading && <p style={{ color: 'aquamarine', textAlign: 'center' }}>Loading...</p>}
+                {error && <p style={{ color: 'red', textAlign: 'center' }}>{error}</p>}
+
+                {!loading && savedGames.length > 0 ? (
                     savedGames.map(game => (
                         <div
                             key={game.id}
                             className="server-item"
-                            style={{
-                                border: '1px solid blueviolet',
-                                padding: '10px',
-                                marginBottom: '10px',
-                                cursor: 'pointer'
-                            }}
+                            style={{ /* ... stílusok ... */ }}
                             onClick={() => onSelect(game)}
                         >
-                            <div style={{ fontWeight: 'bold' }}>{game.name}</div>
-                            <div style={{ fontSize: '0.8rem', color: 'gray' }}>
-                                Saved: {new Date(game.creation_date).toLocaleDateString()}
+                            <div style={{ fontWeight: 'bold', color: 'white' }}>{game.name}</div>
+                            <div style={{ fontSize: '0.8rem', color: '#ccc' }}>
+                                State: {game.gameState} | Created: {game.timeCreated ? new Date(game.timeCreated).toLocaleDateString() : "Unknown"}
                             </div>
                         </div>
                     ))
                 ) : (
-                    <p style={{ color: 'gray', textAlign: 'center' }}>No active games found.</p>
+                    !loading && <p style={{ color: 'gray', textAlign: 'center' }}>No active games found.</p>
                 )}
             </div>
         </div>

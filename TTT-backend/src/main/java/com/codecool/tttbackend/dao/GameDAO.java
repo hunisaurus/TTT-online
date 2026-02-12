@@ -16,4 +16,5 @@ public interface GameDAO {
     void removeGame(Game game);
     void updateGame(Game game);
     Position getActiveBoardByGameId(int id);
+    List<Game> getAllGamesByUserId(int userId);
 }

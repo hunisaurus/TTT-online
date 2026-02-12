@@ -41,19 +41,33 @@ public class GameDAOJdbc implements GameDAO {
       return gu;
    };
 
-   private final RowMapper<Game> gameMapper = (rs, rowNum) -> {
-      Game game = new Game();
-      game.setId(rs.getInt("id"));
-      game.setName(rs.getString("name"));
-      game.setMaxPlayers(rs.getInt("max_players"));
-      game.setCreator(userDAO.findUserById(rs.getInt("creator_id")));
-      game.setPlayers(findPlayersByGameId(rs.getInt("id")));
-      game.setCurrentPlayer(findPlayer(game.getId(), rs.getInt("current_player")));
-      game.setGameState(GameState.valueOf(rs.getString("game_state")));
-      game.setTimeCreated(rs.getTimestamp("creation_date").toLocalDateTime());
-      game.setBoard(BigBoard.createBigBoard(rs.getString("board_state"), getActiveBoardByGameId(game.getId())));
-      return game;
-   };
+    private final RowMapper<Game> gameMapper = (rs, rowNum) -> {
+        Game game = new Game();
+        game.setId(rs.getInt("id"));
+        game.setName(rs.getString("name"));
+        game.setMaxPlayers(rs.getInt("max_players"));
+        game.setCreator(userDAO.findUserById(rs.getInt("creator_id")));
+        game.setPlayers(findPlayersByGameId(rs.getInt("id")));
+
+        int currentPlayerId = rs.getInt("current_player");
+        if (currentPlayerId > 0) {
+            game.setCurrentPlayer(findPlayer(game.getId(), currentPlayerId));
+        } else {
+            game.setCurrentPlayer(null);
+        }
+
+        game.setGameState(GameState.valueOf(rs.getString("game_state")));
+        game.setTimeCreated(rs.getTimestamp("creation_date").toLocalDateTime());
+
+        String boardState = rs.getString("board_state");
+        if (boardState == null || boardState.isEmpty()) {
+            game.setBoard(new BigBoard());
+        } else {
+            game.setBoard(BigBoard.createBigBoard(boardState, getActiveBoardByGameId(game.getId())));
+        }
+
+        return game;
+    };
 
    private final RowMapper<Position> positionMapper = (rs, rowNum) -> {
       String activeBoard = rs.getString("active_board");
@@ -87,20 +101,23 @@ public class GameDAOJdbc implements GameDAO {
       );
    }
 
-   @Override
-   public Player findPlayer(int gameId, int userId) {
-      return jdbcTemplate.queryForObject(
-          """
-              SELECT u.*, p.character
-              FROM users u
-              JOIN players p ON u.id = p.user_id
-              WHERE p.game_id = ? AND p.user_id = ?
-              """,
-          playerMapper,
-          gameId,
-          userId
-      );
-   }
+    @Override
+    public Player findPlayer(int gameId, int userId) {
+        if (userId <= 0) return null;
+
+        List<Player> players = jdbcTemplate.query(
+                """
+                    SELECT u.*, p.character
+                    FROM users u
+                    JOIN players p ON u.id = p.user_id
+                    WHERE p.game_id = ? AND p.user_id = ?
+                    """,
+                playerMapper,
+                gameId,
+                userId
+        );
+        return players.isEmpty() ? null : players.get(0);
+    }
 
 
    @Override
@@ -149,48 +166,57 @@ public class GameDAOJdbc implements GameDAO {
       }
    }
 
-   @Override
-   public void updateGame(Game game) {
-      String sql = "UPDATE games SET name = ?, game_state = ?, active_board = ?, current_player = ?, board_state = ?, winner = ? WHERE id = ?";
+    @Override
+    public void updateGame(Game game) {
+        String sql = "UPDATE games SET name = ?, game_state = ?, active_board = ?, current_player = ?, board_state = ?, winner = ? WHERE id = ?";
+        Position activeBoardPosition = getActiveBoardPosition(game.getBoard());
+        String activeBoardDbValue = activeBoardPosition == null ? null : activeBoardPosition.toString();
 
-      Position activeBoardPosition = getActiveBoardPosition(game.getBoard());
-      String activeBoardDbValue = activeBoardPosition == null ? null : activeBoardPosition.toString();
+        Integer currentPlayerId = null;
+        if (game.getCurrentPlayer() != null && game.getCurrentPlayer().getUser() != null) {
+            currentPlayerId = game.getCurrentPlayer().getUser().getId();
+        }
 
-      int currentPlayerId = game.getCurrentPlayer() == null || game.getCurrentPlayer().getUser() == null
-          ? null
-          : game.getCurrentPlayer().getUser().getId();
+        Integer winnerId = null;
+        Player winningPlayer = GameLogic.getWinningPlayer(game);
+        if (winningPlayer != null && winningPlayer.getUser() != null) {
+            winnerId = winningPlayer.getUser().getId();
+        }
 
-      String boardState = game.getBoard() == null ? null : game.getBoard().toString();
+        String boardState = game.getBoard() == null ? null : game.getBoard().toString();
 
-      jdbcTemplate.update(
-          sql,
-          game.getName(),
-          game.getGameState().name(),
-          activeBoardDbValue,
-          currentPlayerId,
-          boardState,
-          GameLogic.getWinningPlayer(game),
-          game.getId()
-      );
+        jdbcTemplate.update(
+                sql,
+                game.getName(),
+                game.getGameState().name(),
+                activeBoardDbValue,
+                currentPlayerId,
+                boardState,
+                winnerId,
+                game.getId()
+        );
 
-      jdbcTemplate.update("DELETE FROM players WHERE game_id = ?", game.getId());
+        jdbcTemplate.update("DELETE FROM players WHERE game_id = ?", game.getId());
 
-      if (game.getPlayers() != null) {
-         String joinSql = "INSERT INTO players (game_id, user_id, character) VALUES (?, ?, ?)";
-         for (Player player : game.getPlayers()) {
-            jdbcTemplate.update(joinSql, game.getId(), player.getUser().getId(), player.getCharacter());
-         }
-      }
-   }
+        if (game.getPlayers() != null) {
+            String joinSql = "INSERT INTO players (game_id, user_id, character) VALUES (?, ?, ?)";
+            for (Player player : game.getPlayers()) {
+                if (player.getUser() != null) {
+                    jdbcTemplate.update(joinSql, game.getId(), player.getUser().getId(), player.getCharacter());
+                }
+            }
+        }
+    }
 
-   @Override
-   public Position getActiveBoardByGameId(int id) {
-      return jdbcTemplate.queryForObject(
-          "SELECT active_board FROM games WHERE id = ?",
-          positionMapper,
-          id
-      );
-   }
+    @Override
+    public Position getActiveBoardByGameId(int id) {
+        List<Position> positions = jdbcTemplate.query(
+                "SELECT active_board FROM games WHERE id = ?",
+                positionMapper,
+                id
+        );
+        return positions.isEmpty() ? null : positions.get(0);
+    }
 
    @Override
    public void removeGame(Game game) {
@@ -203,4 +229,15 @@ public class GameDAOJdbc implements GameDAO {
       if (activeBoardPositions == null || activeBoardPositions.size() != 1) return null;
       return activeBoardPositions.getFirst();
    }
+
+    @Override
+    public List<Game> getAllGamesByUserId(int userId) {
+        String sql = """
+        SELECT DISTINCT g.* FROM games g 
+        LEFT JOIN players p ON g.id = p.game_id 
+        WHERE g.creator_id = ? OR p.user_id = ?
+        """;
+
+        return jdbcTemplate.query(sql, gameMapper, userId, userId);
+    }
 }

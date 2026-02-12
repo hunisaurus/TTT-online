@@ -10,6 +10,13 @@ public class BigBoard implements Board {
 
    public BigBoard() {
       smallBoards = new SmallBoard[3][3];
+       for (int i = 0; i < 3; i++) {
+           for (int j = 0; j < 3; j++) {
+               smallBoards[i][j] = new SmallBoard();
+               smallBoards[i][j].setPosition(new com.codecool.tttbackend.dao.model.game.Position(i, j));
+               smallBoards[i][j].setActive(true);
+           }
+       }
    }
 
    public SmallBoard getSmallBoard(Position position) {
