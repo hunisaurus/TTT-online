@@ -1,9 +1,10 @@
+import { Client } from "@stomp/stompjs";
+import SockJS from "sockjs-client";
 import { useState, useMemo, useEffect } from "react";
 import GiantBoard from "./GiantBoard";
 import { useAudio } from "../../hooks/useAudio";
 import {
   makeSmallBoards,
-  makeBigBoard,
   getWinner,
   isFull3,
   nextActiveFromCell,

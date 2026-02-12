@@ -166,4 +166,36 @@ public class BigBoard implements Board {
          }
       }
    }
+
+   public String[][] toBigBoardStrings() {
+      String[][] big = new String[3][3];
+      for (int br = 0; br < 3; br++) {
+         for (int bc = 0; bc < 3; bc++) {
+            SmallBoard sb = smallBoards[br][bc];
+            Character winner = (sb == null) ? null : sb.getWinningCharacter();
+            big[br][bc] = (winner == null || winner == '_') ? "" : String.valueOf(winner);
+         }
+      }
+      return big;
+   }
+
+   public String[][][][] toSmallBoardsStrings() {
+      String[][][][] out = new String[3][3][3][3];
+
+      for (int br = 0; br < 3; br++) {
+         for (int bc = 0; bc < 3; bc++) {
+            SmallBoard sb = smallBoards[br][bc];
+            Character[][] cells = (sb == null) ? null : sb.getCells();
+
+            for (int sr = 0; sr < 3; sr++) {
+               for (int sc = 0; sc < 3; sc++) {
+                  Character ch = (cells == null) ? null : cells[sr][sc];
+                  out[br][bc][sr][sc] = (ch == null || ch == '_') ? "" : String.valueOf(ch);
+               }
+            }
+         }
+      }
+
+      return out;
+   }
 }

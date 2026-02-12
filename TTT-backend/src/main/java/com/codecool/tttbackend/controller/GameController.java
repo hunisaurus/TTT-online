@@ -85,7 +85,8 @@ public class GameController {
               currentPlayer.getCharacter(),
               currentPlayer.getNumberOfWins()
           ),
-          game.getBoard().toString(),
+          game.getBoard().toSmallBoardsStrings(),
+          game.getBoard().toBigBoardStrings(),
           game.getBoard().getActiveBoardPositions().stream().map(Position::toString).toList(),
           winningPlayerDTO
       );
