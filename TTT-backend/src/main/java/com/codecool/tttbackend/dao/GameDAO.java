@@ -11,8 +11,9 @@ public interface GameDAO {
     Game findGameById(int id);
     List<Game> getAllGames();
     List<Player> findPlayersByGameId(int id);
+    Player findPlayer(int gameId, int userId);
     void addGame(Game game);
     void removeGame(Game game);
     void updateGame(Game game);
-    List<Position> getActiveBoardsByGameId(int id);
+    List<Position> getActiveBoardByGameId(int id);
 }

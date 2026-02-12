@@ -14,7 +14,7 @@ public class BigBoard implements Board{
 
    public void setSmallBoard(Position position, SmallBoard smallBoard) {
       smallBoard.setPosition(position);
-      smallBoards[position.row()][position.column()] = smallBoard;
+      smallBoards[position.getRow()][position.getColumn()] = smallBoard;
    }
 
    public SmallBoard[][] getSmallBoards() {
@@ -102,7 +102,7 @@ public class BigBoard implements Board{
    }
 
    public void makeMove(char character, Position bigPosition, Position smallPosition){
-      smallBoards[bigPosition.row()][bigPosition.column()].setCell(smallPosition.row(), smallPosition.column(), character);
+      smallBoards[bigPosition.getRow()][bigPosition.getColumn()].setCell(smallPosition.getRow(), smallPosition.getColumn(), character);
    }
 
    public List<Position> getActiveBoardPositions(){

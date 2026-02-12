@@ -24,7 +24,7 @@ public class GameDAOJdbc implements GameDAO {
         this.userDAO = new UserDAOJdbc(jdbcTemplate);
     }
 
-    private RowMapper<Player> playerMapper = (rs, rowNum) -> {
+    private final RowMapper<Player> playerMapper = (rs, rowNum) -> {
         User u = new User();
         u.setId(rs.getLong("id"));
         u.setEmail(rs.getString("email"));
@@ -39,18 +39,19 @@ public class GameDAOJdbc implements GameDAO {
         return gu;
     };
 
-    private RowMapper<Game> gameMapper = (rs, rowNum) -> {
+    private final RowMapper<Game> gameMapper = (rs, rowNum) -> {
         Game game = new Game();
         game.setId(rs.getInt("id"));
         game.setName(rs.getString("name"));
         game.setCreator(userDAO.findUserById(rs.getLong("creator_id")));
         game.setMaxPlayers(rs.getInt("max_players"));
         game.setPlayers(findPlayersByGameId(rs.getInt("id")));
-        game.setCurrentPlayer(userDAO.findUserById(rs.getLong("current_player")));
+        game.setCurrentPlayer(findPlayer(game.getId(), rs.getInt("current_player")));
         game.setGameState(GameState.valueOf(rs.getString("game_state")));
         game.setTimeCreated(rs.getTimestamp("creation_date").toLocalDateTime());
         return game;
     };
+
 
     @Override
     public List<Game> getAllGames() {
@@ -74,6 +75,21 @@ public class GameDAOJdbc implements GameDAO {
                 """,
                 playerMapper,
                 gameId
+        );
+    }
+
+    @Override
+    public Player findPlayer(int gameId, int userId) {
+        return jdbcTemplate.queryForObject(
+            """
+            SELECT u.*, p.character
+            FROM users u
+            JOIN players p ON u.id = p.user_id
+            WHERE p.game_id = ? AND p.user_id = ?
+            """,
+            playerMapper,
+            gameId,
+            userId
         );
     }
 
@@ -145,22 +161,15 @@ public class GameDAOJdbc implements GameDAO {
     }
 
     @Override
-    public List<Position> getActiveBoardsByGameId(int id) {
-        try {
+    public Position getActiveBoardByGameId(int id) {
             Game game = jdbcTemplate.queryForObject(
                 "SELECT active_board FROM games WHERE id = ?",
                 gameMapper,
                 id
             );
 
-            if (game != null) {
-                game.setPlayers(new ArrayList<>(findPlayersByGameId(game.getId())));
-            }
+
             return game;
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
-        }
     }
 
     @Override
