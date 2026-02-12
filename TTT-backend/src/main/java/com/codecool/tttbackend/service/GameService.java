@@ -6,6 +6,7 @@ import com.codecool.tttbackend.dao.model.game.GameState;
 import com.codecool.tttbackend.dao.model.game.Move;
 import com.codecool.tttbackend.dao.model.game.Player;
 import com.codecool.tttbackend.dao.model.User;
+import com.codecool.tttbackend.domain.game.GameLogic;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -36,9 +37,9 @@ public class GameService {
       gameDAO.addGame(game);
    }
 
-   public void startGame(int id){
+   public void startGame(int id) {
       Game game = gameDAO.findGameById(id);
-      if (game == null){
+      if (game == null) {
          throw new IllegalArgumentException("Game not found: " + id);
       }
       game.setGameState(GameState.IN_PROGRESS);
@@ -86,8 +87,8 @@ public class GameService {
 
       List<Player> players = gameDAO.findPlayersByGameId(game.getId());
 
-      for(Player player : players) {
-         if (player.getUser().getId().equals(user.getId())){
+      for (Player player : players) {
+         if (player.getUser().getId() == user.getId()) {
             game.removePlayer(player);
          }
       }
@@ -95,7 +96,7 @@ public class GameService {
       gameDAO.updateGame(game);
    }
 
-   public void winGame(int id, String winnerName){
+   public void winGame(int id, String winnerName) {
       Game game = gameDAO.findGameById(id);
       if (game == null) {
          throw new IllegalArgumentException("Game not found: " + id);
@@ -103,7 +104,7 @@ public class GameService {
 
       User user = userService.getUserByUserName(winnerName);
 
-      Player winner = gameDAO.findPlayer(game.getId(), user.getId().intValue());
+      Player winner = gameDAO.findPlayer(game.getId(), user.getId());
 
       game.setWinner(winner);
 
@@ -123,8 +124,21 @@ public class GameService {
       return gameDAO.getAllGames();
    }
 
-   public Game makeMove(int gameId, Move move){
+   public Game makeMove(int gameId, Move move) {
+      Game game = gameDAO.findGameById(gameId);
+      if (!GameLogic.validateMove(game, move)) return null;
+      GameLogic.applyMove(game, move);
+      GameLogic.setNextCurrentPlayer(game);
+      GameLogic.setActiveBoardFromMove(move, game);
+      gameDAO.updateGame(game);
+      return game;
+   }
 
+   public Player getPlayer(int gameId, String userName) {
+      User user = userService.getUserByUserName(userName);
+      Player player = gameDAO.findPlayer(gameId, user.getId());
+      player.setUser(user);
+      return player;
    }
 
 }

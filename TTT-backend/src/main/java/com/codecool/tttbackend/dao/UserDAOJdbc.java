@@ -53,7 +53,7 @@ public class UserDAOJdbc implements UserDAO {
    }
 
    @Override
-   public User findUserById(Long id) {
+   public User findUserById(int id) {
       try {
          return jdbcTemplate.queryForObject(
              "SELECT * FROM users WHERE id = ?",

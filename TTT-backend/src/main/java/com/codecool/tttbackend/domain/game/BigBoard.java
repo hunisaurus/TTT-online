@@ -5,11 +5,15 @@ import com.codecool.tttbackend.dao.model.game.Position;
 import java.util.ArrayList;
 import java.util.List;
 
-public class BigBoard implements Board{
+public class BigBoard implements Board {
    private SmallBoard[][] smallBoards;
 
    public BigBoard() {
       smallBoards = new SmallBoard[3][3];
+   }
+
+   public SmallBoard getSmallBoard(Position position) {
+      return smallBoards[position.getRow()][position.getColumn()];
    }
 
    public void setSmallBoard(Position position, SmallBoard smallBoard) {
@@ -32,7 +36,7 @@ public class BigBoard implements Board{
 
       if (boardState.length() != 81) {
          throw new IllegalArgumentException(
-                 "Big board cannot be created: expected 81 characters but got " + boardState.length() + "!"
+             "Big board cannot be created: expected 81 characters but got " + boardState.length() + "!"
          );
       }
 
@@ -55,7 +59,8 @@ public class BigBoard implements Board{
             }
             SmallBoard smallBoard = SmallBoard.smallBoardFromString(sb.toString());
             Position smallBoardPosition = new Position(sr, sc);
-            if (activeBoard == null && !smallBoard.isFull() || activeBoard.equals(smallBoardPosition)) smallBoard.setActive(true);
+            if (activeBoard == null && !smallBoard.isFull() || activeBoard.equals(smallBoardPosition))
+               smallBoard.setActive(true);
             newBigBoard.setSmallBoard(smallBoardPosition, smallBoard);
          }
       }
@@ -87,7 +92,7 @@ public class BigBoard implements Board{
       return true;
    }
 
-   public int getNumberOfSmallWinsByChar(char character){
+   public int getNumberOfSmallWinsByChar(char character) {
       int numberOfSmallWins = 0;
       for (int r = 0; r < 3; r++) {
          for (int c = 0; c < 3; c++) {
@@ -97,18 +102,18 @@ public class BigBoard implements Board{
       return numberOfSmallWins;
    }
 
-   public char getCell(int br, int bc, int sr, int sc){
+   public char getCell(int br, int bc, int sr, int sc) {
       return smallBoards[br][bc].getCell(sr, sc);
    }
 
-   public void makeMove(char character, Position bigPosition, Position smallPosition){
+   public void makeMove(char character, Position bigPosition, Position smallPosition) {
       smallBoards[bigPosition.getRow()][bigPosition.getColumn()].setCell(smallPosition.getRow(), smallPosition.getColumn(), character);
    }
 
-   public List<Position> getActiveBoardPositions(){
+   public List<Position> getActiveBoardPositions() {
       List<Position> activeBoards = new ArrayList<>();
-      for (SmallBoard[] row : smallBoards){
-         for (SmallBoard smallBoard : row){
+      for (SmallBoard[] row : smallBoards) {
+         for (SmallBoard smallBoard : row) {
             if (smallBoard.isActive()) activeBoards.add(smallBoard.getPosition());
          }
       }
@@ -116,7 +121,7 @@ public class BigBoard implements Board{
    }
 
    @Override
-   public String toString(){
+   public String toString() {
       StringBuilder sb = new StringBuilder(81);
 
       for (int bigRow = 0; bigRow < 9; bigRow++) {
@@ -139,5 +144,26 @@ public class BigBoard implements Board{
       }
 
       return sb.toString();
+   }
+
+   public void setActiveBoards(Position position) {
+      if (position != null) {
+         setActiveAllNonFullBoards(false);
+         smallBoards[position.getRow()][position.getColumn()].setActive(true);
+      } else {
+         setActiveAllNonFullBoards(true);
+      }
+   }
+
+   private void setActiveAllNonFullBoards(boolean isActive) {
+      for (SmallBoard[] row : smallBoards) {
+         for (SmallBoard smallBoard : row) {
+            if (smallBoard.isFull() && smallBoard.isActive()) {
+               smallBoard.setActive(false);
+            } else {
+               smallBoard.setActive(isActive);
+            }
+         }
+      }
    }
 }

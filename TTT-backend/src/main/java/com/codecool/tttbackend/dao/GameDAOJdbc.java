@@ -28,7 +28,7 @@ public class GameDAOJdbc implements GameDAO {
 
    private final RowMapper<Player> playerMapper = (rs, rowNum) -> {
       User u = new User();
-      u.setId(rs.getLong("id"));
+      u.setId(rs.getInt("id"));
       u.setEmail(rs.getString("email"));
       u.setUsername(rs.getString("username"));
       u.setPasswordHash(rs.getString("password_hash"));
@@ -46,7 +46,7 @@ public class GameDAOJdbc implements GameDAO {
       game.setId(rs.getInt("id"));
       game.setName(rs.getString("name"));
       game.setMaxPlayers(rs.getInt("max_players"));
-      game.setCreator(userDAO.findUserById(rs.getLong("creator_id")));
+      game.setCreator(userDAO.findUserById(rs.getInt("creator_id")));
       game.setPlayers(findPlayersByGameId(rs.getInt("id")));
       game.setCurrentPlayer(findPlayer(game.getId(), rs.getInt("current_player")));
       game.setGameState(GameState.valueOf(rs.getString("game_state")));
@@ -156,7 +156,7 @@ public class GameDAOJdbc implements GameDAO {
       Position activeBoardPosition = getActiveBoardPosition(game.getBoard());
       String activeBoardDbValue = activeBoardPosition == null ? null : activeBoardPosition.toString();
 
-      Long currentPlayerId = game.getCurrentPlayer() == null || game.getCurrentPlayer().getUser() == null
+      int currentPlayerId = game.getCurrentPlayer() == null || game.getCurrentPlayer().getUser() == null
           ? null
           : game.getCurrentPlayer().getUser().getId();
 
