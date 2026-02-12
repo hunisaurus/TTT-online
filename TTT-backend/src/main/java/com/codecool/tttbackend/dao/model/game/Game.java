@@ -11,12 +11,11 @@ public class Game {
 
    private int id;
    private String name;
-
    private User creator;
    private List<Player> players;
    private LocalDateTime timeCreated;
    private GameState gameState;
-   private User currentPlayer;
+   private Player currentPlayer;
    private int maxPlayers;
    private BigBoard board;
 
@@ -61,7 +60,7 @@ public class Game {
       return creator;
    }
 
-   public User getCurrentPlayer() {
+   public Player getCurrentPlayer() {
       return currentPlayer;
    }
 
@@ -73,7 +72,7 @@ public class Game {
       this.creator = creator;
    }
 
-   public void setCurrentPlayer(User currentPlayer) {
+   public void setCurrentPlayer(Player currentPlayer) {
       this.currentPlayer = currentPlayer;
    }
 

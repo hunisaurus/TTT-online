@@ -1,5 +1,10 @@
 package com.codecool.tttbackend.domain.game;
 
+import com.codecool.tttbackend.dao.model.game.Position;
+
+import java.util.ArrayList;
+import java.util.List;
+
 public class BigBoard implements Board{
    private SmallBoard[][] smallBoards;
 
@@ -7,8 +12,9 @@ public class BigBoard implements Board{
       smallBoards = new SmallBoard[3][3];
    }
 
-   public void setSmallBoard(int row, int column, SmallBoard smallBoard) {
-      smallBoards[row][column] = smallBoard;
+   public void setSmallBoard(Position position, SmallBoard smallBoard) {
+      smallBoard.setPosition(position);
+      smallBoards[position.row()][position.column()] = smallBoard;
    }
 
    public SmallBoard[][] getSmallBoards() {
@@ -19,14 +25,14 @@ public class BigBoard implements Board{
       this.smallBoards = smallBoards;
    }
 
-   public static BigBoard bigBoardFromString(String bigBoardString) {
-      if (bigBoardString == null) {
+   public static BigBoard createBigBoard(String boardState, List<Position> activeBoards) {
+      if (boardState == null) {
          throw new NullPointerException("Big board cannot be created: input string is null!");
       }
 
-      if (bigBoardString.length() != 81) {
+      if (boardState.length() != 81) {
          throw new IllegalArgumentException(
-                 "Big board cannot be created: expected 81 characters but got " + bigBoardString.length() + "!"
+                 "Big board cannot be created: expected 81 characters but got " + boardState.length() + "!"
          );
       }
 
@@ -44,11 +50,13 @@ public class BigBoard implements Board{
                int rowBase = bigRow * 9;
                for (int c = 0; c < 3; c++) {
                   int bigCol = bigColStart + c;
-                  sb.append(bigBoardString.charAt(rowBase + bigCol));
+                  sb.append(boardState.charAt(rowBase + bigCol));
                }
             }
-
-            newBigBoard.setSmallBoard(sr, sc, SmallBoard.smallBoardFromString(sb.toString()));
+            SmallBoard smallBoard = SmallBoard.smallBoardFromString(sb.toString());
+            Position smallBoardPosition = new Position(sr, sc);
+            if (activeBoards.contains(smallBoardPosition)) smallBoard.setActive(true);
+            newBigBoard.setSmallBoard(smallBoardPosition, smallBoard);
          }
       }
 
@@ -93,8 +101,18 @@ public class BigBoard implements Board{
       return smallBoards[br][bc].getCell(sr, sc);
    }
 
-   public void makeMove(char character, int br, int bc, int sr, int sc){
-      smallBoards[br][bc].setCell(sr, sc, character);
+   public void makeMove(char character, Position bigPosition, Position smallPosition){
+      smallBoards[bigPosition.row()][bigPosition.column()].setCell(smallPosition.row(), smallPosition.column(), character);
+   }
+
+   public List<Position> getActiveBoardPositions(){
+      List<Position> activeBoards = new ArrayList<>();
+      for (SmallBoard[] row : smallBoards){
+         for (SmallBoard smallBoard : row){
+            if (smallBoard.isActive()) activeBoards.add(smallBoard.getPosition());
+         }
+      }
+      return activeBoards;
    }
 
    @Override

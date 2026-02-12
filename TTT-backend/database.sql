@@ -24,7 +24,7 @@ CREATE TABLE games
     max_players    INTEGER,
     board_state    VARCHAR(100),
     current_player INTEGER REFERENCES users (id),
-    activeBoards   VARCHAR(200)
+    active_board   VARCHAR(10)
 );
 
 CREATE TABLE players

@@ -1,4 +1,4 @@
 package com.codecool.tttbackend.dao.model.game;
 
-public record Move(Player player, int br, int bc, int sr, int sc) {
+public record Move(Player player, Position bigPosition, Position smallPosition) {
 }

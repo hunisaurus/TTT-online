@@ -4,6 +4,7 @@ import com.codecool.tttbackend.dao.model.game.Game;
 import com.codecool.tttbackend.dao.model.game.GameState;
 import com.codecool.tttbackend.dao.model.game.Player;
 import com.codecool.tttbackend.dao.model.User;
+import com.codecool.tttbackend.dao.model.game.Position;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
@@ -140,6 +141,25 @@ public class GameDAOJdbc implements GameDAO {
             for (Player player : game.getPlayers()) {
                 jdbcTemplate.update(joinSql, game.getId(), player.getUser().getId(), player.getCharacter());
             }
+        }
+    }
+
+    @Override
+    public List<Position> getActiveBoardsByGameId(int id) {
+        try {
+            Game game = jdbcTemplate.queryForObject(
+                "SELECT active_board FROM games WHERE id = ?",
+                gameMapper,
+                id
+            );
+
+            if (game != null) {
+                game.setPlayers(new ArrayList<>(findPlayersByGameId(game.getId())));
+            }
+            return game;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
         }
     }
 

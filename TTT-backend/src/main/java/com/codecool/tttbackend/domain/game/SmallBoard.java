@@ -1,7 +1,10 @@
 package com.codecool.tttbackend.domain.game;
 
+import com.codecool.tttbackend.dao.model.game.Position;
+
 public class SmallBoard implements Board{
    private Character[][] cells;
+   private Position position;
    private boolean isActive;
 
    public SmallBoard() {
@@ -24,20 +27,20 @@ public class SmallBoard implements Board{
       this.cells = cells;
    }
 
-   public static SmallBoard smallBoardFromString(String smallBoardString) {
-      if (smallBoardString == null) {
+   public static SmallBoard smallBoardFromString(String smallBoardState) {
+      if (smallBoardState == null) {
          throw new NullPointerException("Small board cannot be created: input string is null!");
       }
-      if (smallBoardString.length() != 9) {
+      if (smallBoardState.length() != 9) {
          throw new IllegalArgumentException(
-             "Small board cannot be created: expected 9 characters but got " + smallBoardString.length() + "!"
+             "Small board cannot be created: expected 9 characters but got " + smallBoardState.length() + "!"
          );
       }
 
       SmallBoard newSmallBoard = new SmallBoard();
 
       for (int i = 0; i < 9; i++) {
-         char ch = smallBoardString.charAt(i);
+         char ch = smallBoardState.charAt(i);
          if (ch == '_') continue;
          int row = i / 3;
          int column = i % 3;
@@ -77,5 +80,13 @@ public class SmallBoard implements Board{
 
    public void setActive(boolean active) {
       isActive = active;
+   }
+
+   public Position getPosition() {
+      return position;
+   }
+
+   public void setPosition(Position position) {
+      this.position = position;
    }
 }

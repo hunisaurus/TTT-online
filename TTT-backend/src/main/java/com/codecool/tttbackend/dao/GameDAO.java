@@ -2,6 +2,7 @@ package com.codecool.tttbackend.dao;
 
 import com.codecool.tttbackend.dao.model.game.Game;
 import com.codecool.tttbackend.dao.model.game.Player;
+import com.codecool.tttbackend.dao.model.game.Position;
 
 import java.util.List;
 
@@ -13,4 +14,5 @@ public interface GameDAO {
     void addGame(Game game);
     void removeGame(Game game);
     void updateGame(Game game);
+    List<Position> getActiveBoardsByGameId(int id);
 }
