@@ -91,20 +91,23 @@ public class GameDAOJdbc implements GameDAO {
             }
             return game;
         } catch (Exception e) {
+            e.printStackTrace();
             return null;
         }
     }
 
     @Override
     public void addGame(Game game) {
-        String sql = "INSERT INTO games (name, creation_date, game_state) VALUES (?, ?, ?) RETURNING id";
+        String sql = "INSERT INTO games (name, creation_date, game_state, max_players, creator_id) VALUES (?, ?, ?, ?, ?) RETURNING id";
 
         Integer gameId = jdbcTemplate.queryForObject(
                 sql,
                 Integer.class,
                 game.getName(),
                 Timestamp.valueOf(game.getTimeCreated()),
-                game.getGameState().name()
+                game.getGameState().name(),
+                game.getMaxPlayers(),
+                game.getCreator().getId()
         );
 
         if (gameId == null) return;
@@ -133,9 +136,9 @@ public class GameDAOJdbc implements GameDAO {
         jdbcTemplate.update("DELETE FROM players WHERE game_id = ?", game.getId());
 
         if (game.getPlayers() != null) {
-            String joinSql = "INSERT INTO players (game_id, user_id) VALUES (?, ?)";
+            String joinSql = "INSERT INTO players (game_id, user_id, character) VALUES (?, ?, ?)";
             for (Player player : game.getPlayers()) {
-                jdbcTemplate.update(joinSql, game.getId(), player.getUser().getId());
+                jdbcTemplate.update(joinSql, game.getId(), player.getUser().getId(), player.getCharacter());
             }
         }
     }

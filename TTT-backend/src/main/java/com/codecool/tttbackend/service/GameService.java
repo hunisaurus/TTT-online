@@ -27,7 +27,7 @@ public class GameService {
    }
 
    public void createGame(String creatorName, String gameName, int maxPlayers) {
-      User creator = userDAO.findByUsername(creatorName);
+      User creator = userService.getUserByUserName(creatorName);
       Game game = new Game();
       game.setCreator(creator);
       game.setName(gameName);
@@ -64,14 +64,19 @@ public class GameService {
          throw new IllegalArgumentException("Game not found: " + id);
       }
 
-      Player player = new Player();
+      User user = userService.getUserByUserName(userName);
+      if (user == null) {
+         throw new IllegalArgumentException("User not found: " + userName);
+      }
 
-      player.setUser(userService.getUserByUserName(userName));
+      Player player = new Player();
+      player.setUser(user);
       player.setCharacter(character);
 
       game.addPlayer(player);
       gameDAO.updateGame(game);
    }
+
 
    public void leaveGame(int id, String userName) {
       Game game = gameDAO.findGameById(id);
@@ -79,7 +84,7 @@ public class GameService {
          throw new IllegalArgumentException("Game not found: " + id);
       }
 
-      User user = userDAO.findByUsername(userName);
+      User user = userService.getUserByUserName(userName);
 
       List<Player> players = gameDAO.findPlayersByGameId(game.getId());
 
