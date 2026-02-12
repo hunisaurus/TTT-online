@@ -9,5 +9,4 @@ class TttBackendApplicationTests {
     @Test
     void contextLoads() {
     }
-
 }

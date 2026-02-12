@@ -2,12 +2,12 @@ import {useState, useMemo, useEffect} from "react";
 import GiantBoard from "./GiantBoard";
 import {useAudio} from "../../hooks/useAudio";
 import {
-    makeSmallBoards,
-    makeBigBoard,
-    getWinner,
-    isFull3,
-    nextActiveFromCell,
-    anyPlayableBigs,
+  makeSmallBoards,
+  makeEmptyBoard,
+  getWinner,
+  isFull3,
+  nextActiveFromCell,
+  anyPlayableBigs
 } from "../../state/gameLogic";
 import "../../styles.css";
 
@@ -17,34 +17,34 @@ export default function Game({config, onExit}) {
     const [boardEntering, setBoardEntering] = useState(false);
     const [playersEntering, setPlayersEntering] = useState(false);
 
-    useEffect(() => {
-        if (!config) {
-            setState(null);
-            return;
-        }
-        const smallBoards = makeSmallBoards();
-        const bigBoard = makeBigBoard();
-        const activeBigs = new Set([
-            "0,0",
-            "0,1",
-            "0,2",
-            "1,0",
-            "1,1",
-            "1,2",
-            "2,0",
-            "2,1",
-            "2,2",
-        ]);
-        setState({
-            smallBoards,
-            bigBoard,
-            activeBigs,
-            rotation: config.rotation,
-            moves: [],
-        });
-        setBoardEntering(true);
-        setPlayersEntering(true);
-    }, [config]);
+  useEffect(() => {
+    if (!config) {
+      setState(null);
+      return;
+    }
+    const smallBoards = makeSmallBoards();
+    const bigBoard = makeEmptyBoard();
+    const activeBigs = new Set([
+      "0,0",
+      "0,1",
+      "0,2",
+      "1,0",
+      "1,1",
+      "1,2",
+      "2,0",
+      "2,1",
+      "2,2",
+    ]);
+    setState({
+      smallBoards,
+      bigBoard,
+      activeBigs,
+      rotation: config.rotation,
+      moves: [],
+    });
+    setBoardEntering(true);
+    setPlayersEntering(true);
+  }, [config]);
 
     useEffect(() => {
         if (config && state && boardEntering) {

@@ -8,7 +8,7 @@ public class User {
    private String email;
    private String username;
    private String passwordHash;
-   private Long id;
+   private int id;
    private LocalDateTime registrationDate;
    private LocalDate birthDate;
 
@@ -27,7 +27,7 @@ public class User {
       this.passwordHash = passwordHash;
    }
 
-   public void setId(Long id) {
+   public void setId(int id) {
       this.id = id;
    }
 
@@ -39,7 +39,7 @@ public class User {
       this.birthDate = date;
    }
 
-   public Long getId() {
+   public int getId() {
       return id;
    }
 

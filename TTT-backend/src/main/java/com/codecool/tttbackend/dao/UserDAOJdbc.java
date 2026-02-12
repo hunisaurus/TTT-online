@@ -5,6 +5,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 
+
 @Repository
 public class UserDAOJdbc implements UserDAO {
 
@@ -14,7 +15,7 @@ public class UserDAOJdbc implements UserDAO {
       this.jdbcTemplate = jdbcTemplate;
    }
 
-   private final RowMapper<User> userMapper = (rs, rowNum) -> {
+   private RowMapper<User> userMapper = (rs, rowNum) -> {
       User u = new User();
       u.setId(rs.getLong("id"));
       u.setEmail(rs.getString("email"));
@@ -52,7 +53,7 @@ public class UserDAOJdbc implements UserDAO {
    }
 
    @Override
-   public User findUserById(Long id) {
+   public User findUserById(int id) {
       try {
          return jdbcTemplate.queryForObject(
              "SELECT * FROM users WHERE id = ?",
@@ -79,9 +80,9 @@ public class UserDAOJdbc implements UserDAO {
    public void updateUser(User user) {
       jdbcTemplate.update(
           "UPDATE users SET username = ?, password_hash = ?, email = ?, birth_date = ? WHERE id = ?",
+          user.getEmail(),
           user.getUsername(),
           user.getPasswordHash(),
-          user.getEmail(),
           user.getBirthDate(),
           user.getId()
       );
