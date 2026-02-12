@@ -1,14 +1,13 @@
 package com.codecool.tttbackend.controller;
 
-import com.codecool.tttbackend.controller.dto.LoginRequest;
-import com.codecool.tttbackend.controller.dto.RegisterRequest;
-import com.codecool.tttbackend.controller.dto.TokenResponse;
+import com.codecool.tttbackend.controller.dto.request.LoginRequest;
+import com.codecool.tttbackend.controller.dto.request.RegisterRequest;
+import com.codecool.tttbackend.controller.dto.response.TokenResponse;
 import com.codecool.tttbackend.service.UserService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.sql.SQLException;
-import java.time.LocalDate;
 import java.util.Map;
 
 @RestController

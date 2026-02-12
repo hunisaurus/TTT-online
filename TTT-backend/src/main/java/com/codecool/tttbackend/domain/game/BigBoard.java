@@ -89,6 +89,14 @@ public class BigBoard implements Board{
       return numberOfSmallWins;
    }
 
+   public char getCell(int br, int bc, int sr, int sc){
+      return smallBoards[br][bc].getCell(sr, sc);
+   }
+
+   public void makeMove(char character, int br, int bc, int sr, int sc){
+      smallBoards[br][bc].setCell(sr, sc, character);
+   }
+
    @Override
    public String toString(){
       StringBuilder sb = new StringBuilder(81);

@@ -1,9 +1,9 @@
 package com.codecool.tttbackend.controller;
 
-import com.codecool.tttbackend.controller.dto.CreateGameRequest;
-import com.codecool.tttbackend.controller.dto.JoinGameRequest;
-import com.codecool.tttbackend.controller.dto.MoveRequest;
-import com.codecool.tttbackend.controller.dto.LeaveGameRequest;
+import com.codecool.tttbackend.controller.dto.request.CreateGameRequest;
+import com.codecool.tttbackend.controller.dto.request.JoinGameRequest;
+import com.codecool.tttbackend.controller.dto.request.MoveRequest;
+import com.codecool.tttbackend.controller.dto.request.LeaveGameRequest;
 import com.codecool.tttbackend.dao.model.game.Game;
 import com.codecool.tttbackend.service.GameService;
 import org.springframework.http.HttpStatus;

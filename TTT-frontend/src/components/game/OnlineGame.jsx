@@ -141,7 +141,7 @@ export default function OnlineGame({ config, onExit }) {
         >
           {state.rotation[1]}
         </div>
-        {config.mode === "pvp" && config.playerCount === 3 && (
+        {config.playerCount === 3 && (
           <div
             id="playerThreeElement"
             className={`playerElement rightPlayer ${playersEntering ? "outAbove" : ""} ${currentPlayer === state.rotation[2] ? "activePlayer" : ""}`}

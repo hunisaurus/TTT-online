@@ -3,12 +3,11 @@ import GiantBoard from "./GiantBoard";
 import { useAudio } from "../../hooks/useAudio";
 import {
   makeSmallBoards,
-  makeBigBoard,
+  makeEmptyBoard,
   getWinner,
   isFull3,
   nextActiveFromCell,
-  anyPlayableBigs,
-  makeEmptyBoard,
+  anyPlayableBigs
 } from "../../state/gameLogic";
 import "../../styles.css";
 

@@ -16,17 +16,15 @@ public class GameService {
 
    private final GameDAO gameDAO;
    private final UserService userService;
-   private final UserDAO userDAO;
 
    @Autowired
-   public GameService(GameDAO gameDAO, UserService userService, UserDAO userDAO) {
+   public GameService(GameDAO gameDAO, UserService userService) {
       this.gameDAO = gameDAO;
       this.userService = userService;
-      this.userDAO = userDAO;
    }
 
    public void createGame(String creatorName, String gameName, int maxPlayers) {
-      User creator = userDAO.findByUsername(creatorName);
+      User creator = userService.getUserByUserName(creatorName);
       Game game = new Game();
       game.setCreator(creator);
       game.setName(gameName);
@@ -78,11 +76,11 @@ public class GameService {
          throw new IllegalArgumentException("Game not found: " + id);
       }
 
-      User user = userDAO.findByUsername(userName);
+      User user = userService.getUserByUserName(userName);
 
       List<Player> players = gameDAO.findPlayersByGameId(game.getId());
 
-      for(Player player : users) {
+      for(Player player : players) {
          if (player.getUser().getId().equals(user.getId())){
             game.removePlayer(player);
          }

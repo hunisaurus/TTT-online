@@ -12,6 +12,10 @@ public class SmallBoard implements Board{
       cells[row][column] = character;
    }
 
+   public char getCell(int row, int column){
+      return cells[row][column];
+   }
+
    public Character[][] getCells() {
       return cells;
    }
