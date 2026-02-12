@@ -3,6 +3,7 @@ package com.codecool.tttbackend.service;
 import com.codecool.tttbackend.dao.GameDAO;
 import com.codecool.tttbackend.dao.model.game.Game;
 import com.codecool.tttbackend.dao.model.game.GameState;
+import com.codecool.tttbackend.dao.model.game.Move;
 import com.codecool.tttbackend.dao.model.game.Player;
 import com.codecool.tttbackend.dao.model.User;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -105,6 +106,10 @@ public class GameService {
 
    public List<Game> listAllGames() {
       return gameDAO.getAllGames();
+   }
+
+   public Game makeMove(int gameId, Move move){
+
    }
 
 }

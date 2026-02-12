@@ -60,7 +60,7 @@ public class GameController {
 
     @PatchMapping("/{id}/move")
     public ResponseEntity<GameStatusResponse> makeMove(@PathVariable int id, @RequestBody MoveRequest moveRequest){
-        gameService.makeMove();
+        gameService.makeMove(int gameId, new Move);
         return ResponseEntity.ok().build();
     }
 }
