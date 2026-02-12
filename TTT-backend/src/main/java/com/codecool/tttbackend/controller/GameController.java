@@ -21,7 +21,7 @@ public class GameController {
         this.gameService = gameService;
     }
 
-    @PostMapping
+    @PostMapping("/create")
     public ResponseEntity<Void> createGame(@RequestBody CreateGameRequest request) {
         gameService.createGame(request.userName(), request.gameName(), request.maxPlayerCount());
         return ResponseEntity.status(HttpStatus.CREATED).build();

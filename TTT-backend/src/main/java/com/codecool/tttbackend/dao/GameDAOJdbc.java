@@ -97,14 +97,14 @@ public class GameDAOJdbc implements GameDAO {
 
     @Override
     public void addGame(Game game) {
-        String sql = "INSERT INTO games (name, time_created, game_state) VALUES (?, ?, ?) RETURNING id";
+        String sql = "INSERT INTO games (name, creation_date, game_state) VALUES (?, ?, ?) RETURNING id";
 
         Integer gameId = jdbcTemplate.queryForObject(
                 sql,
                 Integer.class,
                 game.getName(),
                 Timestamp.valueOf(game.getTimeCreated()),
-                game.getGameState()
+                game.getGameState().name()
         );
 
         if (gameId == null) return;
@@ -121,11 +121,11 @@ public class GameDAOJdbc implements GameDAO {
 
     @Override
     public void updateGame(Game game) {
-        String sql = "UPDATE games SET name = ?, game_state = ?, time_created = ? WHERE id = ?";
+        String sql = "UPDATE games SET name = ?, game_state = ?, creation_date = ? WHERE id = ?";
         jdbcTemplate.update(
                 sql,
                 game.getName(),
-                game.getGameState(),
+                game.getGameState().name(),
                 Timestamp.valueOf(game.getTimeCreated()),
                 game.getId()
         );
