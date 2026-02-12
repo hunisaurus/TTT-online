@@ -61,14 +61,19 @@ public class GameService {
          throw new IllegalArgumentException("Game not found: " + id);
       }
 
-      Player player = new Player();
+      User user = userService.getUserByUserName(userName);
+      if (user == null) {
+         throw new IllegalArgumentException("User not found: " + userName);
+      }
 
-      player.setUser(userService.getUserByUserName(userName));
+      Player player = new Player();
+      player.setUser(user);
       player.setCharacter(character);
 
       game.addPlayer(player);
       gameDAO.updateGame(game);
    }
+
 
    public void leaveGame(int id, String userName) {
       Game game = gameDAO.findGameById(id);
