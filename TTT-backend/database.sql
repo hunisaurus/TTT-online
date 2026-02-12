@@ -1,7 +1,7 @@
 CREATE EXTENSION IF NOT EXISTS citext;
-DROP TABLE IF EXISTS players;
+DROP TABLE IF EXISTS player;
 DROP TABLE IF EXISTS users CASCADE;
-DROP TABLE IF EXISTS games CASCADE;
+DROP TABLE IF EXISTS game CASCADE;
 
 CREATE TABLE users
 (
@@ -13,7 +13,7 @@ CREATE TABLE users
     registration_date DATE      NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE games
+CREATE TABLE game
 (
     id             SERIAL PRIMARY KEY,
     creation_date  TIMESTAMP                     NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -26,7 +26,7 @@ CREATE TABLE games
     current_player INTEGER REFERENCES users (id)
 );
 
-CREATE TABLE players
+CREATE TABLE player
 (
     game_id   INTEGER REFERENCES games (id) NOT NULL,
     user_id   INTEGER REFERENCES users (id) NOT NULL,
