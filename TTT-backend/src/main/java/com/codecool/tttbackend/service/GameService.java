@@ -1,10 +1,9 @@
 package com.codecool.tttbackend.service;
 
+import com.codecool.tttbackend.controller.dto.response.GameStatusResponse;
+import com.codecool.tttbackend.controller.dto.response.PlayerResponseDTO;
 import com.codecool.tttbackend.dao.GameDAO;
-import com.codecool.tttbackend.dao.model.game.Game;
-import com.codecool.tttbackend.dao.model.game.GameState;
-import com.codecool.tttbackend.dao.model.game.Move;
-import com.codecool.tttbackend.dao.model.game.Player;
+import com.codecool.tttbackend.dao.model.game.*;
 import com.codecool.tttbackend.dao.model.User;
 import com.codecool.tttbackend.domain.game.GameLogic;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -125,14 +124,39 @@ public class GameService {
       return gameDAO.getAllGames();
    }
 
-   public Game makeMove(int gameId, Move move) {
+   public GameStatusResponse makeMove(int gameId, Move move) {
       Game game = gameDAO.findGameById(gameId);
       if (!GameLogic.validateMove(game, move)) return null;
       GameLogic.applyMove(game, move);
       GameLogic.setNextCurrentPlayer(game);
       GameLogic.setActiveBoardFromMove(move, game);
       gameDAO.updateGame(game);
-      return game;
+
+      Player currentPlayer = game.getCurrentPlayer();
+
+      Player winningPlayer = GameLogic.getWinningPlayer(game);
+      PlayerResponseDTO winningPlayerDTO = null;
+      if (winningPlayer != null)
+         winningPlayerDTO = new PlayerResponseDTO(
+             winningPlayer.getUser().getId(),
+             winningPlayer.getUser().getUsername(),
+             winningPlayer.getCharacter(),
+             winningPlayer.getNumberOfWins()
+         );
+
+      GameStatusResponse response = new GameStatusResponse(
+          new PlayerResponseDTO(
+              currentPlayer.getUser().getId(),
+              currentPlayer.getUser().getUsername(),
+              currentPlayer.getCharacter(),
+              currentPlayer.getNumberOfWins()
+          ),
+          game.getBoard().toSmallBoardsStrings(),
+          game.getBoard().toBigBoardStrings(),
+          game.getBoard().getActiveBoardPositions().stream().map(Position::toString).toList(),
+          winningPlayerDTO
+      );
+      return response;
    }
 
    public Player getPlayer(int gameId, String userName) {

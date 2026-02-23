@@ -1,4 +1,4 @@
-package com.codecool.tttbackend.domain.game;
+package com.codecool.tttbackend.domain.game.board;
 
 import com.codecool.tttbackend.dao.model.game.Position;
 

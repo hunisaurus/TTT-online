@@ -13,7 +13,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
    @Override
    public void registerStompEndpoints(StompEndpointRegistry registry) {
       // Frontend connects here.
-      // SockJS makes local dev easier (fallbacks when native WS is blocked).
+      // SockJS makes local dev easier (fallbacks when native WS is blocked). (Huni)
       registry.addEndpoint("/ws")
           .setAllowedOriginPatterns("*")
           .withSockJS();
@@ -21,10 +21,10 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
    @Override
    public void configureMessageBroker(MessageBrokerRegistry registry) {
-      // Clients subscribe to /topic/... to receive broadcasts.
+      // Clients subscribe to /topic/... to receive broadcasts: (Huni)
       registry.enableSimpleBroker("/topic");
 
-      // (Optional) If you later want clients to send messages over WS.
+      // (Optional) If you later want clients to send messages over WS. (Huni)
       registry.setApplicationDestinationPrefixes("/app");
    }
 }

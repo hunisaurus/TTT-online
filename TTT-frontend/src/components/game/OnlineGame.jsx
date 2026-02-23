@@ -4,12 +4,10 @@ import { useState, useMemo, useEffect } from "react";
 import GiantBoard from "./GiantBoard";
 import { useAudio } from "../../hooks/useAudio";
 import {
-  makeSmallBoards,
   getWinner,
   isFull3,
   nextActiveFromCell,
   anyPlayableBigs,
-  makeEmptyBoard,
 } from "../../state/gameLogic";
 import "../../styles.css";
 

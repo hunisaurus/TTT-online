@@ -1,8 +1,8 @@
-package com.codecool.tttbackend.domain.game;
+package com.codecool.tttbackend.domain.game.board;
 
 import com.codecool.tttbackend.dao.model.game.Position;
 
-public class SmallBoard implements Board{
+public class SmallBoard implements Board {
    private Character[][] cells;
    private Position position;
    private boolean isActive;

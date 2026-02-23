@@ -68,33 +68,9 @@ public class GameController {
 
    @PatchMapping("/{id}/move")
    public ResponseEntity<GameStatusResponse> makeMove(@PathVariable int id, @RequestBody MoveRequest moveRequest) {
-      Game game = gameService.makeMove(id, new Move(gameService.getPlayer(id, moveRequest.userName()), new Position(moveRequest.br(), moveRequest.bc()), new Position(moveRequest.sr(), moveRequest.sc())));
-      Player currentPlayer = game.getCurrentPlayer();
+      GameStatusResponse response = gameService.makeMove(id, new Move(gameService.getPlayer(id, moveRequest.userName()), new Position(moveRequest.br(), moveRequest.bc()), new Position(moveRequest.sr(), moveRequest.sc())));
 
-      Player winningPlayer = GameLogic.getWinningPlayer(game);
-      PlayerResponseDTO winningPlayerDTO = null;
-      if (winningPlayer != null)
-         winningPlayerDTO = new PlayerResponseDTO(
-             winningPlayer.getUser().getId(),
-             winningPlayer.getUser().getUsername(),
-             winningPlayer.getCharacter(),
-             winningPlayer.getNumberOfWins()
-         );
-
-      GameStatusResponse response = new GameStatusResponse(
-          new PlayerResponseDTO(
-              currentPlayer.getUser().getId(),
-              currentPlayer.getUser().getUsername(),
-              currentPlayer.getCharacter(),
-              currentPlayer.getNumberOfWins()
-          ),
-          game.getBoard().toSmallBoardsStrings(),
-          game.getBoard().toBigBoardStrings(),
-          game.getBoard().getActiveBoardPositions().stream().map(Position::toString).toList(),
-          winningPlayerDTO
-      );
-
-      // Broadcast to everyone watching/playing this game.
+      // Broadcast to everyone watching/playing this game. (Huni)
       messagingTemplate.convertAndSend("/topic/games/" + id, response);
 
       return ResponseEntity.ok(response);

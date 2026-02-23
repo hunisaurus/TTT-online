@@ -1,6 +1,7 @@
 package com.codecool.tttbackend.domain.game;
 
 import com.codecool.tttbackend.dao.model.game.Position;
+import com.codecool.tttbackend.domain.game.board.BigBoard;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;

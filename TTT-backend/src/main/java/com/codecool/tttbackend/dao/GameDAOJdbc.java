@@ -5,7 +5,7 @@ import com.codecool.tttbackend.dao.model.game.GameState;
 import com.codecool.tttbackend.dao.model.game.Player;
 import com.codecool.tttbackend.dao.model.User;
 import com.codecool.tttbackend.dao.model.game.Position;
-import com.codecool.tttbackend.domain.game.BigBoard;
+import com.codecool.tttbackend.domain.game.board.BigBoard;
 import com.codecool.tttbackend.domain.game.GameLogic;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
