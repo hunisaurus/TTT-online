@@ -1,12 +1,11 @@
-export const empty = () => [['', '', ''], ['', '', ''], ['', '', '']];
+export const makeEmptyBoard = () => [['', '', ''], ['', '', ''], ['', '', '']];
 
 export const makeSmallBoards = () => [
-  [empty(), empty(), empty()],
-  [empty(), empty(), empty()],
-  [empty(), empty(), empty()],
+  [makeEmptyBoard(), makeEmptyBoard(), makeEmptyBoard()],
+  [makeEmptyBoard(), makeEmptyBoard(), makeEmptyBoard()],
+  [makeEmptyBoard(), makeEmptyBoard(), makeEmptyBoard()],
 ];
 
-export const makeBigBoard = () => [['','', ''], ['','', ''], ['','', '']];
 
 export function getWinner(board3) {
   for (let i = 0; i < 3; i++) {

@@ -1,4 +1,4 @@
-package com.codecool.tttbackend.controller.dto;
+package com.codecool.tttbackend.controller.dto.request;
 
 import java.time.LocalDate;
 

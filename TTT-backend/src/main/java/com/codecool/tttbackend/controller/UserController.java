@@ -1,14 +1,13 @@
 package com.codecool.tttbackend.controller;
 
-import com.codecool.tttbackend.controller.dto.LoginRequest;
-import com.codecool.tttbackend.controller.dto.RegisterRequest;
-import com.codecool.tttbackend.controller.dto.TokenResponse;
+import com.codecool.tttbackend.controller.dto.request.LoginRequest;
+import com.codecool.tttbackend.controller.dto.request.RegisterRequest;
+import com.codecool.tttbackend.controller.dto.response.TokenResponse;
 import com.codecool.tttbackend.service.UserService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.sql.SQLException;
-import java.time.LocalDate;
 import java.util.Map;
 
 @RestController
@@ -21,7 +20,7 @@ public class UserController {
         this.userService = userService;
     }
 
-    @GetMapping("/status")
+
     public Map<String, String> getStatus() {
         return Map.of("status", "OK", "message", "Backend is running on Java 25!");
     }
@@ -39,6 +38,7 @@ public class UserController {
 
         return ResponseEntity.ok(new TokenResponse(token));
     }
+
     @PostMapping("/logout")
     public ResponseEntity<String> logout(@RequestHeader("Authorization") String authHeader) {
         String token = authHeader.replace("Bearer ", "");
