@@ -132,6 +132,29 @@ public class GameService {
       GameLogic.setActiveBoardFromMove(move, game);
       gameDAO.updateGame(game);
 
+      return getGameStatusResponseFromGame(game);
+   }
+
+   public Player getPlayer(int gameId, String userName) {
+      User user = userService.getUserByUserName(userName);
+      Player player = gameDAO.findPlayer(gameId, user.getId());
+      player.setUser(user);
+      return player;
+   }
+
+   public List<Game> listUserGames(String username) {
+      User user = userService.getUserByUserName(username);
+      if (user == null) return new ArrayList<>();
+
+      return gameDAO.getAllGamesByUserId(user.getId());
+   }
+
+   public GameStatusResponse getGameStatus(int id){
+      Game game = gameDAO.findGameById(id);
+      return getGameStatusResponseFromGame(game);
+   }
+
+   private GameStatusResponse getGameStatusResponseFromGame(Game game) {
       Player currentPlayer = game.getCurrentPlayer();
 
       Player winningPlayer = GameLogic.getWinningPlayer(game);
@@ -144,7 +167,7 @@ public class GameService {
              winningPlayer.getNumberOfWins()
          );
 
-      GameStatusResponse response = new GameStatusResponse(
+      return new GameStatusResponse(
           new PlayerResponseDTO(
               currentPlayer.getUser().getId(),
               currentPlayer.getUser().getUsername(),
@@ -156,22 +179,7 @@ public class GameService {
           game.getBoard().getActiveBoardPositions().stream().map(Position::toString).toList(),
           winningPlayerDTO
       );
-      return response;
    }
-
-   public Player getPlayer(int gameId, String userName) {
-      User user = userService.getUserByUserName(userName);
-      Player player = gameDAO.findPlayer(gameId, user.getId());
-      player.setUser(user);
-      return player;
-   }
-
-    public List<Game> listUserGames(String username) {
-        User user = userService.getUserByUserName(username);
-        if (user == null) return new ArrayList<>();
-
-        return gameDAO.getAllGamesByUserId(user.getId());
-    }
 
 }
 

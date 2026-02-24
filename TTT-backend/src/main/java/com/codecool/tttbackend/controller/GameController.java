@@ -60,6 +60,11 @@ public class GameController {
       return ResponseEntity.ok().build();
    }
 
+   @GetMapping("/{id}")
+   public ResponseEntity<GameStatusResponse> getGameStatus(@PathVariable int id){
+      gameService.get
+   }
+
    @PatchMapping("/{id}/end")
    public ResponseEntity<Void> endGame(@PathVariable int id) {
       gameService.endGame(id);

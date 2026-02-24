@@ -1,5 +1,7 @@
 package com.codecool.tttbackend.domain.game;
 
+import com.codecool.tttbackend.controller.dto.response.GameStatusResponse;
+import com.codecool.tttbackend.controller.dto.response.PlayerResponseDTO;
 import com.codecool.tttbackend.dao.model.game.Game;
 import com.codecool.tttbackend.dao.model.game.Move;
 import com.codecool.tttbackend.dao.model.game.Player;
@@ -44,7 +46,7 @@ public class GameLogic {
       game.setCurrentPlayer(currentPlayer);
    }
 
-   public static void setActiveBoardFromMove(Move move, Game game){
+   public static void setActiveBoardFromMove(Move move, Game game) {
       game.getBoard().setActiveBoards(move.smallPosition());
    }
 }
