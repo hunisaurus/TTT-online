@@ -62,7 +62,7 @@ public class GameController {
 
    @GetMapping("/{id}")
    public ResponseEntity<GameStatusResponse> getGameStatus(@PathVariable int id){
-      gameService.get
+      return ResponseEntity.ok(gameService.getGameStatus(id));
    }
 
    @PatchMapping("/{id}/end")

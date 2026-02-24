@@ -22,9 +22,10 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
    @Override
    public void configureMessageBroker(MessageBrokerRegistry registry) {
       // Clients subscribe to /topic/... to receive broadcasts: (Huni)
-      registry.enableSimpleBroker("/topic");
+      registry.enableSimpleBroker("/topic", "/queue");
 
       // (Optional) If you later want clients to send messages over WS. (Huni)
       registry.setApplicationDestinationPrefixes("/app");
+      registry.setUserDestinationPrefix("/user");
    }
 }

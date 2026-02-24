@@ -10,6 +10,7 @@ import {
   anyPlayableBigs,
 } from "../../state/gameLogic";
 import "../../styles.css";
+import { makeMove } from "../../service/gameService";
 
 export default function OnlineGame({ config, onExit }) {
   const [state, setState] = useState(null);
@@ -19,7 +20,6 @@ export default function OnlineGame({ config, onExit }) {
 
 
   useEffect(() => {
-    if (!config?.gameId) return;
 
     const client = new Client({
       webSocketFactory: () => new SockJS("http://localhost:8080/ws"),
@@ -32,7 +32,7 @@ export default function OnlineGame({ config, onExit }) {
             smallBoards: body.smallBoards,
             bigBoard: body.bigBoard,
             activeBigs: new Set(body.activeBoards),
-            currentPlayer: body.currentPlayer,  // maybe body.currentPlayer.character
+            currentPlayer: body.currentPlayer.character,  // maybe body.currentPlayer.character
             winner: body.winner
           });
         });
@@ -64,7 +64,7 @@ export default function OnlineGame({ config, onExit }) {
 
 
   const resolvedWinner = useMemo(()=>{
-    if (!state) return false;
+    if (!state || !state.winner) return false;
     if (state.winner) return state.winner.character;
   }, [state])
 
@@ -74,6 +74,7 @@ export default function OnlineGame({ config, onExit }) {
     return isFull3(state.bigBoard);
   }, [state]);
 
+  // TODO: update
   const handlePlay = (br, bc, sr, sc) => {
     if (!state) return;
     if (!state.activeBigs.has(`${br},${bc}`)) return;
@@ -81,6 +82,7 @@ export default function OnlineGame({ config, onExit }) {
     const sb = state.smallBoards.map((row) =>
       row.map((b) => b.map((r) => [...r])),
     );
+
     if (sb[br][bc][sr][sc]) {
       play("noclick");
       return;
@@ -88,34 +90,20 @@ export default function OnlineGame({ config, onExit }) {
     play("click");
     sb[br][bc][sr][sc] = currentPlayer.character;
 
-    const bb = state.bigBoard.map((r) => [...r]);
-
+    
     const smallWinner = getWinner(sb[br][bc]);
+    
     if (smallWinner) {
       bb[br][bc] = smallWinner;
     } else if (isFull3(sb[br][bc])) {
       bb[br][bc] = "D";
     }
-
-    let activeBigs = nextActiveFromCell(sr, sc, bb);
-    if (!anyPlayableBigs(activeBigs)) {
-      activeBigs = new Set();
-      for (let r = 0; r < 3; r++)
-        for (let c = 0; c < 3; c++) if (!bb[r][c]) activeBigs.add(`${r},${c}`);
-    }
-
-    const moves = [
-      ...state.moves,
-      { bb: [br, bc], cell: [sr, sc], player: currentPlayer.character },
-    ];
-
-    setState({
-      smallBoards: sb,
-      bigBoard: bb,
-      activeBigs,
-      rotation: state.rotation,
-      moves,
-    });
+    
+    const bb = state.bigBoard.map((r) => [...r]);
+    
+    const storedUserName = localStorage.getItem('userName');
+    const response = makeMove(config.gameId,{storedUserName, br, bc, sr, sc});
+    setState()
   };
   
   const onHover = () => play("hover");
