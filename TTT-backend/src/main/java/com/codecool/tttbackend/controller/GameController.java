@@ -1,13 +1,11 @@
 package com.codecool.tttbackend.controller;
 
 import com.codecool.tttbackend.controller.dto.request.*;
-import com.codecool.tttbackend.controller.dto.response.GameStatusResponse;
-import com.codecool.tttbackend.controller.dto.response.PlayerResponseDTO;
+import com.codecool.tttbackend.controller.dto.response.GameStatusResponseDTO;
+import com.codecool.tttbackend.controller.dto.response.MoveResponseDTO;
 import com.codecool.tttbackend.dao.model.game.Game;
 import com.codecool.tttbackend.dao.model.game.Move;
-import com.codecool.tttbackend.dao.model.game.Player;
 import com.codecool.tttbackend.dao.model.game.Position;
-import com.codecool.tttbackend.domain.game.GameLogic;
 import com.codecool.tttbackend.service.GameService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -61,7 +59,7 @@ public class GameController {
    }
 
    @GetMapping("/{id}")
-   public ResponseEntity<GameStatusResponse> getGameStatus(@PathVariable int id){
+   public ResponseEntity<GameStatusResponseDTO> getGameStatus(@PathVariable int id){
       return ResponseEntity.ok(gameService.getGameStatus(id));
    }
 
@@ -72,8 +70,8 @@ public class GameController {
    }
 
    @PatchMapping("/{id}/move")
-   public ResponseEntity<GameStatusResponse> makeMove(@PathVariable int id, @RequestBody MoveRequest moveRequest) {
-      GameStatusResponse response = gameService.makeMove(id, new Move(gameService.getPlayer(id, moveRequest.userName()), new Position(moveRequest.br(), moveRequest.bc()), new Position(moveRequest.sr(), moveRequest.sc())));
+   public ResponseEntity<MoveResponseDTO> makeMove(@PathVariable int id, @RequestBody MoveRequest moveRequest) {
+      MoveResponseDTO response = gameService.makeMove(id, new Move(gameService.getPlayer(id, moveRequest.userName()), new Position(moveRequest.br(), moveRequest.bc()), new Position(moveRequest.sr(), moveRequest.sc())));
 
       // Broadcast to everyone watching/playing this game. (Huni)
       messagingTemplate.convertAndSend("/topic/games/" + id, response);

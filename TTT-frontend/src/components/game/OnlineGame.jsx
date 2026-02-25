@@ -3,6 +3,7 @@ import SockJS from "sockjs-client";
 import { useState, useMemo, useEffect } from "react";
 import GiantBoard from "./GiantBoard";
 import { useAudio } from "../../hooks/useAudio";
+import { useGameSocket } from '../../state/WebSocketContext';
 import {
   getWinner,
   isFull3,
@@ -17,6 +18,8 @@ export default function OnlineGame({ config, onExit }) {
   const { play } = useAudio();
   const [boardEntering, setBoardEntering] = useState(false);
   const [playersEntering, setPlayersEntering] = useState(false);
+  const { isConnected, lastMessage, sendJson } = useGameSocket();
+
 
 
   useEffect(() => {

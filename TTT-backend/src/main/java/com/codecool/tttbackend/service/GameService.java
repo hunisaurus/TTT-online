@@ -1,6 +1,7 @@
 package com.codecool.tttbackend.service;
 
-import com.codecool.tttbackend.controller.dto.response.GameStatusResponse;
+import com.codecool.tttbackend.controller.dto.response.GameStatusResponseDTO;
+import com.codecool.tttbackend.controller.dto.response.MoveResponseDTO;
 import com.codecool.tttbackend.controller.dto.response.PlayerResponseDTO;
 import com.codecool.tttbackend.dao.GameDAO;
 import com.codecool.tttbackend.dao.model.game.*;
@@ -124,7 +125,7 @@ public class GameService {
       return gameDAO.getAllGames();
    }
 
-   public GameStatusResponse makeMove(int gameId, Move move) {
+   public MoveResponseDTO makeMove(int gameId, Move move) {
       Game game = gameDAO.findGameById(gameId);
       if (!GameLogic.validateMove(game, move)) return null;
       GameLogic.applyMove(game, move);
@@ -132,7 +133,7 @@ public class GameService {
       GameLogic.setActiveBoardFromMove(move, game);
       gameDAO.updateGame(game);
 
-      return getGameStatusResponseFromGame(game);
+      return getMoveResponseDTOFromGameAndMove(game, move);
    }
 
    public Player getPlayer(int gameId, String userName) {
@@ -149,37 +150,47 @@ public class GameService {
       return gameDAO.getAllGamesByUserId(user.getId());
    }
 
-   public GameStatusResponse getGameStatus(int id){
+   public GameStatusResponseDTO getGameStatus(int id) {
       Game game = gameDAO.findGameById(id);
-      return getGameStatusResponseFromGame(game);
+      return getGameStatusResponseDTOFromGame(game);
    }
 
-   private GameStatusResponse getGameStatusResponseFromGame(Game game) {
-      Player currentPlayer = game.getCurrentPlayer();
-
-      Player winningPlayer = GameLogic.getWinningPlayer(game);
-      PlayerResponseDTO winningPlayerDTO = null;
-      if (winningPlayer != null)
-         winningPlayerDTO = new PlayerResponseDTO(
-             winningPlayer.getUser().getId(),
-             winningPlayer.getUser().getUsername(),
-             winningPlayer.getCharacter(),
-             winningPlayer.getNumberOfWins()
-         );
-
-      return new GameStatusResponse(
-          new PlayerResponseDTO(
-              currentPlayer.getUser().getId(),
-              currentPlayer.getUser().getUsername(),
-              currentPlayer.getCharacter(),
-              currentPlayer.getNumberOfWins()
-          ),
+   private GameStatusResponseDTO getGameStatusResponseDTOFromGame(Game game) {
+    return new GameStatusResponseDTO(
+          getPlayerResponseDTOFromPlayer(game.getCurrentPlayer()),
           game.getBoard().toSmallBoardsStrings(),
           game.getBoard().toBigBoardStrings(),
-          game.getBoard().getActiveBoardPositions().stream().map(Position::toString).toList(),
-          winningPlayerDTO
+          getActiveBoardsFromGame(game),
+          getPlayerResponseDTOFromPlayer(GameLogic.getWinningPlayer(game))
       );
    }
 
+   private MoveResponseDTO getMoveResponseDTOFromGameAndMove(Game game, Move move) {
+      return new MoveResponseDTO(
+          getPlayerResponseDTOFromPlayer(game.getCurrentPlayer()),
+          getActiveBoardsFromGame(game),
+          getPlayerResponseDTOFromPlayer(GameLogic.getWinningPlayer(game)),
+          move.player().getUser().getUsername(),
+          move.player().getCharacter(),
+          move.bigPosition().getRow(),
+          move.bigPosition().getColumn(),
+          move.smallPosition().getRow(),
+          move.smallPosition().getColumn()
+      );
+   }
+
+   private PlayerResponseDTO getPlayerResponseDTOFromPlayer(Player player) {
+      if (player == null) return null;
+      return new PlayerResponseDTO(
+          player.getUser().getId(),
+          player.getUser().getUsername(),
+          player.getCharacter(),
+          player.getNumberOfWins()
+      );
+   }
+
+   private List<String> getActiveBoardsFromGame(Game game){
+      return game.getBoard().getActiveBoardPositions().stream().map(Position::toString).toList();
+   }
 }
 
