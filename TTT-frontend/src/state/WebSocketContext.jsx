@@ -1,3 +1,5 @@
+import { createContext, useCallback, useContext} from "react";
+
 const WebSocketContext = createContext(null);
 
 export function WebSocketProvider({ children }) {
@@ -11,10 +13,9 @@ export function WebSocketProvider({ children }) {
       webSocketFactory: () => new SockJS("http://localhost:8080/ws"),
       reconnectDelay: 5000,
       onConnect: () => {
-        // re-subscribe after reconnect
-        for (const [dest, { callback }] of subsRef.current.entries()) {
-          const sub = client.subscribe(dest, callback);
-          subsRef.current.set(dest, { callback, sub });
+        for (const [dest, entry] of subsRef.current.entries()) {
+          const sub = client.subscribe(dest, entry.callback);
+          subsRef.current.set(dest, { ...entry, sub });
         }
       },
     });
@@ -25,14 +26,19 @@ export function WebSocketProvider({ children }) {
 
   const subscribe = useCallback((destination, callback) => {
     if (!clientRef.current) return;
+    const existing = subsRef.current.get(destination);
+    if (existing) return existing.sub;
 
-    // already subscribed to this destination
-    if (subsRef.current.has(destination)) {
-      return subsRef.current.get(destination).sub;
+    const entry = { callback, sub: null };
+    subsRef.current.set(destination, entry);
+
+    // if not connected yet, just store and let onConnect do the real subscribe
+    if (!clientRef.current || !clientRef.current.connected) {
+      return null;
     }
 
     const sub = clientRef.current.subscribe(destination, callback);
-    subsRef.current.set(destination, { callback, sub });
+    entry.sub = sub;
     return sub;
   }, []);
 

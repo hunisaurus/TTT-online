@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { api } from "../state/config";
+import { useNotifications } from "../state/NotificationContext";
 import { useWebSocket } from "../state/WebSocketContext";
-import { Client } from "@stomp/stompjs";
 
 function Login({ className = "", style, onSubmit, onRegister }) {
   const { connect, subscribe } = useWebSocket();
+  const { addNotification } = useNotifications();
 
   const emptyData = {
     username: "",
@@ -64,11 +65,14 @@ function Login({ className = "", style, onSubmit, onRegister }) {
         localStorage.setItem("jwt", jwt);
         connect();
 
-        subscribe(`/user/${jwt}/notifications`, handleNotification);
+        subscribe(`/user/${jwt}/notifications`, (msg) => {
+          const body = JSON.parse(msg.body);
+          addNotification(body);
+        });
         subscribe(`/user/${jwt}/friend-requests`, handleFriendRequest);
         subscribe(`/user/${jwt}/chats`, handleChatSummary);
 
-        for (let gameId in gameIds){
+        for (let gameId in gameIds) {
           subscribe(`/topic/games/${gameId}`, handleGameUpdate);
         }
 
