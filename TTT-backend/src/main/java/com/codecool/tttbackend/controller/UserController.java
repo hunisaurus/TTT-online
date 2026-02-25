@@ -1,8 +1,8 @@
 package com.codecool.tttbackend.controller;
 
-import com.codecool.tttbackend.controller.dto.request.LoginRequest;
-import com.codecool.tttbackend.controller.dto.request.RegisterRequest;
-import com.codecool.tttbackend.controller.dto.response.TokenResponse;
+import com.codecool.tttbackend.controller.dto.request.LoginRequestDTO;
+import com.codecool.tttbackend.controller.dto.request.RegisterRequestDTO;
+import com.codecool.tttbackend.controller.dto.response.TokenResponseDTO;
 import com.codecool.tttbackend.service.UserService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -26,17 +26,17 @@ public class UserController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<String> register(@RequestBody RegisterRequest req) throws SQLException {
+    public ResponseEntity<String> register(@RequestBody RegisterRequestDTO req) throws SQLException {
         userService.register(req.email(), req.username(), req.password(), req.birthDate());
 
         return ResponseEntity.ok("Registered");
     }
 
     @PostMapping("/login")
-    public ResponseEntity<TokenResponse> login(@RequestBody LoginRequest req) throws SQLException {
+    public ResponseEntity<TokenResponseDTO> login(@RequestBody LoginRequestDTO req) throws SQLException {
         String token = userService.login(req.username(), req.password());
 
-        return ResponseEntity.ok(new TokenResponse(token));
+        return ResponseEntity.ok(new TokenResponseDTO(token));
     }
 
     @PostMapping("/logout")

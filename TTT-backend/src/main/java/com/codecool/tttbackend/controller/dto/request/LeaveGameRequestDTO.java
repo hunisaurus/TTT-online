@@ -1,4 +1,4 @@
 package com.codecool.tttbackend.controller.dto.request;
 
-public record WinGameRequest(String winnerName) {
+public record LeaveGameRequestDTO(String userName) {
 }

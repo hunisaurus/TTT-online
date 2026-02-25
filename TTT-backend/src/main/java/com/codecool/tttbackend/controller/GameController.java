@@ -9,10 +9,13 @@ import com.codecool.tttbackend.dao.model.game.Position;
 import com.codecool.tttbackend.service.GameService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.handler.annotation.DestinationVariable;
+import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+
 @CrossOrigin(origins = "http://localhost:5173")
 @RestController
 @RequestMapping("/games")
@@ -27,28 +30,28 @@ public class GameController {
    }
 
    @PostMapping("/create")
-   public ResponseEntity<Void> createGame(@RequestBody CreateGameRequest request) {
-      gameService.createGame(request.userName(), request.gameName(), request.maxPlayerCount());
+   public ResponseEntity<Void> createGame(@RequestBody CreateGameRequestDTO createGameRequestDTO) {
+      gameService.createGame(createGameRequestDTO.userName(), createGameRequestDTO.gameName(), createGameRequestDTO.maxPlayerCount());
       return ResponseEntity.status(HttpStatus.CREATED).build();
    }
 
-    @GetMapping
-    public ResponseEntity<List<Game>> getMyGames(@RequestParam(required = false) String username) {
-        System.out.println("Beérkező kérés username: " + username); // LOG
-        List<Game> games = gameService.listUserGames(username);
-        System.out.println("Talált játékok száma: " + games.size()); // LOG
-        return ResponseEntity.ok(games);
-    }
+   @GetMapping
+   public ResponseEntity<List<Game>> getMyGames(@RequestParam(required = false) String username) {
+      System.out.println("Beérkező kérés username: " + username); // LOG
+      List<Game> games = gameService.listUserGames(username);
+      System.out.println("Talált játékok száma: " + games.size()); // LOG
+      return ResponseEntity.ok(games);
+   }
 
    @PatchMapping("/{id}/join")
-   public ResponseEntity<Void> joinGame(@PathVariable int id, @RequestBody JoinGameRequest joinGameRequest) {
-      gameService.joinGame(id, joinGameRequest.userName(), joinGameRequest.character());
+   public ResponseEntity<Void> joinGame(@PathVariable int id, @RequestBody JoinGameRequestDTO joinGameRequestDTO) {
+      gameService.joinGame(id, joinGameRequestDTO.userName(), joinGameRequestDTO.character());
       return ResponseEntity.ok().build();
    }
 
    @PatchMapping("/{id}/leave")
-   public ResponseEntity<Void> leaveGame(@PathVariable int id, @RequestBody LeaveGameRequest leaveGameRequest) {
-      gameService.leaveGame(id, leaveGameRequest.userName());
+   public ResponseEntity<Void> leaveGame(@PathVariable int id, @RequestBody LeaveGameRequestDTO leaveGameRequestDTO) {
+      gameService.leaveGame(id, leaveGameRequestDTO.userName());
       return ResponseEntity.ok().build();
    }
 
@@ -59,7 +62,7 @@ public class GameController {
    }
 
    @GetMapping("/{id}")
-   public ResponseEntity<GameStatusResponseDTO> getGameStatus(@PathVariable int id){
+   public ResponseEntity<GameStatusResponseDTO> getGameStatus(@PathVariable int id) {
       return ResponseEntity.ok(gameService.getGameStatus(id));
    }
 
@@ -69,9 +72,9 @@ public class GameController {
       return ResponseEntity.ok().build();
    }
 
-   @PatchMapping("/{id}/move")
-   public ResponseEntity<MoveResponseDTO> makeMove(@PathVariable int id, @RequestBody MoveRequest moveRequest) {
-      MoveResponseDTO response = gameService.makeMove(id, new Move(gameService.getPlayer(id, moveRequest.userName()), new Position(moveRequest.br(), moveRequest.bc()), new Position(moveRequest.sr(), moveRequest.sc())));
+   @MessageMapping("/{id}/move")
+   public ResponseEntity<MoveResponseDTO> makeMove(@DestinationVariable int id, @RequestBody MoveRequestDTO moveRequestDTO) {
+      MoveResponseDTO response = gameService.makeMove(id, new Move(gameService.getPlayer(id, moveRequestDTO.userName()), new Position(moveRequestDTO.br(), moveRequestDTO.bc()), new Position(moveRequestDTO.sr(), moveRequestDTO.sc())));
 
       // Broadcast to everyone watching/playing this game. (Huni)
       messagingTemplate.convertAndSend("/topic/games/" + id, response);
@@ -80,8 +83,8 @@ public class GameController {
    }
 
    @PatchMapping("/{id}/win")
-   public ResponseEntity<Void> winGame(@PathVariable int id, @RequestBody WinGameRequest winGameRequest) {
-      gameService.winGame(id, winGameRequest.winnerName());
+   public ResponseEntity<Void> winGame(@PathVariable int id, @RequestBody WinGameRequestDTO winGameRequestDTO) {
+      gameService.winGame(id, winGameRequestDTO.winnerName());
       gameService.endGame(id);
       return ResponseEntity.ok().build();
    }
