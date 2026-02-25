@@ -4,16 +4,13 @@ import { useWebSocket } from "../state/WebSocketContext";
 import { Client } from "@stomp/stompjs";
 
 function Login({ className = "", style, onSubmit, onRegister }) {
-  const { connect } = useWebSocket();
+  const { connect, subscribe } = useWebSocket();
 
   const emptyData = {
     username: "",
     password: "",
   };
-
   const [data, setData] = useState(emptyData);
-
-  // console.log(data);
 
   function handleChange(event) {
     console.log(event.target.value);
@@ -51,7 +48,7 @@ function Login({ className = "", style, onSubmit, onRegister }) {
 
     // with POST:
     try {
-      const resp = await fetch(api(`/user/login`), {
+      const resp = await fetch(api(`/auth/login`), {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -60,12 +57,19 @@ function Login({ className = "", style, onSubmit, onRegister }) {
       });
 
       if (resp.ok) {
+        const body = await resp.json();
+        const jwt = body.jwt;
+        const gameIds = body.games ?? [];
         localStorage.setItem("userName", data.username);
+        localStorage.setItem("jwt", jwt);
         connect();
-        
 
-        {
-          /* TODO: Save Auth string in state or http cookie! (attach every time)*/
+        subscribe(`/user/${jwt}/notifications`, handleNotification);
+        subscribe(`/user/${jwt}/friend-requests`, handleFriendRequest);
+        subscribe(`/user/${jwt}/chats`, handleChatSummary);
+
+        for (let gameId in gameIds){
+          subscribe(`/topic/games/${gameId}`, handleGameUpdate);
         }
 
         onSubmit && onSubmit(data);

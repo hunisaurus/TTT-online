@@ -1,14 +1,11 @@
 package com.codecool.tttbackend.controller;
 
-import com.codecool.tttbackend.controller.dto.request.LoginRequestDTO;
 import com.codecool.tttbackend.controller.dto.request.RegisterRequestDTO;
-import com.codecool.tttbackend.controller.dto.response.TokenResponseDTO;
 import com.codecool.tttbackend.service.UserService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.sql.SQLException;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/user")

@@ -1,9 +1,7 @@
-import { Client } from "@stomp/stompjs";
-import SockJS from "sockjs-client";
 import { useState, useMemo, useEffect } from "react";
 import GiantBoard from "./GiantBoard";
 import { useAudio } from "../../hooks/useAudio";
-import { useGameSocket } from '../../state/WebSocketContext';
+import { useGameSocket } from "../../state/WebSocketContext";
 import {
   getWinner,
   isFull3,
@@ -20,27 +18,20 @@ export default function OnlineGame({ config, onExit }) {
   const [playersEntering, setPlayersEntering] = useState(false);
   const { isConnected, lastMessage, sendJson } = useGameSocket();
 
-
-
   useEffect(() => {
-
-    const client = new Client({
-      webSocketFactory: () => new SockJS("http://localhost:8080/ws"),
-      reconnectDelay: 5000,
-      onConnect: () => {
-        client.subscribe(`/topic/games/${config.gameId}`, (msg) => {
-          const body = JSON.parse(msg.body);
-
-          setState({
-            smallBoards: body.smallBoards,
-            bigBoard: body.bigBoard,
-            activeBigs: new Set(body.activeBoards),
-            currentPlayer: body.currentPlayer.character,  // maybe body.currentPlayer.character
-            winner: body.winner
-          });
+    if (!client || !config?.gameId) return;
+    const gameSub = client.subscribe(
+      `/topic/games/${config.gameId}`,
+      (body) => {
+        setState({
+          smallBoards: body.smallBoards,
+          bigBoard: body.bigBoard,
+          activeBigs: new Set(body.activeBoards),
+          currentPlayer: body.currentPlayer.character, // maybe body.currentPlayer.character
+          winner: body.winner,
         });
       },
-    });
+    );
 
     client.activate();
     return () => client.deactivate();
@@ -65,11 +56,10 @@ export default function OnlineGame({ config, onExit }) {
     }
   }, [config, state, playersEntering]);
 
-
-  const resolvedWinner = useMemo(()=>{
+  const resolvedWinner = useMemo(() => {
     if (!state || !state.winner) return false;
     if (state.winner) return state.winner.character;
-  }, [state])
+  }, [state]);
 
   const resolvedDraw = useMemo(() => {
     if (!state) return false;
@@ -93,22 +83,27 @@ export default function OnlineGame({ config, onExit }) {
     play("click");
     sb[br][bc][sr][sc] = currentPlayer.character;
 
-    
     const smallWinner = getWinner(sb[br][bc]);
-    
+
     if (smallWinner) {
       bb[br][bc] = smallWinner;
     } else if (isFull3(sb[br][bc])) {
       bb[br][bc] = "D";
     }
-    
+
     const bb = state.bigBoard.map((r) => [...r]);
-    
-    const storedUserName = localStorage.getItem('userName');
-    const response = makeMove(config.gameId,{storedUserName, br, bc, sr, sc});
-    setState()
+
+    const storedUserName = localStorage.getItem("userName");
+    const response = makeMove(config.gameId, {
+      storedUserName,
+      br,
+      bc,
+      sr,
+      sc,
+    });
+    setState();
   };
-  
+
   const onHover = () => play("hover");
 
   if (!config || !state) return null;
