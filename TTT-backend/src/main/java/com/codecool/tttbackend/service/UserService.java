@@ -37,19 +37,6 @@ public class UserService {
       userDAO.addNewUser(user);
    }
 
-   public String login(String username, String password) {
-      User user = userDAO.findByUsername(username);
-
-      if (user == null || !passwordHasher.verify(password, user.getPasswordHash())) {
-         throw new RuntimeException("Invalid username or password");
-      }
-
-//        return sessionManager.createSession(user.getId());
-
-      // auth imitation with username (for now)
-      return username;
-   }
-
    public void logout(String token) {
       sessionManager.invalidateSession(token);
    }
