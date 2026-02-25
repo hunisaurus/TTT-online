@@ -20,23 +20,11 @@ public class UserController {
         this.userService = userService;
     }
 
-
-    public Map<String, String> getStatus() {
-        return Map.of("status", "OK", "message", "Backend is running on Java 25!");
-    }
-
     @PostMapping("/register")
     public ResponseEntity<String> register(@RequestBody RegisterRequestDTO req) throws SQLException {
         userService.register(req.email(), req.username(), req.password(), req.birthDate());
 
         return ResponseEntity.ok("Registered");
-    }
-
-    @PostMapping("/login")
-    public ResponseEntity<TokenResponseDTO> login(@RequestBody LoginRequestDTO req) throws SQLException {
-        String token = userService.login(req.username(), req.password());
-
-        return ResponseEntity.ok(new TokenResponseDTO(token));
     }
 
     @PostMapping("/logout")
