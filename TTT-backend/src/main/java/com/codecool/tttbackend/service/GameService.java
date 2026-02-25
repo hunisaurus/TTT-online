@@ -125,7 +125,7 @@ public class GameService {
       return gameDAO.getAllGames();
    }
 
-   public MoveResponseDTO makeMove(int gameId, Move move) {
+   public GameStatusResponseDTO makeMove(int gameId, Move move) {
       Game game = gameDAO.findGameById(gameId);
       if (!GameLogic.validateMove(game, move)) return null;
       GameLogic.applyMove(game, move);
@@ -133,7 +133,7 @@ public class GameService {
       GameLogic.setActiveBoardFromMove(move, game);
       gameDAO.updateGame(game);
 
-      return getMoveResponseDTOFromGameAndMove(game, move);
+      return getGameStatusResponseDTOFromGame(game);
    }
 
    public Player getPlayer(int gameId, String userName) {

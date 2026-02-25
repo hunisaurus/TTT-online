@@ -1,5 +1,3 @@
-import { createContext, useCallback, useContext} from "react";
-
 const WebSocketContext = createContext(null);
 
 export function WebSocketProvider({ children }) {
@@ -13,9 +11,12 @@ export function WebSocketProvider({ children }) {
       webSocketFactory: () => new SockJS("http://localhost:8080/ws"),
       reconnectDelay: 5000,
       onConnect: () => {
-        for (const [dest, entry] of subsRef.current.entries()) {
-          const sub = client.subscribe(dest, entry.callback);
-          subsRef.current.set(dest, { ...entry, sub });
+        const token = localStorage.getItem("jwt");
+        const headers = token ? { Authorization: `Bearer ${token}` } : {};
+
+        for (const [dest, { callback }] of subsRef.current.entries()) {
+          const sub = client.subscribe(dest, callback, headers);
+          subsRef.current.set(dest, { callback, sub });
         }
       },
     });
@@ -37,8 +38,11 @@ export function WebSocketProvider({ children }) {
       return null;
     }
 
-    const sub = clientRef.current.subscribe(destination, callback);
-    entry.sub = sub;
+    const token = localStorage.getItem("jwt");
+    const headers = { Authorization: `Bearer ${token}` };
+
+    const sub = clientRef.current.subscribe(destination, callback, headers);
+    subsRef.current.set(destination, { callback, sub });
     return sub;
   }, []);
 
@@ -52,9 +56,28 @@ export function WebSocketProvider({ children }) {
     clientRef.current = null;
   }, []);
 
+  const send = useCallback((destination, body) => {
+    if (!clientRef.current || !clientRef.current.connected) return;
+
+    const token = localStorage.getItem("jwt");
+    const headers = token ? { Authorization: `Bearer ${token}` } : {};
+
+    clientRef.current.publish({
+      destination,
+      body: JSON.stringify(body),
+      headers,
+    });
+  }, []);
+
   return (
     <WebSocketContext.Provider
-      value={{ client: clientRef.current, connect, subscribe, disconnect }}
+      value={{
+        client: clientRef.current,
+        connect,
+        subscribe,
+        send,
+        disconnect,
+      }}
     >
       {children}
     </WebSocketContext.Provider>

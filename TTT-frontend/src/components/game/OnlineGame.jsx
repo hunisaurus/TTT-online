@@ -16,26 +16,28 @@ export default function OnlineGame({ config, onExit }) {
   const { play } = useAudio();
   const [boardEntering, setBoardEntering] = useState(false);
   const [playersEntering, setPlayersEntering] = useState(false);
-  const { isConnected, lastMessage, sendJson } = useGameSocket();
+  const { subscribe } = useWebSocket();
 
   useEffect(() => {
-    if (!client || !config?.gameId) return;
-    const gameSub = client.subscribe(
-      `/topic/games/${config.gameId}`,
-      (body) => {
-        setState({
-          smallBoards: body.smallBoards,
-          bigBoard: body.bigBoard,
-          activeBigs: new Set(body.activeBoards),
-          currentPlayer: body.currentPlayer.character, // maybe body.currentPlayer.character
-          winner: body.winner,
-        });
-      },
-    );
+    if (!config?.gameId) return;
 
-    client.activate();
-    return () => client.deactivate();
-  }, [config?.gameId]);
+    const sub = subscribe(`/topic/games/${config.gameId}`, (msg) => {
+      const body = JSON.parse(msg.body);
+
+      setState({
+        smallBoards: body.smallBoards,
+        bigBoard: body.bigBoard,
+        activeBigs:
+          body.currentPlayer.userName === localStorage.getItem("userName")
+            ? new Set(body.activeBoards)
+            : new Set([]),
+        currentPlayer: body.currentPlayer,
+        winner: body.winner || null,
+      });
+    });
+
+    return () => sub?.unsubscribe?.();
+  }, [config?.gameId, subscribe]);
 
   useEffect(() => {
     setBoardEntering(true);
@@ -93,15 +95,16 @@ export default function OnlineGame({ config, onExit }) {
 
     const bb = state.bigBoard.map((r) => [...r]);
 
-    const storedUserName = localStorage.getItem("userName");
-    const response = makeMove(config.gameId, {
-      storedUserName,
+    const userName = localStorage.getItem("userName");
+
+    send("/app/games/move", {
+      gameId: config.gameId,
+      userName,
       br,
       bc,
       sr,
       sc,
     });
-    setState();
   };
 
   const onHover = () => play("hover");

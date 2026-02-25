@@ -69,8 +69,6 @@ function Login({ className = "", style, onSubmit, onRegister }) {
           const body = JSON.parse(msg.body);
           addNotification(body);
         });
-        subscribe(`/user/${jwt}/friend-requests`, handleFriendRequest);
-        subscribe(`/user/${jwt}/chats`, handleChatSummary);
 
         for (let gameId in gameIds) {
           subscribe(`/topic/games/${gameId}`, handleGameUpdate);

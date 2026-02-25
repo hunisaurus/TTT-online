@@ -1,3 +1,5 @@
+const { isConnected, lastMessage, sendJson } = useGameSocket();
+
 export const joinQuickMatch = async (useName) => {};
 
 export const createOnlineGame = async (userName, gameName, maxPlayerCount) => {
