@@ -30,7 +30,7 @@ export default function OnlineGame({ config, onExit }) {
         activeBigs: new Set(body.activeBoards) || new Set([]), // TODO: in later code check activeBoards
         currentPlayer: body.currentPlayer,
         winner: body.winner || null,
-        rotation: body.rotation  
+        rotation: body.rotation
       });
     });
 

@@ -24,38 +24,46 @@ export default function CreateGame({ onContinue }) {
     }
   };
 
-  return (
-    <div className="loginPanel" style={{ opacity: 1 }}>
-      <form onSubmit={handleSubmit} className="loginForm">
-        <input
-          className="loginInput"
-          placeholder="Game Name"
-          required
-          value={formData.gameName}
-          onChange={(e) =>
-            setFormData({ ...formData, gameName: e.target.value })
-          }
-        />
+    return (
+        <div className="menu-step-container" style={{opacity: 1}}>
+            <h2 className="helptext">CREATE ONLINE GAME</h2>
 
-        <div className="form-group" style={{ marginTop: "15px" }}>
-          <label style={{ color: "white", marginRight: "10px" }}>
-            Players:
-          </label>
-          <select
-            value={formData.maxPlayerCount}
-            onChange={(e) =>
-              setFormData({ ...formData, maxPlayerCount: e.target.value })
-            }
-          >
-            <option value="2">2 Players</option>
-            <option value="3">3 Players</option>
-          </select>
+            <div className="menu-card">
+                <form onSubmit={handleSubmit} className="menu-form-layout">
+                    <label className="form-label">Game Name</label>
+                    <input
+                        className="form-input"
+                        placeholder="Game Name"
+                        required
+                        value={formData.gameName}
+                        onChange={(e) => setFormData({...formData, gameName: e.target.value})}
+                    />
+
+                    <div className="form-group" style={{marginTop: "15px"}}>
+                        <label className="form-label" style={{color: "white", marginRight: "10px"}}>Players:</label>
+                        <select
+                            className="form-input select-input"
+                            value={formData.maxPlayerCount}
+                            onChange={(e) => setFormData({...formData, maxPlayerCount: e.target.value})}
+                        >
+                            <option value="2">2 Players</option>
+                            <option value="3">3 Players</option>
+                        </select>
+                    </div>
+                    <div className="auth-actions">
+                        <button type="submit" className="base-btn btn-primary" disabled={loading}>
+                            {loading ? "CREATING..." : "Loading..."}
+                        </button>
+                        <button
+                            className="base-btn btn-ghost"
+                            type="button"
+                            onClick={() => onBack && onBack()}
+                        >
+                            Back
+                        </button>
+                    </div>
+                </form>
+            </div>
         </div>
-
-        <button type="submit" className="loginButton" disabled={loading}>
-          {loading ? "CREATING..." : "Loading..."}
-        </button>
-      </form>
-    </div>
-  );
+    );
 }

@@ -2,6 +2,8 @@ import { useState } from "react";
 import { api } from "../state/config";
 import { useNotifications } from "../state/NotificationContext";
 import { useWebSocket } from "../state/WebSocketContext";
+import '../StyleCSS/auth.css'
+import '../StyleCSS/global.css'
 
 function Login({ className = "", style, onSubmit, onRegister }) {
   const { connect, subscribe } = useWebSocket();
@@ -70,58 +72,61 @@ function Login({ className = "", style, onSubmit, onRegister }) {
         //   addNotification(body);
         // });
 
-        onSubmit && onSubmit(data);
-      } else {
-        const msg = await resp.text().catch(() => "");
-        alert(`Failed to log in (${resp.status}). ${msg || ""}`);
-      }
-    } catch (err) {
-      alert("Network error during login:" + err);
+                onSubmit && onSubmit(data);
+            } else {
+                const msg = await resp.text().catch(() => "");
+                alert(`Failed to log in (${resp.status}). ${msg || ""}`);
+            }
+        } catch (err) {
+            alert("Network error during login: " + err);
+        }
     }
-  }
+    return (
+        <div className={`auth-page ${className}`} style={style}>
+            <h2 className="helptext">Welcome</h2>
 
-  return (
-    <>
-      <form className="" onSubmit={handleSubmit}>
-        <div
-          className={["loginPanel", className].join(" ").trim()}
-          style={style}
-        >
-          {Object.entries(data).map(([key, value]) => (
-            <div key={key} className="edit-input-box">
-              <label className="edit-label" htmlFor={key}>
-                {key}:
-              </label>
-              {
-                <input
-                  className="edit-input"
-                  name={key}
-                  onChange={handleChange}
-                  type={key === "password" ? "password" : "text"}
-                  placeholder={value}
-                  defaultValue={value}
-                />
-              }
-            </div>
-          ))}
-          <button className="loginButton" type="submit">
-            Log In
-          </button>
-          <div className="loginRegister">
-            <label htmlFor="register">Don't have an account yet?</label>
-            <button
-              className="loginSecondaryButton"
-              type="button"
-              key="register"
-              onClick={() => onRegister && onRegister()}
-            >
-              Register
-            </button>
-          </div>
+            <form className="auth-card" onSubmit={handleSubmit}>
+
+                <div className="form-group">
+                    <label className="form-label">Username</label>
+                    <input
+                        className="form-input"
+                        name="username"
+                        type="text"
+                        value={data.username}
+                        onChange={handleChange}
+                        required
+                    />
+                </div>
+
+                <div className="form-group">
+                    <label className="form-label">Password</label>
+                    <input
+                        className="form-input"
+                        name="password"
+                        type="password"
+                        value={data.password}
+                        onChange={handleChange}
+                        required
+                    />
+                </div>
+
+                <div className="auth-actions">
+                    <button className="base-btn btn-ghost" type="submit">
+                        Login
+                    </button>
+                    <button
+                        className="base-btn btn-ghost"
+                        type="button"
+                        onClick={onRegister}
+                    >
+                        Register
+                    </button>
+                </div>
+            </form>
         </div>
-      </form>
-    </>
-  );
+    );
+
 }
 
 export default Login;
