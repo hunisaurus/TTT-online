@@ -79,15 +79,6 @@ public class JwtUtil {
                 .get("roles", String.class);
     }
 
-    public boolean isTokenValid(String token, String username) {
-        try {
-            String extractedUsername = getUsernameFromToken(token, false);
-            return (extractedUsername.equals(username)) && !isTokenExpired(token);
-        } catch (Exception e) {
-            return false;
-        }
-    }
-
     public boolean validateToken(String token, boolean isRefreshToken) {
         try {
             Key key = isRefreshToken ? getRefreshSigningKey() : getAccessSigningKey();
@@ -96,15 +87,5 @@ public class JwtUtil {
         } catch (JwtException | IllegalArgumentException e) {
             return false;
         }
-    }
-
-    private boolean isTokenExpired(String token) {
-        Date expiration = Jwts.parserBuilder()
-                .setSigningKey(getAccessSigningKey())
-                .build()
-                .parseClaimsJws(token)
-                .getBody()
-                .getExpiration();
-        return expiration.before(new Date());
     }
 }
