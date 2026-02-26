@@ -33,7 +33,7 @@ export default function ServerBrowser({ onJoin }) {
           {!loading && servers.length > 0
             ? servers.map((server) => (
                 <div
-                  key={server.id}
+                  key={server.gameId}
                   className="server-browser-item"
                   onClick={() => onJoin(server)}
                 >

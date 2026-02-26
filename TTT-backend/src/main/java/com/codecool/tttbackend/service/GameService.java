@@ -165,13 +165,16 @@ public class GameService {
    }
 
    private GameStatusResponseDTO getGameStatusResponseDTOFromGame(Game game) {
+      boolean started = game != null && game.getGameState() == GameState.IN_PROGRESS;
+
       return new GameStatusResponseDTO(
           getPlayerResponseDTOFromPlayer(game.getCurrentPlayer()),
           game.getBoard().toSmallBoardsStrings(),
           game.getBoard().toBigBoardStrings(),
           getActiveBoardsFromGame(game),
           getPlayerResponseDTOFromPlayer(GameLogic.getWinningPlayer(game)),
-          game.getRotation()
+          game.getRotation(),
+          started
       );
    }
 

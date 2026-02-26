@@ -8,6 +8,7 @@ public record GameStatusResponseDTO(
     String[][] bigBoard,
     List<String> activeBoards,
     PlayerResponseDTO winner,
-    List<Character> rotation
+    List<Character> rotation,
+    boolean started
 ) {
 }

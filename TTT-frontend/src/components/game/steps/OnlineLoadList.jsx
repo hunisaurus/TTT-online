@@ -41,7 +41,7 @@ export default function OnlineLoadList({onSelect, currentUserId}) {
                     {!loading && savedGames.length > 0 ? (
                         savedGames.map(game => (
                             <div
-                                key={game.id}
+                                key={game.gameId}
                                 className="load-item"
                                 onClick={() => onSelect(game)}
                             >

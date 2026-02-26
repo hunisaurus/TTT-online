@@ -103,6 +103,7 @@ export default function Home() {
               onExit={() => {
                 setStep("menu");
               }}
+              go={go}
             />
           ) : (
             <Game

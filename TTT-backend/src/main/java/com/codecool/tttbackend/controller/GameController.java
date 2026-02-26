@@ -14,6 +14,7 @@ import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.Principal;
 import java.util.List;
 
 @CrossOrigin(origins = "http://localhost:5173")
@@ -35,8 +36,9 @@ public class GameController {
       return ResponseEntity.status(HttpStatus.CREATED).build();
    }
 
-   @GetMapping("/{userName}")
-   public ResponseEntity<List<GameResponseDTO>> getMyGames(@PathVariable(required = false) String userName) {
+   @GetMapping
+   public ResponseEntity<List<GameResponseDTO>> getMyGames(Principal principal) {
+      String userName = principal.getName();
       System.out.println("Beérkező kérés username: " + userName); // LOG
       List<GameResponseDTO> gameResponseDTOS = gameService.getUserGameResponseDTOs(userName);
       System.out.println("Talált játékok száma: " + gameResponseDTOS.size()); // LOG
@@ -71,6 +73,7 @@ public class GameController {
 
    @GetMapping("/{id}")
    public ResponseEntity<GameStatusResponseDTO> getGameStatus(@PathVariable int id) {
+      // TODO: check if authorized
       return ResponseEntity.ok(gameService.getGameStatus(id));
    }
 

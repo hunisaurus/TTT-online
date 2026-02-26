@@ -13,8 +13,8 @@ export const createOnlineGame = async (userName, gameName, maxPlayerCount) => {
   if (!res.ok) throw new Error("Creation failed");
 };
 
-export const joinOnlineGame = async (userName, character) => {
-    const res = await fetch("http://localhost:8080/games/create", {
+export const joinOnlineGame = async (userName, character, gameId) => {
+    const res = await fetch(`http://localhost:8080/games/${gameId}/join`, {
     method: "PATCH",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
@@ -47,3 +47,16 @@ export const getAvailableGames = async () => {
   if (!res.ok) throw new Error("Getting available games failed");
   return res.json();
 };
+
+
+export const getGameStatus = async (gameId) => {
+  const token = localStorage.getItem("jwt");
+  const res = await fetch(`http://localhost:8080/games/${gameId}`, {
+    method: "GET",
+    headers: token
+      ? { Authorization: `Bearer ${token}`}
+      : {},
+  });
+  if (!res.ok) throw new Error("Getting game failed");
+  return res.json();
+}
