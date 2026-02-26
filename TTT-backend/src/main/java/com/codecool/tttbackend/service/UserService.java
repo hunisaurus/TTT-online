@@ -1,44 +1,45 @@
 package com.codecool.tttbackend.service;
 
+import com.codecool.tttbackend.controller.dto.request.RegisterRequest;
 import com.codecool.tttbackend.dao.UserDAO;
 import com.codecool.tttbackend.dao.model.User;
 import com.codecool.tttbackend.security.PasswordHasher;
-import com.codecool.tttbackend.security.SessionManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.Set;
 
 @Service
 public class UserService {
 
    private final UserDAO userDAO;
    private final PasswordHasher passwordHasher;
-   private final SessionManager sessionManager;
 
    @Autowired
-   public UserService(UserDAO userDAO) {
+   public UserService(UserDAO userDAO, PasswordHasher passwordHasher) {
       this.userDAO = userDAO;
-      this.passwordHasher = new PasswordHasher();
-      this.sessionManager = new SessionManager();
+      this.passwordHasher = passwordHasher;
    }
 
-   public void register(String email, String username, String password, LocalDate birthDate) {
-      if (userDAO.findByEmail(email) != null) {
-         throw new RuntimeException("There is already a user with that email!");
+   public void register(RegisterRequest request){
+      if (userDAO.findByUsername(request.username()) != null) {
+         throw new RuntimeException("Username already exists");
+      }
+
+      if (userDAO.findByEmail(request.email()) != null) {
+         throw new RuntimeException("Email already exists");
       }
 
       User user = new User();
-      user.setEmail(email);
-      user.setUsername(username);
-      user.setPasswordHash(passwordHasher.hash(password));
-      user.setBirthDate(birthDate);
+      user.setUsername(request.username());
+      user.setEmail(request.email());
+      user.setPasswordHash(passwordHasher.hash(request.password()));
+      user.setBirthDate(request.birthDate());
+      user.setRegistrationDate(LocalDateTime.now());
+      user.setRoles(Set.of("USER"));
 
       userDAO.addNewUser(user);
-   }
-
-   public void logout(String token) {
-      sessionManager.invalidateSession(token);
    }
 
    public User getUserByUserName(String userName){
