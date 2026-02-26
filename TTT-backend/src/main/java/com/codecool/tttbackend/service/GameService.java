@@ -1,5 +1,6 @@
 package com.codecool.tttbackend.service;
 
+import com.codecool.tttbackend.controller.dto.request.CreateGameRequestDTO;
 import com.codecool.tttbackend.controller.dto.response.GameResponseDTO;
 import com.codecool.tttbackend.controller.dto.response.GameStatusResponseDTO;
 import com.codecool.tttbackend.controller.dto.response.PlayerResponseDTO;
@@ -26,15 +27,20 @@ public class GameService {
       this.userService = userService;
    }
 
-   public void createGame(String creatorName, String gameName, int maxPlayers) {
-      User creator = userService.getUserByUserName(creatorName);
+   public void createGame(CreateGameRequestDTO createGameRequestDTO) {
+      User creator = userService.getUserByUserName(createGameRequestDTO.userName());
+
+      Player creatorPlayer = new Player();
+      creatorPlayer.setUser(creator);
+      creatorPlayer.setCharacter(createGameRequestDTO.character());
+
       Game game = new Game();
+      game.addPlayer(creatorPlayer);
       game.setCreator(creator);
-      game.setName(gameName);
-      game.setMaxPlayers(maxPlayers);
+      game.setName(createGameRequestDTO.gameName());
+      game.setMaxPlayers(createGameRequestDTO.maxPlayerCount());
       game.setTimeCreated(LocalDateTime.now());
       game.setGameState(GameState.WAITING);
-
       gameDAO.addGame(game);
    }
 

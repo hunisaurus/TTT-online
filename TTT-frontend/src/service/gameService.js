@@ -1,30 +1,48 @@
 export const joinQuickMatch = async (useName) => {};
 
-export const createOnlineGame = async (userName, gameName, maxPlayerCount) => {
+export const createOnlineGame = async (
+  userName,
+  gameName,
+  maxPlayerCount,
+  character,
+) => {
   const res = await fetch("http://localhost:8080/games/create", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-            userName: userName,
-            gameName: gameName,
-            maxPlayerCount: maxPlayerCount
-        }),
+      userName,
+      gameName,
+      maxPlayerCount,
+      character,
+    }),
   });
   if (!res.ok) throw new Error("Creation failed");
 };
 
-export const joinOnlineGame = async (userName, character, gameId) => {
-    const res = await fetch(`http://localhost:8080/games/${gameId}/join`, {
+export const joinOnlineGame = async (character, gameId) => {
+  const token = localStorage.getItem("jwt");
+  const res = await fetch(`http://localhost:8080/games/${gameId}/join`, {
     method: "PATCH",
-    headers: { "Content-Type": "application/json" },
+    headers: token
+      ? { Authorization: `Bearer ${token}`, "Content-Type": "application/json" }
+      : { "Content-Type": "application/json" },
     body: JSON.stringify({
-            userName: userName,
-            character: character
-        }),
+      character: character,
+    }),
   });
-  if (!res.ok) throw new Error("Creation failed");
+  if (!res.ok) throw new Error("Joining online game failed");
   return res.json();
-}
+};
+
+export const startOnlineGame = async (gameId) => {
+  const token = localStorage.getItem("jwt");
+  const res = await fetch(`http://localhost:8080/games/${gameId}/start`, {
+    method: "PATCH",
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  });
+  if (!res.ok) throw new Error("Starting online game failed");
+  return res.json();
+};
 
 export const makeMove = async (gameId, { userName, br, bc, sr, sc }) => {
   const res = await fetch(`http://localhost:8080/games/${gameId}/move`, {
@@ -40,23 +58,18 @@ export const getAvailableGames = async () => {
   const token = localStorage.getItem("jwt");
   const res = await fetch("http://localhost:8080/games/available", {
     method: "GET",
-    headers: token
-      ? { Authorization: `Bearer ${token}` }
-      : {},
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
   });
   if (!res.ok) throw new Error("Getting available games failed");
   return res.json();
 };
 
-
 export const getGameStatus = async (gameId) => {
   const token = localStorage.getItem("jwt");
   const res = await fetch(`http://localhost:8080/games/${gameId}`, {
     method: "GET",
-    headers: token
-      ? { Authorization: `Bearer ${token}`}
-      : {},
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
   });
-  if (!res.ok) throw new Error("Getting game failed");
+  if (!res.ok) throw new Error(`Getting game #${gameId} failed`);
   return res.json();
-}
+};

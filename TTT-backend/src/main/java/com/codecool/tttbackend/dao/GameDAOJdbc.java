@@ -159,9 +159,9 @@ public class GameDAOJdbc implements GameDAO {
       game.setId(gameId);
 
       if (game.getPlayers() != null) {
-         String joinSql = "INSERT INTO players (game_id, user_id) VALUES (?, ?)";
+         String joinSql = "INSERT INTO players (game_id, user_id, character) VALUES (?, ?, ?)";
          for (Player player : game.getPlayers()) {
-            jdbcTemplate.update(joinSql, gameId, player.getUser().getId());
+            jdbcTemplate.update(joinSql, gameId, player.getUser().getId(), player.getCharacter());
          }
       }
    }

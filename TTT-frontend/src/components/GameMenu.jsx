@@ -5,6 +5,7 @@ import "../StyleCSS/global.css";
 import CreateGame from "./game/steps/CreateGame.jsx";
 import ServerBrowser from "./game/steps/ServerBrowser";
 import OnlineLoadList from "./game/steps/OnlineLoadList";
+import { joinOnlineGame } from "../service/gameService.js";
 
 const CHARSET = ["◯", "✖", "△"];
 
@@ -318,20 +319,25 @@ export default function GameMenu({ onStart }) {
       {step === "createGame" && (
         <CreateGame
           onContinue={() => {
-            go("char");
+            go("game");
           }}
         />
       )}
 
       {step === "serverBrowser" && (
         <ServerBrowser
-          onJoin={(game) => {
+          onJoin={async (game) => {
             play("click");
             setCurrentGameId(game.gameId);
             onStart({
               mode: "online",
               gameId: game.gameId
             });
+            try {
+                await joinOnlineGame(game.gameId);
+            } catch (error) {
+                console.log(error);
+            }
             go("game");
           }}
         />

@@ -3,7 +3,6 @@ package com.codecool.tttbackend.controller;
 import com.codecool.tttbackend.controller.dto.request.*;
 import com.codecool.tttbackend.controller.dto.response.GameResponseDTO;
 import com.codecool.tttbackend.controller.dto.response.GameStatusResponseDTO;
-import com.codecool.tttbackend.dao.model.game.Game;
 import com.codecool.tttbackend.dao.model.game.Move;
 import com.codecool.tttbackend.dao.model.game.Position;
 import com.codecool.tttbackend.service.GameService;
@@ -32,13 +31,18 @@ public class GameController {
 
    @PostMapping("/create")
    public ResponseEntity<Void> createGame(@RequestBody CreateGameRequestDTO createGameRequestDTO) {
-      gameService.createGame(createGameRequestDTO.userName(), createGameRequestDTO.gameName(), createGameRequestDTO.maxPlayerCount());
+      gameService.createGame(createGameRequestDTO);
       return ResponseEntity.status(HttpStatus.CREATED).build();
    }
 
    @GetMapping
    public ResponseEntity<List<GameResponseDTO>> getMyGames(Principal principal) {
-      String userName = principal.getName();
+      String userName = (principal != null) ? principal.getName() : null;
+
+      if (userName == null || userName.isBlank()) {
+         // Not authenticated and no username provided
+         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+      }
       System.out.println("Beérkező kérés username: " + userName); // LOG
       List<GameResponseDTO> gameResponseDTOS = gameService.getUserGameResponseDTOs(userName);
       System.out.println("Talált játékok száma: " + gameResponseDTOS.size()); // LOG
@@ -53,33 +57,41 @@ public class GameController {
       return ResponseEntity.ok(gameResponseDTOS);
    }
 
-   @PatchMapping("/{id}/join")
-   public ResponseEntity<Void> joinGame(@PathVariable int id, @RequestBody JoinGameRequestDTO joinGameRequestDTO) {
-      gameService.joinGame(id, joinGameRequestDTO.userName(), joinGameRequestDTO.character());
+   @PatchMapping("/{gameId}/join")
+   public ResponseEntity<Void> joinGame(@PathVariable int gameId, @RequestBody JoinGameRequestDTO joinGameRequestDTO, Principal principal) {
+      String userName = (principal != null) ? principal.getName() : null;
+
+      if (userName == null || userName.isBlank()) {
+         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+      }
+      gameService.joinGame(gameId, userName, joinGameRequestDTO.character());
+
+      // TODO: broadcast notifications to players
+
       return ResponseEntity.ok().build();
    }
 
-   @PatchMapping("/{id}/leave")
-   public ResponseEntity<Void> leaveGame(@PathVariable int id, @RequestBody LeaveGameRequestDTO leaveGameRequestDTO) {
-      gameService.leaveGame(id, leaveGameRequestDTO.userName());
+   @PatchMapping("/{gameId}/leave")
+   public ResponseEntity<Void> leaveGame(@PathVariable int gameId, @RequestBody LeaveGameRequestDTO leaveGameRequestDTO) {
+      gameService.leaveGame(gameId, leaveGameRequestDTO.userName());
       return ResponseEntity.ok().build();
    }
 
-   @PatchMapping("/{id}/start")
-   public ResponseEntity<Void> startGame(@PathVariable int id) {
-      gameService.startGame(id);
+   @PatchMapping("/{gameId}/start")
+   public ResponseEntity<Void> startGame(@PathVariable int gameId) {
+      gameService.startGame(gameId);
+      messagingTemplate.convertAndSend("/topic/games/" + gameId, gameService.getGameStatus(gameId));
       return ResponseEntity.ok().build();
    }
 
-   @GetMapping("/{id}")
-   public ResponseEntity<GameStatusResponseDTO> getGameStatus(@PathVariable int id) {
-      // TODO: check if authorized
-      return ResponseEntity.ok(gameService.getGameStatus(id));
+   @GetMapping("/{gameId}")
+   public ResponseEntity<GameStatusResponseDTO> getGameStatus(@PathVariable int gameId) {
+      return ResponseEntity.ok(gameService.getGameStatus(gameId));
    }
 
-   @PatchMapping("/{id}/end")
-   public ResponseEntity<Void> endGame(@PathVariable int id) {
-      gameService.endGame(id);
+   @PatchMapping("/{gameId}/end")
+   public ResponseEntity<Void> endGame(@PathVariable int gameId) {
+      gameService.endGame(gameId);
       return ResponseEntity.ok().build();
    }
 
@@ -93,10 +105,10 @@ public class GameController {
       return ResponseEntity.ok(response);
    }
 
-   @PatchMapping("/{id}/win")
-   public ResponseEntity<Void> winGame(@PathVariable int id, @RequestBody WinGameRequestDTO winGameRequestDTO) {
-      gameService.winGame(id, winGameRequestDTO.winnerName());
-      gameService.endGame(id);
+   @PatchMapping("/{gameId}/win")
+   public ResponseEntity<Void> winGame(@PathVariable int gameId, @RequestBody WinGameRequestDTO winGameRequestDTO) {
+      gameService.winGame(gameId, winGameRequestDTO.winnerName());
+      gameService.endGame(gameId);
       return ResponseEntity.ok().build();
    }
 }

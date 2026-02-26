@@ -3,7 +3,7 @@ import GiantBoard from "./GiantBoard";
 import { useAudio } from "../../hooks/useAudio";
 import { useWebSocket } from "../../state/WebSocketContext";
 import { getWinner, isFull3 } from "../../state/gameLogic";
-import { getGameStatus } from "../../service/gameService";
+import { getGameStatus, startOnlineGame } from "../../service/gameService";
 
 export default function OnlineGame({ config, onExit }) {
   const [state, setState] = useState(null);
@@ -11,7 +11,7 @@ export default function OnlineGame({ config, onExit }) {
   const [boardEntering, setBoardEntering] = useState(false);
   const [playersEntering, setPlayersEntering] = useState(false);
   const { subscribe, send } = useWebSocket();
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(true); 
 
   console.log("OnlineGame component opened!");
   console.log("OnlineGame config.gameId:", config.gameId);
@@ -195,7 +195,28 @@ export default function OnlineGame({ config, onExit }) {
           )}
         </main>
       ) : (
-        !loading && <main>WAITING FOR GAME TO START</main>
+        <main>
+          {!loading && (
+            <h2 className={`helptext`}>WAITING FOR GAME TO START</h2>
+          )}
+          {localStorage.getItem("userName") == config.creator &&
+            state.rotation.length > 1 && (
+              <button
+                className="game-btn"
+                onMouseOver={() => play("hover")}
+                onClick={async () => {
+                  play("gamestart");
+                  try {
+                    await startOnlineGame(config.gameId);
+                  } catch (error) {
+                    console.error("Cant reach the backend! :", error);
+                  }
+                }}
+              >
+                START GAME{"\n"}(vs CPU)
+              </button>
+            )}
+        </main>
       )}
       {!loading && (
         <button className="back-button-modern" onClick={onExit}>
