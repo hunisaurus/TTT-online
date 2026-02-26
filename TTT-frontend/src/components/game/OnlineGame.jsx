@@ -4,12 +4,8 @@ import { useAudio } from "../../hooks/useAudio";
 import { useWebSocket } from "../../state/WebSocketContext";
 import {
   getWinner,
-  isFull3,
-  nextActiveFromCell,
-  anyPlayableBigs,
+  isFull3
 } from "../../state/gameLogic";
-import "../../styles.css";
-import { makeMove } from "../../service/gameService";
 
 export default function OnlineGame({ config, onExit }) {
   const [state, setState] = useState(null);

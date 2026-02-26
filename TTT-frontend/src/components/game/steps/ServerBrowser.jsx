@@ -6,7 +6,7 @@ export default function ServerBrowser({ onJoin }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    setLoading(true);
+    setLoading(false);
     const loadServers = async () => {
       try {
         const games = await getAvailableGames();
@@ -19,42 +19,45 @@ export default function ServerBrowser({ onJoin }) {
     };
     loadServers();
   }, []);
+
   return (
-   <div className="menu-step-container">
-            <h2 className="helptext">SERVER BROWSER</h2>
+    <div className="menu-step-container">
+      <h2 className="helptext">SERVER BROWSER</h2>
 
-            <div className="menu-card list-card">
-                <div className="server-list-wrapper">
-                    {loading && <p className="status-msg loading">Scanning for matches...</p>}
+      <div className="menu-card list-card">
+        <div className="server-list-wrapper">
+          {loading && (
+            <p className="status-msg loading">Scanning for matches...</p>
+          )}
 
-                    {!loading && servers.length > 0 ? (
-                        servers.map(server => (
-                            <div
-                                key={server.id}
-                                className="server-browser-item"
-                                onClick={() => onJoin(server)}
-                            >
-                                <div className="server-main-info">
-                                    <div className="server-name">{server.name}</div>
-                                    <div className="server-details">
-                                        <span className="player-count">
-                                            {server.currentPlayers} / {server.maxPlayers} Players
-                                        </span>
-                                        <span className="divider">|</span>
-                                        <span className="server-status">{server.status}</span>
-                                    </div>
-                                </div>
+          {!loading && servers.length > 0
+            ? servers.map((server) => (
+                <div
+                  key={server.id}
+                  className="server-browser-item"
+                  onClick={() => onJoin(server)}
+                >
+                  <div className="server-main-info">
+                    <div className="server-name"> name: {server.gameName}</div>
+                    <div className="server-details">
+                      <span className="player-count">
+                        {server.currentPlayers} / {server.maxPlayers} Players  
+                      </span>
+                      <span className="divider"> | </span>
+                      <span className="server-status">(created by {server.creator})</span>
+                    </div>
+                  </div>
 
-                                <button className="base-btn btn-primary join-btn">
-                                    JOIN
-                                </button>
-                            </div>
-                        ))
-                    ) : (
-                        !loading && <p className="status-msg empty">No active servers found.</p>
-                    )}
+                  <button className="base-btn btn-primary join-btn">
+                    JOIN
+                  </button>
                 </div>
-            </div>
+              ))
+            : !loading && (
+                <p className="status-msg empty">No active servers found.</p>
+              )}
         </div>
-    );
+      </div>
+    </div>
+  );
 }

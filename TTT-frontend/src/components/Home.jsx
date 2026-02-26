@@ -6,7 +6,6 @@ import GameMenu from "./GameMenu";
 import Game from "./game/Game";
 import "../StyleCSS/global.css";
 import "../StyleCSS/auth.css";
-import "../home.css";
 import OnlineGame from "./game/OnlineGame";
 
 export default function Home() {

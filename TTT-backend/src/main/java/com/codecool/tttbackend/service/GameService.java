@@ -195,7 +195,9 @@ public class GameService {
           game.getName(),
           game.getCreator().getUsername(),
           // change public and private logic later:
-          "public"
+          "public",
+          game.getMaxPlayers(),
+          game.getPlayers().size()
       );
    }
 }
