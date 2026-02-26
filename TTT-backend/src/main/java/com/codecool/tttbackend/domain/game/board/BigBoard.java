@@ -180,7 +180,7 @@ public class BigBoard implements Board {
          for (int bc = 0; bc < 3; bc++) {
             SmallBoard sb = smallBoards[br][bc];
             Character winner = (sb == null) ? null : sb.getWinningCharacter();
-            big[br][bc] = (winner == null || winner == '_') ? "" : String.valueOf(winner);
+            big[br][bc] = winner == null || winner == '_' ? (sb != null && sb.isFull() ? "D" : "") : String.valueOf(winner);
          }
       }
       return big;

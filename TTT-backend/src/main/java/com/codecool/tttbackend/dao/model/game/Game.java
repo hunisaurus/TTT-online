@@ -112,4 +112,8 @@ public class Game {
    public void setWinner(Player winner) {
       this.winner = winner;
    }
+
+   public List<Character> getRotation(){
+      return players.stream().map(Player::getCharacter).toList();
+   }
 }

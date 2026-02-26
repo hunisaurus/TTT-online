@@ -15,7 +15,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
       // Frontend connects here.
       // SockJS makes local dev easier (fallbacks when native WS is blocked). (Huni)
       registry.addEndpoint("/ws")
-          .setAllowedOriginPatterns("*")
+          .setAllowedOrigins("http://localhost:5173") // or "*", but this is safer
           .withSockJS();
    }
 

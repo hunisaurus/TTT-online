@@ -72,12 +72,12 @@ public class GameController {
       return ResponseEntity.ok().build();
    }
 
-   @MessageMapping("/{id}/move")
-   public ResponseEntity<GameStatusResponseDTO> makeMove(@DestinationVariable int id, @RequestBody MoveRequestDTO moveRequestDTO) {
-      GameStatusResponseDTO response = gameService.makeMove(id, new Move(gameService.getPlayer(id, moveRequestDTO.userName()), new Position(moveRequestDTO.br(), moveRequestDTO.bc()), new Position(moveRequestDTO.sr(), moveRequestDTO.sc())));
+   @MessageMapping("/{gameId}/move")
+   public ResponseEntity<GameStatusResponseDTO> makeMove(@DestinationVariable int gameId, @RequestBody MoveRequestDTO moveRequestDTO) {
+      GameStatusResponseDTO response = gameService.makeMove(gameId, new Move(gameService.getPlayer(gameId, moveRequestDTO.userName()), new Position(moveRequestDTO.br(), moveRequestDTO.bc()), new Position(moveRequestDTO.sr(), moveRequestDTO.sc())));
       if (response == null) return new ResponseEntity<>(HttpStatus.FORBIDDEN);
 
-      messagingTemplate.convertAndSend("/topic/games/" + id, response);
+      messagingTemplate.convertAndSend("/topic/games/" + gameId, response);
 
       return ResponseEntity.ok(response);
    }

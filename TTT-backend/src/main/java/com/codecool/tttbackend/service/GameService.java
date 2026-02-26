@@ -156,12 +156,13 @@ public class GameService {
    }
 
    private GameStatusResponseDTO getGameStatusResponseDTOFromGame(Game game) {
-    return new GameStatusResponseDTO(
+      return new GameStatusResponseDTO(
           getPlayerResponseDTOFromPlayer(game.getCurrentPlayer()),
           game.getBoard().toSmallBoardsStrings(),
           game.getBoard().toBigBoardStrings(),
           getActiveBoardsFromGame(game),
-          getPlayerResponseDTOFromPlayer(GameLogic.getWinningPlayer(game))
+          getPlayerResponseDTOFromPlayer(GameLogic.getWinningPlayer(game)),
+          game.getRotation()
       );
    }
 
@@ -189,8 +190,9 @@ public class GameService {
       );
    }
 
-   private List<String> getActiveBoardsFromGame(Game game){
+   private List<String> getActiveBoardsFromGame(Game game) {
       return game.getBoard().getActiveBoardPositions().stream().map(Position::toString).toList();
    }
+
 }
 

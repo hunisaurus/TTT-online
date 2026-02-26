@@ -49,7 +49,7 @@ function Login({ className = "", style, onSubmit, onRegister }) {
 
     // with POST:
     try {
-      const resp = await fetch(api(`/auth/login`), {
+      const resp = await fetch(api(`/api/auth/login`), {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -65,10 +65,10 @@ function Login({ className = "", style, onSubmit, onRegister }) {
         localStorage.setItem("jwt", jwt);
         connect();
 
-        subscribe(`/user/${jwt}/notifications`, (msg) => {
-          const body = JSON.parse(msg.body);
-          addNotification(body);
-        });
+        // subscribe(`/user/${jwt}/notifications`, (msg) => {
+        //   const body = JSON.parse(msg.body);
+        //   addNotification(body);
+        // });
 
         for (let gameId in gameIds) {
           subscribe(`/topic/games/${gameId}`, handleGameUpdate);
@@ -80,7 +80,7 @@ function Login({ className = "", style, onSubmit, onRegister }) {
         alert(`Failed to log in (${resp.status}). ${msg || ""}`);
       }
     } catch (err) {
-      alert("Network error during login");
+      alert("Network error during login:" + err);
     }
   }
 

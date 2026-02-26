@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect } from "react";
 import GiantBoard from "./GiantBoard";
 import { useAudio } from "../../hooks/useAudio";
-import { useGameSocket } from "../../state/WebSocketContext";
+import { useWebSocket } from "../../state/WebSocketContext";
 import {
   getWinner,
   isFull3,
@@ -16,7 +16,7 @@ export default function OnlineGame({ config, onExit }) {
   const { play } = useAudio();
   const [boardEntering, setBoardEntering] = useState(false);
   const [playersEntering, setPlayersEntering] = useState(false);
-  const { subscribe } = useWebSocket();
+  const { subscribe, send } = useWebSocket();
 
   useEffect(() => {
     if (!config?.gameId) return;
@@ -27,12 +27,10 @@ export default function OnlineGame({ config, onExit }) {
       setState({
         smallBoards: body.smallBoards,
         bigBoard: body.bigBoard,
-        activeBigs:
-          body.currentPlayer.userName === localStorage.getItem("userName")
-            ? new Set(body.activeBoards)
-            : new Set([]),
+        activeBigs: new Set(body.activeBoards) || new Set([]), // TODO: in later code check activeBoards
         currentPlayer: body.currentPlayer,
         winner: body.winner || null,
+        rotation: body.rotation  
       });
     });
 
@@ -83,17 +81,6 @@ export default function OnlineGame({ config, onExit }) {
       return;
     }
     play("click");
-    sb[br][bc][sr][sc] = currentPlayer.character;
-
-    const smallWinner = getWinner(sb[br][bc]);
-
-    if (smallWinner) {
-      bb[br][bc] = smallWinner;
-    } else if (isFull3(sb[br][bc])) {
-      bb[br][bc] = "D";
-    }
-
-    const bb = state.bigBoard.map((r) => [...r]);
 
     const userName = localStorage.getItem("userName");
 
