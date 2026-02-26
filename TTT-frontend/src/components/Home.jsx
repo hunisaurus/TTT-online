@@ -1,17 +1,19 @@
+
 import {useState} from "react";
 import {useAudio} from "../hooks/useAudio";
 import Login from "./Login";
 import Register from "./Register";
 import GameMenu from "./GameMenu";
 import Game from "./game/Game";
-import "../home.css";
+import "../StyleCSS/global.css";
+import "../StyleCSS/auth.css";
 
 export default function Home() {
     const {play} = useAudio();
-    const [step, setStep] = useState("intro"); // intro | login | menu | game
+    const [step, setStep] = useState("intro");
     const [leaving, setLeaving] = useState(false);
     const [entering, setEntering] = useState(false);
-    const [authView, setAuthView] = useState("login"); // 'login' | 'register'
+    const [authView, setAuthView] = useState("login");
     const [authEntering, setAuthEntering] = useState(false);
     const [gameConfig, setGameConfig] = useState(null);
 
@@ -28,101 +30,80 @@ export default function Home() {
 
     return (
         <>
-
             {step === "menu" && (
                 <header className="game-header">
-
-
-                    <div className="header-right">
-                        <div className="user-info">
-                            <span className="user-label">PLAYER</span>
-                            <span className="user-name">{localStorage.getItem('userName')}</span>
+                    <div className="header-content">
+                        <div className="brand">
+                            <span className="logo-dot"></span>
+                            <span className="logo-text">TTT ONLINE</span>
+                        </div>
+                        <div className="user-profile-badge">
+                            <div className="user-info">
+                                <span className="user-label">LOGGED IN AS</span>
+                                <span className="user-name">{localStorage.getItem('userName') || 'Guest'}</span>
+                            </div>
+                            <div className="user-avatar">
+                                {localStorage.getItem('userName')?.charAt(0).toUpperCase() || 'P'}
+                            </div>
                         </div>
                     </div>
                 </header>
             )}
 
-            <main className={step === "menu" ? "main-with-header" : ""}>
+            <main className={`app-container ${step === "menu" ? "with-header" : ""}`}>
                 {step !== "game" && (
-                    <h1
-                        id="title"
-                        className={`title titlescreen ${step === "intro" ? "begin" : ""} ${leaving ? "outAbove" : ""} ${step === "login" ? "titleAuth" : ""} ${step === "login" && authView === "register" ? "outAbove" : ""}`}
-                        onClick={() => {
-                            if (step === "intro") {
-                                play("click");
-                                go("login");
-                            }
-                        }}
-                    >
-                        T T T
-                    </h1>
-                )}
-
-                {step === "login" && (
-                    <>
-                        <Login
-                            className={[
-                                authView !== "login" ? "slideToBelow" : "",
-                                authView === "login" && authEntering ? "slideFromBelow" : "",
-                            ]
-                                .join(" ")
-                                .trim()}
-                            style={{pointerEvents: authView === "login" ? undefined : "none"}}
-                            onSubmit={() => {
-                                play("click");
-                                go("menu");
+                    <div className="title-wrapper">
+                        <h1
+                            className={`title-display 
+                    ${step === "intro" ? "pulse-animation" : "auth-mode"} 
+                    ${leaving ? "fade-out-up" : ""}`}
+                            onClick={() => {
+                                if (step === "intro") {
+                                    play("click");
+                                    go("login");
+                                }
                             }}
-                            onRegister={() => {
-                                play("click");
-                                setAuthView("register");
-                                setAuthEntering(true);
-                                setTimeout(() => setAuthEntering(false), 30);
-                            }}
-                        />
-                        <Register
-                            className={[
-                                authView !== "register" ? "slideToBelow" : "",
-                                authView === "register" && authEntering ? "slideFromBelow" : "",
-                            ]
-                                .join(" ")
-                                .trim()}
-                            style={{
-                                pointerEvents: authView === "register" ? undefined : "none",
-                            }}
-                            onBack={() => {
-                                play("click");
-                                setAuthView("login");
-                                setAuthEntering(true);
-                                setTimeout(() => setAuthEntering(false), 30);
-                            }}
-                            onSubmit={() => {
-                                play("click");
-                                go("menu");
-                            }}
-                        />
-                    </>
-                )}
-                {step === "menu" && (
-                    <div className="menu-wrapper">
-                        <GameMenu
-                            onStart={(cfg) => {
-                                setGameConfig(cfg);
-                                setStep("game");
-                            }}
-                        />
+                        >
+                            T T T
+                        </h1>
                     </div>
                 )}
 
-                {step === "game" && gameConfig && (
-                    <Game
-                        config={gameConfig}
-                        setStep={setStep}
-                        onExit={() => {
-                            setGameConfig(null);
-                            setStep("menu");
-                        }}
-                    />
-                )}
+                <div className="content-area">
+                    {step === "login" && (
+                        <div className="auth-view-container">
+                            {authView === "login" ? (
+                                <Login
+                                    className={authEntering ? "fade-in-bottom" : ""}
+                                    onSubmit={() => go("menu")}
+                                    onRegister={() => setAuthView("register")}
+                                />
+                            ) : (
+                                <Register
+                                    className={authEntering ? "fade-in-bottom" : ""}
+                                    onBack={() => setAuthView("login")}
+                                    onSubmit={() => go("menu")}
+                                />
+                            )}
+                        </div>
+                    )}
+
+                    {step === "menu" && (
+                        <div className="menu-container-fade-in">
+                            <GameMenu onStart={(cfg) => { setGameConfig(cfg); setStep("game"); }} />
+                        </div>
+                    )}
+
+                    {step === "game" && gameConfig && (
+                        <Game
+                            config={gameConfig}
+                            onExit={() => {
+                                setGameConfig(null);
+                                go("menu");
+                            }}
+                        />
+                    )}
+                </div>
             </main>
         </>
     );

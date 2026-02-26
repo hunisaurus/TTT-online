@@ -9,7 +9,7 @@ import {
   nextActiveFromCell,
   anyPlayableBigs,
 } from "../../state/gameLogic";
-import "../../styles.css";
+import "../../StyleCSS/styles.css";
 
 export default function OnlineGame({ config, onExit }) {
   const [state, setState] = useState(null);

@@ -1,12 +1,11 @@
-import { useState, useEffect } from "react";
+import {useState, useEffect} from "react";
 
-export default function OnlineLoadList({ onSelect, currentUserId }) {
+export default function OnlineLoadList({onSelect, currentUserId}) {
     const [savedGames, setSavedGames] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
     useEffect(() => {
-        console.log("Fetch indítása, felhasználó:", currentUserId);
         const fetchSavedGames = async () => {
             try {
                 setLoading(true);
@@ -31,29 +30,35 @@ export default function OnlineLoadList({ onSelect, currentUserId }) {
     }, [currentUserId]);
 
     return (
-        <div className="loginPanel" style={{ opacity: 1 }}>
-            <h2 className="helptext">RESUME ONLINE GAME</h2>
-            <div className="loginForm">
-                {loading && <p style={{ color: 'aquamarine', textAlign: 'center' }}>Loading...</p>}
-                {error && <p style={{ color: 'red', textAlign: 'center' }}>{error}</p>}
 
-                {!loading && savedGames.length > 0 ? (
-                    savedGames.map(game => (
-                        <div
-                            key={game.id}
-                            className="server-item"
-                            style={{ /* ... stílusok ... */ }}
-                            onClick={() => onSelect(game)}
-                        >
-                            <div style={{ fontWeight: 'bold', color: 'white' }}>{game.name}</div>
-                            <div style={{ fontSize: '0.8rem', color: '#ccc' }}>
-                                State: {game.gameState} | Created: {game.timeCreated ? new Date(game.timeCreated).toLocaleDateString() : "Unknown"}
+        <div className="menu-step.container">
+            <h2 className="helptext">RESUME ONLINE GAME</h2>
+            <div className="menu-card list-card">
+                <div className="load-list-wrapper">
+                    {loading && <p className="status-msg loading">Loading...</p>}
+                    {error && <p className="status-msg error">{error}</p>}
+
+                    {!loading && savedGames.length > 0 ? (
+                        savedGames.map(game => (
+                            <div
+                                key={game.id}
+                                className="load-item"
+                                onClick={() => onSelect(game)}
+                            >
+                                <div className="load-info">
+                                    <div className="game-name">{game.name}</div>
+                                    <div className="game-meta">
+                                        State: {game.gameState} |
+                                        Created: {game.timeCreated ? new Date(game.timeCreated).toLocaleDateString() : "Unknown"}
+                                    </div>
+                                </div>
+                                <div className="load-action">RESUME</div>
                             </div>
-                        </div>
-                    ))
-                ) : (
-                    !loading && <p style={{ color: 'gray', textAlign: 'center' }}>No active games found.</p>
-                )}
+                        ))
+                    ) : (
+                        !loading && <p className="status-msg empty">No active games found.</p>
+                    )}
+                </div>
             </div>
         </div>
     );

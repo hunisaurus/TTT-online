@@ -1,6 +1,7 @@
 import {useState} from "react";
 import {useAudio} from "../hooks/useAudio";
-import "../gameMenu.css"
+import '../StyleCSS/menu.css';
+import '../StyleCSS/global.css'
 import CreateGame from "./game/steps/CreateGame.jsx";
 import ServerBrowser from "./game/steps/ServerBrowser";
 import OnlineLoadList from "./game/steps/OnlineLoadList";
@@ -149,8 +150,9 @@ export default function GameMenu({onStart}) {
         }
     };
 
-    return (<main>
-        <>
+    return (
+        <main className="game-menu-container">
+
             <div className={`hamburger-icon ${isMenuOpen ? "open" : ""}`}
                  onClick={() => setIsMenuOpen(!isMenuOpen)}>
                 <span></span>
@@ -186,152 +188,169 @@ export default function GameMenu({onStart}) {
 
             {isMenuOpen && <div className="menu-overlay" onClick={() => setIsMenuOpen(false)}></div>}
 
-            {step === "startMenu" && (<div className="play-container">
-                <button
-                    className="bigPlayButton"
-                    onMouseOver={() => play("hover")}
-                    onClick={() => {
-                        play("click");
-                        go("mode");
-                    }}
-                >
-                    PLAY
-                </button>
-            </div>)}
-            {step === "mode" && (<>
-                <h2 className={`helptext ${entering ? "outBelow" : ""}`}>
-                    CHOOSE GAME MODE!
-                </h2>
-                <button
-                    className="leftButton pve"
-                    onMouseOver={() => play("hover")}
-                    onClick={() => {
-                        play("click");
-                        setMode("pve");
-                        go("pveDiff");
-                    }}
-                >
-                    SINGLE PLAYER{"\n"}(vs CPU)
-                </button>
-                <button
-                    className="rightButton pvp"
-                    onMouseOver={() => play("hover")}
-                    onClick={() => {
-                        play("click");
-                        go("multiType");
-                    }}
-                >
-                    MULTIPLAYER{"\n"}(LAN/Online)
-                </button>
-            </>)}
-            {step !== "startMenu" && step !== "leaving" && (<button className="back-button-modern" onClick={back}>
-                <span className="arrow-icon">←</span>
-            </button>)}
+            {step === "startMenu" && (
+                <div className="play-container">
+                    <button
+                        className="bigPlayButton"
+                        onMouseOver={() => play("hover")}
+                        onClick={() => {
+                            play("click");
+                            go("mode");
+                        }}
+                    >
+                        PLAY
+                    </button>
+                </div>)}
+            {step === "mode" && (
+                <div className="menu-step-content">
+                    <h2 className={`helptext ${entering ? "outBelow" : ""}`}>
+                        CHOOSE GAME MODE!
+                    </h2>
+                    <div className="menu-layout">
+                        <button
+                            className="game-btn"
+                            onMouseOver={() => play("hover")}
+                            onClick={() => {
+                                play("click");
+                                setMode("pve");
+                                go("pveDiff");
+                            }}
+                        >
+                            SINGLE PLAYER{"\n"}(vs CPU)
+                        </button>
+                        <button
+                            className="game-btn"
+                            onMouseOver={() => play("hover")}
+                            onClick={() => {
+                                play("click");
+                                go("multiType");
+                            }}
+                        >
+                            MULTIPLAYER{"\n"}(LAN/Online)
+                        </button>
+                    </div>
+                </div>)}
 
-            {step === "multiType" && (<>
-                <h2 className="helptext">MULTIPLAYER TYPE</h2>
-                <button
-                    className="leftButton"
-                    onClick={() => {
-                        play("click");
-                        setMode("pvp");
-                        go("pvpCount");
+            {step !== "startMenu" && step !== "leaving" && (
+                <button className="back-button-modern" onClick={back}>
+                    <span className="arrow-icon">←</span>
+                </button>)}
 
-                    }}
-                >
-                    LAN{"\n"}(Local)
-                </button>
-                <button
-                    className="rightButton"
-                    onClick={() => {
-                        play("click");
-                        go("onlineType");
-                    }}
-                >
-                    ONLINE{"\n"}(Network)
-                </button>
-            </>)}
+            {step === "multiType" && (
+                <div className="menu-step-content">
+                    <h2 className="helptext">MULTIPLAYER TYPE</h2>
+                    <div className="menu-layout">
+                        <button
+                            className="game-btn"
+                            onClick={() => {
+                                play("click");
+                                setMode("pvp");
+                                go("pvpCount");
 
-            {step === "onlineType" && (<>
-                <h2 className="helptext">ONLINE MATCHMAKING</h2>
-                <button
-                    className="leftButton"
-                    onClick={() => {
-                        play("click");
-                        setMode("online");
-                        setOnlineType("quick");
-                        setPlayerCount(2);
-                        go("quick-match");
-                    }}
-                >
-                    QUICK{"\n"}MATCH
-                </button>
-                <button
-                    className="rightButton"
-                    onClick={() => {
-                        play("click");
-                        setMode("online");
-                        setOnlineType("browser");
-                        go("serverBrowser");
-                    }}
-                >
-                    SERVER{"\n"}BROWSER
-                </button>
-                <button
-                    className="leftButton-down"
-                    onClick={() => {
-                        play("click");
-                        setMode("online");
-                        setOnlineType("create");
-                        go("createGame");
-                    }}
-                >
-                    CREATE {"\n"} NEW GAME
-                </button>
-                <button
-                    className="rightButton-down"
-                    onClick={() => {
-                        play("click");
-                        setMode("online");
-                        go("onlineLoadList");
-                    }}
-                >
-                    LOAD {"\n"} GAME
-                </button>
-            </>)}
+                            }}
+                        >
+                            LAN{"\n"}(Local)
+                        </button>
+                        <button
+                            className="game-btn"
+                            onClick={() => {
+                                play("click");
+                                go("onlineType");
+                            }}
+                        >
+                            ONLINE{"\n"}(Network)
+                        </button>
+                    </div>
+                </div>)}
 
-            {step === "pvpCount" && (<>
-                <h2 className="helptext">HOW MANY PLAYERS?</h2>
-                <button
-                    className="leftButton"
-                    onClick={() => {
-                        setPlayerCount(2);
-                        go("char");
-                    }}
-                >
-                    TWO PLAYER
-                </button>
-                <button
-                    className="rightButton"
-                    onClick={() => {
-                        setPlayerCount(3);
-                        go("char");
-                    }}
-                >
-                    THREE PLAYER
-                </button>
-            </>)}
+            {step === "onlineType" && (
+                <div className="meut-step-content">
+                    <h2 className="helptext">ONLINE MATCHMAKING</h2>
+                    <div className="menu-layout online-grid">
+                        <button
+                            className="game-btn"
+                            onClick={() => {
+                                play("click");
+                                setMode("online");
+                                setOnlineType("quick");
+                                setPlayerCount(2);
+                                go("quick-match");
+                            }}
+                        >
+                            QUICK{"\n"}MATCH
+                        </button>
+                        <button
+                            className="game-btn"
+                            onClick={() => {
+                                play("click");
+                                setMode("online");
+                                setOnlineType("browser");
+                                go("serverBrowser");
+                            }}
+                        >
+                            SERVER{"\n"}BROWSER
+                        </button>
+                        <button
+                            className="game-btn"
+                            onClick={() => {
+                                play("click");
+                                setMode("online");
+                                setOnlineType("create");
+                                go("createGame");
+                            }}
+                        >
+                            CREATE {"\n"} NEW GAME
+                        </button>
+                        <button
+                            className="game-btn"
+                            onClick={() => {
+                                play("click");
+                                setMode("online");
+                                go("onlineLoadList");
+                            }}
+                        >
+                            LOAD {"\n"} GAME
+                        </button>
+                    </div>
+                </div>
+            )}
+
+            {step === "pvpCount" && (
+                <div className="menu-step-content">
+                    <h2 className="helptext">HOW MANY PLAYERS?</h2>
+                    <div className="menu-layout">
+                        <button
+                            className="game-btn"
+                            onClick={() => {
+                                setPlayerCount(2);
+                                go("char");
+                            }}
+                        >
+                            TWO PLAYER
+                        </button>
+                        <button
+                            className="game-btn"
+                            onClick={() => {
+                                setPlayerCount(3);
+                                go("char");
+                            }}
+                        >
+                            THREE PLAYER
+                        </button>
+                    </div>
+                </div>
+            )}
             {step === "createGame" && (
                 <CreateGame onContinue={() => {
                     go("char");
-                }} />
+                }}/>
             )}
 
             {step === "serverBrowser" && (
                 <ServerBrowser onJoin={(game) => {
                     setCurrentGameId(game.id);
                     go("char");
-                }} />
+                }}/>
             )}
 
             {step === "onlineLoadList" && (
@@ -350,73 +369,80 @@ export default function GameMenu({onStart}) {
                 />
             )}
 
-            {step === "pveDiff" && (<>
-                <h2 className={`helptext ${entering ? "outBelow" : ""}`}>
-                    HOW ADEPT SHOULD THE AI BE?
-                </h2>
-                <div className="difficulty-container">
-                    {["easy", "medium", "hard", "unbeatable"].map((d, i) => (<button
-                        key={d}
-                        className={["diff-btn", d === difficulty ? "clicked" : "", ["farLeft", "midLeft", "midRight", "farRight"][i],].join(" ")}
-                        onClick={() => {
-                            play("click");
-                            setDifficulty(d);
-                            go("char");
-                        }}
-                    >
-                        {d.toUpperCase()}
-                    </button>))}
-                </div>
-            </>)}
-
-            {(step === "char") && (<div className="menu-step-container">
-                <h2 className="helptext">
-                    {mode === "pve" && chars.length === 0 ? "PICK YOUR TOKEN!" : mode === "pve" && chars.length === 1 ? "PICK THE CPU'S TOKEN!" : `PLAYER ${chars.length + 1} PICK!`}
-                </h2>
-
-                <div className="char-grid">
-                    {CHARSET.filter(ch => !chars.includes(ch)).map((ch) => (<button
-                        key={ch}
-                        className="charChoice"
-                        onMouseOver={() => play("hover")}
-                        onClick={() => {
-                            play("click");
-                            const newChars = [...chars, ch];
-                            setChars(newChars);
-
-                            if (newChars.length === playerCount) {
-                                go("start");
-                            }
-                        }}
-                    >
-                        {ch}
-                    </button>))}
-                </div>
-            </div>)}
-
-            {step === "start" && (<div className="start-confirm-area">
-                <h2 className="helptext">WHO STARTS THE GAME?</h2>
-
-                <div className="start-container">
-                    {chars.map((ch) => (<button
-                        key={ch}
-                        className={`whoStarts ${rotation[0] === ch ? "active-starter" : ""}`}
-                        onClick={() => {
-                            play("click");
-                            const others = chars.filter(c => c !== ch);
-                            setRotation([ch, ...others]);
-                        }}
-                    >
-                        {ch}
-                    </button>))}
-                </div>
-
-                {rotation.length > 0 && (<div className="start-action-wrapper">
-                    <button className="bigPlayButton start-phase-button" onClick={startGame}>
-                        START GAME
-                    </button>
+            {step === "pveDiff" && (
+                <div className="menu-step-content">
+                    <h2 className={`helptext ${entering ? "outBelow" : ""}`}>
+                        HOW ADEPT SHOULD THE AI BE?
+                    </h2>
+                    <div className="difficulty-container">
+                        {["easy", "medium", "hard", "unbeatable"].map((d, i) => (<button
+                            key={d}
+                            className={`game-btn diff-btn ${d === difficulty ? "active" : ""}`}
+                            onClick={() => {
+                                play("click");
+                                setDifficulty(d);
+                                go("char");
+                            }}
+                        >
+                            {d.toUpperCase()}
+                        </button>))}
+                    </div>
                 </div>)}
-            </div>)}
+
+            {(step === "char") && (
+                <div className="menu-step-container">
+                    <h2 className="helptext">
+                        {mode === "pve" && chars.length === 0 ? "PICK YOUR TOKEN!" : mode === "pve" && chars.length === 1 ? "PICK THE CPU'S TOKEN!" : `PLAYER ${chars.length + 1} PICK!`}
+                    </h2>
+
+                    <div className="char-grid">
+                        {CHARSET.filter(ch => !chars.includes(ch)).map((ch) => (
+                            <button
+                                key={ch}
+                                className="charChoice"
+                                onMouseOver={() => play("hover")}
+                                onClick={() => {
+                                    play("click");
+                                    const newChars = [...chars, ch];
+                                    setChars(newChars);
+
+                                    if (newChars.length === playerCount) {
+                                        go("start");
+                                    }
+                                }}
+                            >
+                                {ch}
+                            </button>))}
+                    </div>
+                </div>)}
+
+            {step === "start" && (
+                <div className="start-confirm-area">
+                    <h2 className="helptext">WHO STARTS THE GAME?</h2>
+
+                    <div className="char-grid">
+                        {chars.map((ch) => (
+                            <button
+                                key={ch}
+                                className={`charChoice ${rotation[0] === ch ? "active-starter" : ""}`}
+                                onClick={() => {
+                                    play("click");
+                                    const others = chars.filter(c => c !== ch);
+                                    setRotation([ch, ...others]);
+                                }}
+                            >
+                                {ch}
+                            </button>
+                        ))}
+                    </div>
+
+                    {rotation.length > 0 && (
+                        <div className="start-action-wrapper" style={{marginTop: '30px'}}>
+                            <button className="bigPlayButton" onClick={startGame}>
+                                START GAME
+                            </button>
+                        </div>)}
+                </div>)}
 
             {step === "game" && (
                 <button
@@ -439,6 +465,7 @@ export default function GameMenu({onStart}) {
                     QUIT TO MENU
                 </button>
             )}
-        </>
-    </main>);
+        </main>
+    );
 }
+

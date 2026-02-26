@@ -1,5 +1,7 @@
 import {useState} from "react";
 import {api} from "../state/config";
+import '../StyleCSS/auth.css'
+import '../StyleCSS/global.css'
 
 function Login({className = "", style, onSubmit, onRegister}) {
     const emptyData = {
@@ -9,7 +11,6 @@ function Login({className = "", style, onSubmit, onRegister}) {
 
     const [data, setData] = useState(emptyData);
 
-    // console.log(data);
 
     function handleChange(event) {
         console.log(event.target.value);
@@ -58,7 +59,8 @@ function Login({className = "", style, onSubmit, onRegister}) {
             if (resp.ok) {
                 localStorage.setItem('userName', data.username);
 
-                {/* TODO: Save Auth string in state or http cookie! (attach every time)*/}
+                {/* TODO: Save Auth string in state or http cookie! (attach every time)*/
+                }
 
                 onSubmit && onSubmit(data);
             } else {
@@ -69,49 +71,52 @@ function Login({className = "", style, onSubmit, onRegister}) {
             alert("Network error during login");
         }
     }
-
     return (
-        <>
-            <form className="" onSubmit={handleSubmit}>
-                <div
-                    className={["loginPanel", className].join(" ").trim()}
-                    style={style}
-                >
-                    {Object.entries(data).map(([key, value]) => (
-                        <div key={key} className="edit-input-box">
-                            <label className="edit-label" htmlFor={key}>
-                                {key}:
-                            </label>
-                            {
-                                <input
-                                    className="edit-input"
-                                    name={key}
-                                    onChange={handleChange}
-                                    type={key === "password" ? "password" : "text"}
-                                    placeholder={value}
-                                    defaultValue={value}
-                                />
-                            }
-                        </div>
-                    ))}
-                    <button className="loginButton" type="submit">
-                        Log In
+        <div className={`auth-page ${className}`} style={style}>
+            <h2 className="helptext">Welcome</h2>
+
+            <form className="auth-card" onSubmit={handleSubmit}>
+
+                <div className="form-group">
+                    <label className="form-label">Username</label>
+                    <input
+                        className="form-input"
+                        name="username"
+                        type="text"
+                        value={data.username}
+                        onChange={handleChange}
+                        required
+                    />
+                </div>
+
+                <div className="form-group">
+                    <label className="form-label">Password</label>
+                    <input
+                        className="form-input"
+                        name="password"
+                        type="password"
+                        value={data.password}
+                        onChange={handleChange}
+                        required
+                    />
+                </div>
+
+                <div className="auth-actions">
+                    <button className="base-btn btn-ghost" type="submit">
+                        Login
                     </button>
-                    <div className="loginRegister">
-                        <label htmlFor="register">Don't have an account yet?</label>
-                        <button
-                            className="loginSecondaryButton"
-                            type="button"
-                            key="register"
-                            onClick={() => onRegister && onRegister()}
-                        >
-                            Register
-                        </button>
-                    </div>
+                    <button
+                        className="base-btn btn-ghost"
+                        type="button"
+                        onClick={onRegister}
+                    >
+                        Register
+                    </button>
                 </div>
             </form>
-        </>
+        </div>
     );
+
 }
 
 export default Login;
