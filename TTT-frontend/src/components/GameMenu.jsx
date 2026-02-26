@@ -330,7 +330,7 @@ export default function GameMenu({onStart}) {
             {step === "serverBrowser" && (
                 <ServerBrowser onJoin={(game) => {
                     setCurrentGameId(game.id);
-                    go("char");
+                    go("game");
                 }} />
             )}
 
