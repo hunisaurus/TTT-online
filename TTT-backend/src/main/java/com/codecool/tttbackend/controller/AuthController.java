@@ -4,6 +4,8 @@ import com.codecool.tttbackend.controller.dto.request.LoginRequest;
 import com.codecool.tttbackend.controller.dto.request.RefreshTokenRequest;
 import com.codecool.tttbackend.controller.dto.request.RegisterRequest;
 import com.codecool.tttbackend.controller.dto.response.AuthResponse;
+import com.codecool.tttbackend.exception.GlobalExceptionHandler;
+import com.codecool.tttbackend.exception.UnauthorizedException;
 import com.codecool.tttbackend.service.AuthService;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
@@ -45,6 +47,7 @@ public class AuthController {
     public ResponseEntity<AuthResponse> login(
             @RequestBody LoginRequest request,
             HttpServletResponse response) {
+
         AuthResponse authResponse = authService.login(request);
 
         setRefreshTokenCookie(response, authResponse.getRefreshToken());
