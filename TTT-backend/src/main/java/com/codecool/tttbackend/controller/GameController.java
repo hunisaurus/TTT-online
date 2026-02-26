@@ -1,8 +1,8 @@
 package com.codecool.tttbackend.controller;
 
 import com.codecool.tttbackend.controller.dto.request.*;
+import com.codecool.tttbackend.controller.dto.response.GameResponseDTO;
 import com.codecool.tttbackend.controller.dto.response.GameStatusResponseDTO;
-import com.codecool.tttbackend.controller.dto.response.MoveResponseDTO;
 import com.codecool.tttbackend.dao.model.game.Game;
 import com.codecool.tttbackend.dao.model.game.Move;
 import com.codecool.tttbackend.dao.model.game.Position;
@@ -35,12 +35,20 @@ public class GameController {
       return ResponseEntity.status(HttpStatus.CREATED).build();
    }
 
-   @GetMapping
-   public ResponseEntity<List<Game>> getMyGames(@RequestParam(required = false) String username) {
-      System.out.println("Beérkező kérés username: " + username); // LOG
-      List<Game> games = gameService.listUserGames(username);
-      System.out.println("Talált játékok száma: " + games.size()); // LOG
-      return ResponseEntity.ok(games);
+   @GetMapping("/{userName}")
+   public ResponseEntity<List<GameResponseDTO>> getMyGames(@PathVariable(required = false) String userName) {
+      System.out.println("Beérkező kérés username: " + userName); // LOG
+      List<GameResponseDTO> gameResponseDTOS = gameService.getUserGameResponseDTOs(userName);
+      System.out.println("Talált játékok száma: " + gameResponseDTOS.size()); // LOG
+      return ResponseEntity.ok(gameResponseDTOS);
+   }
+
+   @GetMapping("/available")
+   public ResponseEntity<List<GameResponseDTO>> getAvailableGames() {
+      System.out.println("Beérkező kérés minden elérhetoo játékra"); // LOG
+      List<GameResponseDTO> gameResponseDTOS = gameService.getAvailableGameResponseDTOs();
+      System.out.println("Talált játékok száma: " + gameResponseDTOS.size()); // LOG
+      return ResponseEntity.ok(gameResponseDTOS);
    }
 
    @PatchMapping("/{id}/join")

@@ -275,7 +275,7 @@ export default function GameMenu({onStart}) {
                         go("serverBrowser");
                     }}
                 >
-                    SERVER{"\n"}BROWSER
+                    JOIN{"\n"}GAME
                 </button>
                 <button
                     className="leftButton-down"

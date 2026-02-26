@@ -1,8 +1,8 @@
 package com.codecool.tttbackend.service;
 
-import com.codecool.tttbackend.controller.dto.request.LoginRequest;
+import com.codecool.tttbackend.controller.dto.request.LoginRequestDTO;
 import com.codecool.tttbackend.controller.dto.request.RefreshTokenRequest;
-import com.codecool.tttbackend.controller.dto.response.AuthResponse;
+import com.codecool.tttbackend.controller.dto.response.AuthResponseDTO;
 import com.codecool.tttbackend.dao.UserDAO;
 import com.codecool.tttbackend.dao.model.User;
 import com.codecool.tttbackend.security.JwtUtil;
@@ -19,20 +19,18 @@ import org.springframework.stereotype.Service;
 public class AuthService {
 
     private final UserDAO userDAO;
-    private final PasswordHasher passwordHasher;
     private final AuthenticationManager authManager;
     private final JwtUtil jwtUtil;
     private final UserDetailsService userDetailsService;
 
     public AuthService(UserDAO userDAO, AuthenticationManager authManager, JwtUtil jwtUtil, @Qualifier("customUserDetailsService") UserDetailsService userDetailsService) {
         this.userDAO = userDAO;
-        this.passwordHasher = new PasswordHasher();
         this.authManager = authManager;
         this.jwtUtil = jwtUtil;
         this.userDetailsService = userDetailsService;
     }
 
-    public AuthResponse login(LoginRequest req) {
+    public AuthResponseDTO login(LoginRequestDTO req) {
         Authentication authentication = authManager.authenticate(
                 new UsernamePasswordAuthenticationToken(req.username(), req.password())
         );
@@ -43,7 +41,7 @@ public class AuthService {
         String accessToken = jwtUtil.generateAccessToken(authentication);
         String refreshToken = jwtUtil.generateRefreshToken(req.username());
 
-        return new AuthResponse(
+        return new AuthResponseDTO(
                 accessToken,
                 refreshToken,
                 user.getUsername(),
@@ -51,7 +49,7 @@ public class AuthService {
                 user.getRoles().stream().map(role -> "ROLE_" + role).toArray(String[]::new)
         );
     }
-    public AuthResponse refreshToken(RefreshTokenRequest request) {
+    public AuthResponseDTO refreshToken(RefreshTokenRequest request) {
         String refreshToken = request.getRefreshToken();
 
         if (!jwtUtil.validateToken(refreshToken, true)) {
@@ -69,7 +67,7 @@ public class AuthService {
 
         String newAccessToken = jwtUtil.generateAccessToken(authentication);
 
-        return new AuthResponse(
+        return new AuthResponseDTO(
                 newAccessToken,
                 refreshToken,
                 user.getUsername(),

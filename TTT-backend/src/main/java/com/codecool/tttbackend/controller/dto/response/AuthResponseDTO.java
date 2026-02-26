@@ -1,14 +1,14 @@
 package com.codecool.tttbackend.controller.dto.response;
 
-public class AuthResponse {
+public class AuthResponseDTO {
 
-    String accessToken;
-    String refreshToken;
-    String username;
-    String email;
-    String[] roles;
+    private String accessToken;
+    private String refreshToken;
+    private String username;
+    private String email;
+    private String[] roles;
 
-    public AuthResponse(String accessToken, String refreshToken, String username, String email, String[] roles){
+    public AuthResponseDTO(String accessToken, String refreshToken, String username, String email, String[] roles){
         this.accessToken = accessToken;
         this.refreshToken = refreshToken;
         this.username = username;

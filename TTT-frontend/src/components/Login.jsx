@@ -70,10 +70,6 @@ function Login({ className = "", style, onSubmit, onRegister }) {
         //   addNotification(body);
         // });
 
-        for (let gameId in gameIds) {
-          subscribe(`/topic/games/${gameId}`, handleGameUpdate);
-        }
-
         onSubmit && onSubmit(data);
       } else {
         const msg = await resp.text().catch(() => "");

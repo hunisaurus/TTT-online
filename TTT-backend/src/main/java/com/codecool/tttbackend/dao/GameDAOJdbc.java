@@ -240,4 +240,15 @@ public class GameDAOJdbc implements GameDAO {
 
         return jdbcTemplate.query(sql, gameMapper, userId, userId);
     }
+
+   @Override
+   public List<Game> getAvailableGames() {
+      String sql = """
+        SELECT DISTINCT g.* FROM games g 
+        LEFT JOIN players p ON g.id = p.game_id 
+        WHERE g.game_state = ?
+        """;
+
+      return jdbcTemplate.query(sql, gameMapper,GameState.WAITING.name());
+   }
 }

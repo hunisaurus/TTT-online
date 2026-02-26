@@ -1,7 +1,7 @@
 package com.codecool.tttbackend.service;
 
+import com.codecool.tttbackend.controller.dto.response.GameResponseDTO;
 import com.codecool.tttbackend.controller.dto.response.GameStatusResponseDTO;
-import com.codecool.tttbackend.controller.dto.response.MoveResponseDTO;
 import com.codecool.tttbackend.controller.dto.response.PlayerResponseDTO;
 import com.codecool.tttbackend.dao.GameDAO;
 import com.codecool.tttbackend.dao.model.game.*;
@@ -143,11 +143,20 @@ public class GameService {
       return player;
    }
 
-   public List<Game> listUserGames(String username) {
+   public List<GameResponseDTO> getUserGameResponseDTOs(String username) {
       User user = userService.getUserByUserName(username);
       if (user == null) return new ArrayList<>();
 
-      return gameDAO.getAllGamesByUserId(user.getId());
+      return gameDAO
+          .getAllGamesByUserId(
+              user.getId())
+          .stream()
+          .map(this::getGameResponseDTOFromGame)
+          .toList();
+   }
+
+   public List<GameResponseDTO> getAvailableGameResponseDTOs() {
+      return gameDAO.getAvailableGames().stream().map(this::getGameResponseDTOFromGame).toList();
    }
 
    public GameStatusResponseDTO getGameStatus(int id) {
@@ -166,20 +175,6 @@ public class GameService {
       );
    }
 
-   private MoveResponseDTO getMoveResponseDTOFromGameAndMove(Game game, Move move) {
-      return new MoveResponseDTO(
-          getPlayerResponseDTOFromPlayer(game.getCurrentPlayer()),
-          getActiveBoardsFromGame(game),
-          getPlayerResponseDTOFromPlayer(GameLogic.getWinningPlayer(game)),
-          move.player().getUser().getUsername(),
-          move.player().getCharacter(),
-          move.bigPosition().getRow(),
-          move.bigPosition().getColumn(),
-          move.smallPosition().getRow(),
-          move.smallPosition().getColumn()
-      );
-   }
-
    private PlayerResponseDTO getPlayerResponseDTOFromPlayer(Player player) {
       if (player == null) return null;
       return new PlayerResponseDTO(
@@ -194,5 +189,14 @@ public class GameService {
       return game.getBoard().getActiveBoardPositions().stream().map(Position::toString).toList();
    }
 
+   private GameResponseDTO getGameResponseDTOFromGame(Game game) {
+      return new GameResponseDTO(
+          game.getId(),
+          game.getName(),
+          game.getCreator().getUsername(),
+          // change public and private logic later:
+          "public"
+      );
+   }
 }
 

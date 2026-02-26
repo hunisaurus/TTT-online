@@ -1,14 +1,14 @@
 package com.codecool.tttbackend.controller;
 
-import com.codecool.tttbackend.controller.dto.request.LoginRequest;
-import com.codecool.tttbackend.controller.dto.request.RegisterRequest;
-import com.codecool.tttbackend.controller.dto.response.TokenResponse;
+import com.codecool.tttbackend.controller.dto.request.RegisterRequestDTO;
 import com.codecool.tttbackend.service.UserService;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.sql.SQLException;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/user")
@@ -21,7 +21,7 @@ public class UserController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<String> register(@RequestBody RegisterRequest req) throws SQLException {
+    public ResponseEntity<String> register(@RequestBody RegisterRequestDTO req) throws SQLException {
         userService.register(req);
 
         return ResponseEntity.ok("Registered");

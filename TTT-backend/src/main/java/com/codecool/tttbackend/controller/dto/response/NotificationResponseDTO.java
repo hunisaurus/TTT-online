@@ -1,4 +1,4 @@
 package com.codecool.tttbackend.controller.dto.response;
 
-public record JWTResponseDTO(String jwt) {
+public record NotificationResponseDTO() {
 }

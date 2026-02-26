@@ -1,6 +1,7 @@
 package com.codecool.tttbackend.service;
 
-import com.codecool.tttbackend.controller.dto.request.RegisterRequest;
+import com.codecool.tttbackend.controller.dto.request.RegisterRequestDTO;
+import com.codecool.tttbackend.dao.GameDAO;
 import com.codecool.tttbackend.dao.UserDAO;
 import com.codecool.tttbackend.dao.model.User;
 import com.codecool.tttbackend.security.PasswordHasher;
@@ -22,7 +23,7 @@ public class UserService {
       this.passwordHasher = passwordHasher;
    }
 
-   public void register(RegisterRequest request){
+   public void register(RegisterRequestDTO request){
       if (userDAO.findByUsername(request.username()) != null) {
          throw new RuntimeException("Username already exists");
       }

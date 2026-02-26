@@ -1,8 +1,8 @@
 package com.codecool.tttbackend.controller;
 
-import com.codecool.tttbackend.controller.dto.request.LoginRequest;
+import com.codecool.tttbackend.controller.dto.request.LoginRequestDTO;
 import com.codecool.tttbackend.controller.dto.request.RefreshTokenRequest;
-import com.codecool.tttbackend.controller.dto.response.AuthResponse;
+import com.codecool.tttbackend.controller.dto.response.AuthResponseDTO;
 import com.codecool.tttbackend.service.AuthService;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
@@ -28,10 +28,10 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<AuthResponse> login(
-            @RequestBody LoginRequest request,
+    public ResponseEntity<AuthResponseDTO> login(
+            @RequestBody LoginRequestDTO request,
             HttpServletResponse response) {
-        AuthResponse authResponse = authService.login(request);
+        AuthResponseDTO authResponse = authService.login(request);
 
         setRefreshTokenCookie(response, authResponse.getRefreshToken());
 
@@ -41,7 +41,7 @@ public class AuthController {
     }
 
     @PostMapping("/refresh")
-    public ResponseEntity<AuthResponse> refreshToken(
+    public ResponseEntity<AuthResponseDTO> refreshToken(
             HttpServletRequest request,
             HttpServletResponse response) {
         String refreshToken = getRefreshTokenFromCookie(request);
@@ -53,7 +53,7 @@ public class AuthController {
         RefreshTokenRequest refreshRequest = new RefreshTokenRequest();
         refreshRequest.setRefreshToken(refreshToken);
 
-        AuthResponse authResponse = authService.refreshToken(refreshRequest);
+        AuthResponseDTO authResponse = authService.refreshToken(refreshRequest);
 
         if (authResponse.getRefreshToken() != null) {
             setRefreshTokenCookie(response, authResponse.getRefreshToken());
