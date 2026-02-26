@@ -10,6 +10,7 @@ CREATE TABLE users
     username          CITEXT    NOT NULL UNIQUE,
     password_hash     TEXT      NOT NULL,
     birth_date        TIMESTAMP NOT NULL,
+    roles             TEXT[]    NOT NULL DEFAULT '{}',
     registration_date DATE      NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 

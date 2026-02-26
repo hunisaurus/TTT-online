@@ -5,6 +5,8 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 
+import java.util.Set;
+
 
 @Repository
 public class UserDAOJdbc implements UserDAO {
@@ -23,6 +25,10 @@ public class UserDAOJdbc implements UserDAO {
       u.setPasswordHash(rs.getString("password_hash"));
       u.setRegistrationDate(rs.getTimestamp("registration_date").toLocalDateTime());
       u.setBirthDate(rs.getDate("birth_date").toLocalDate());
+
+      String[] rolesArray = (String[]) rs.getArray("roles").getArray();
+      u.setRoles(Set.of(rolesArray));
+
       return u;
    };
 
@@ -68,23 +74,24 @@ public class UserDAOJdbc implements UserDAO {
    @Override
    public void addNewUser(User user) {
       jdbcTemplate.update(
-          "INSERT INTO users (email, username, password_hash, birth_date) VALUES (?, ?, ?, ?)",
-          user.getEmail(),
-          user.getUsername(),
-          user.getPasswordHash(),
-          user.getBirthDate()
+          "INSERT INTO users (email, username, password_hash, birth_date, roles) VALUES (?, ?, ?, ?, ?)",
+              user.getEmail(),
+              user.getUsername(),
+              user.getPasswordHash(),
+              user.getBirthDate(),
+              user.getRoles().toArray(new String[0])
       );
    }
 
    @Override
    public void updateUser(User user) {
       jdbcTemplate.update(
-          "UPDATE users SET username = ?, password_hash = ?, email = ?, birth_date = ? WHERE id = ?",
-          user.getEmail(),
-          user.getUsername(),
-          user.getPasswordHash(),
-          user.getBirthDate(),
-          user.getId()
+              "INSERT INTO users (email, username, password_hash, birth_date, roles) VALUES (?, ?, ?, ?, ?)",
+              user.getEmail(),
+              user.getUsername(),
+              user.getPasswordHash(),
+              user.getBirthDate(),
+              user.getRoles().toArray(new String[0])
       );
    }
 

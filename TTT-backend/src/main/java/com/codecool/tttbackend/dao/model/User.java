@@ -2,6 +2,8 @@ package com.codecool.tttbackend.dao.model;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Set;
 
 public class User {
 
@@ -9,6 +11,7 @@ public class User {
    private String username;
    private String passwordHash;
    private int id;
+   private Set<String> roles = new HashSet<>();
    private LocalDateTime registrationDate;
    private LocalDate birthDate;
 
@@ -39,6 +42,10 @@ public class User {
       this.birthDate = date;
    }
 
+   public void setRoles(Set<String> roles){
+      this.roles = roles;
+   }
+
    public int getId() {
       return id;
    }
@@ -61,5 +68,9 @@ public class User {
 
    public LocalDate getBirthDate() {
       return birthDate;
+   }
+
+   public Set<String> getRoles() {
+      return roles;
    }
 }
