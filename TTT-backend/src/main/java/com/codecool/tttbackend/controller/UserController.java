@@ -16,11 +16,4 @@ public class UserController {
     public UserController(UserService userService) {
         this.userService = userService;
     }
-
-    @PostMapping("/register")
-    public ResponseEntity<String> register(@RequestBody RegisterRequest req) throws SQLException {
-        userService.register(req);
-
-        return ResponseEntity.ok("Registered");
-    }
 }

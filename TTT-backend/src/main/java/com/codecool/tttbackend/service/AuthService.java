@@ -2,6 +2,7 @@ package com.codecool.tttbackend.service;
 
 import com.codecool.tttbackend.controller.dto.request.LoginRequest;
 import com.codecool.tttbackend.controller.dto.request.RefreshTokenRequest;
+import com.codecool.tttbackend.controller.dto.request.RegisterRequest;
 import com.codecool.tttbackend.controller.dto.response.AuthResponse;
 import com.codecool.tttbackend.dao.UserDAO;
 import com.codecool.tttbackend.dao.model.User;
@@ -14,6 +15,9 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
+import java.util.Set;
 
 @Service
 public class AuthService {
@@ -30,6 +34,41 @@ public class AuthService {
         this.authManager = authManager;
         this.jwtUtil = jwtUtil;
         this.userDetailsService = userDetailsService;
+    }
+
+    public AuthResponse register(RegisterRequest request) {
+        if (userDAO.findByUsername(request.username()) != null) {
+            throw new RuntimeException("Username already exists");
+        }
+
+        if (userDAO.findByEmail(request.email()) != null) {
+            throw new RuntimeException("Email already exists");
+        }
+
+        User user = new User();
+        user.setUsername(request.username());
+        user.setEmail(request.email());
+        user.setPasswordHash(passwordHasher.hash(request.password()));
+        user.setBirthDate(request.birthDate());
+        user.setRegistrationDate(LocalDateTime.now());
+        user.setRoles(Set.of("USER"));
+
+        userDAO.addNewUser(user);
+
+        Authentication authentication = authManager.authenticate(
+                new UsernamePasswordAuthenticationToken(request.username(), request.password())
+        );
+
+        String accessToken = jwtUtil.generateAccessToken(authentication);
+        String refreshToken = jwtUtil.generateRefreshToken(user.getUsername());
+
+        return new AuthResponse(
+                accessToken,
+                refreshToken,
+                user.getUsername(),
+                user.getEmail(),
+                user.getRoles().stream().map(role -> "ROLE_" + role).toArray(String[]::new)
+        );
     }
 
     public AuthResponse login(LoginRequest req) {

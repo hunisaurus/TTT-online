@@ -2,6 +2,7 @@ package com.codecool.tttbackend.controller;
 
 import com.codecool.tttbackend.controller.dto.request.LoginRequest;
 import com.codecool.tttbackend.controller.dto.request.RefreshTokenRequest;
+import com.codecool.tttbackend.controller.dto.request.RegisterRequest;
 import com.codecool.tttbackend.controller.dto.response.AuthResponse;
 import com.codecool.tttbackend.service.AuthService;
 import jakarta.servlet.http.Cookie;
@@ -25,6 +26,19 @@ public class AuthController {
     public AuthController(AuthService authService){
 
         this.authService = authService;
+    }
+
+    @PostMapping("/register")
+    public ResponseEntity<AuthResponse> register(
+            @RequestBody RegisterRequest request,
+            HttpServletResponse response) {
+        AuthResponse authResponse = authService.register(request);
+
+        setRefreshTokenCookie(response, authResponse.getRefreshToken());
+
+        authResponse.setRefreshToken(null);
+
+        return ResponseEntity.ok(authResponse);
     }
 
     @PostMapping("/login")
