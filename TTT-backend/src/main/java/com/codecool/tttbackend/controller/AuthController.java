@@ -101,11 +101,10 @@ public class AuthController {
 
     private void setRefreshTokenCookie(HttpServletResponse response, String refreshToken) {
         Cookie cookie = new Cookie("refreshToken", refreshToken);
-        cookie.setHttpOnly(true); // Prevents JavaScript access (XSS protection)
-        cookie.setSecure(false); // Set to TRUE in production (HTTPS only), FALSE for local development
-        cookie.setPath("/api/auth"); // Only send to auth endpoints
-        cookie.setMaxAge((int) (refreshTokenExpiration / 1000)); // Convert to seconds
-        // cookie.setSameSite("Strict"); // CSRF protection (requires Spring Boot 3.0+)
+        cookie.setHttpOnly(true);
+        cookie.setSecure(false);
+        cookie.setPath("/api/auth");
+        cookie.setMaxAge((int) (refreshTokenExpiration / 1000));
         response.addCookie(cookie);
     }
 
