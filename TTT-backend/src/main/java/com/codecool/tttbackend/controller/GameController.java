@@ -1,20 +1,22 @@
 package com.codecool.tttbackend.controller;
 
 import com.codecool.tttbackend.controller.dto.request.*;
-import com.codecool.tttbackend.controller.dto.response.GameStatusResponse;
-import com.codecool.tttbackend.controller.dto.response.PlayerResponseDTO;
-import com.codecool.tttbackend.dao.model.game.Game;
+import com.codecool.tttbackend.controller.dto.response.GameIdResponseDTO;
+import com.codecool.tttbackend.controller.dto.response.GameResponseDTO;
+import com.codecool.tttbackend.controller.dto.response.GameStatusResponseDTO;
 import com.codecool.tttbackend.dao.model.game.Move;
-import com.codecool.tttbackend.dao.model.game.Player;
 import com.codecool.tttbackend.dao.model.game.Position;
-import com.codecool.tttbackend.domain.game.GameLogic;
 import com.codecool.tttbackend.service.GameService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.handler.annotation.DestinationVariable;
+import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.Principal;
 import java.util.List;
+
 @CrossOrigin(origins = "http://localhost:5173")
 @RestController
 @RequestMapping("/api/games")
@@ -29,57 +31,85 @@ public class GameController {
    }
 
    @PostMapping("/create")
-   public ResponseEntity<Void> createGame(@RequestBody CreateGameRequest request) {
-      gameService.createGame(request.userName(), request.gameName(), request.maxPlayerCount());
-      return ResponseEntity.status(HttpStatus.CREATED).build();
+   public ResponseEntity<GameIdResponseDTO> createGame(@RequestBody CreateGameRequestDTO createGameRequestDTO) {
+      int gameId = gameService.createGame(createGameRequestDTO);
+      return ResponseEntity.ok(new GameIdResponseDTO(gameId));
    }
 
-    @GetMapping
-    public ResponseEntity<List<Game>> getMyGames(@RequestParam(required = false) String username) {
-        System.out.println("Beérkező kérés username: " + username); // LOG
-        List<Game> games = gameService.listUserGames(username);
-        System.out.println("Talált játékok száma: " + games.size()); // LOG
-        return ResponseEntity.ok(games);
-    }
+   @GetMapping
+   public ResponseEntity<List<GameResponseDTO>> getMyGames(Principal principal) {
+      String userName = (principal != null) ? principal.getName() : null;
 
-   @PatchMapping("/{id}/join")
-   public ResponseEntity<Void> joinGame(@PathVariable int id, @RequestBody JoinGameRequest joinGameRequest) {
-      gameService.joinGame(id, joinGameRequest.userName(), joinGameRequest.character());
+      if (userName == null || userName.isBlank()) {
+         // Not authenticated and no username provided
+         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+      }
+      System.out.println("Beérkező kérés username: " + userName); // LOG
+      List<GameResponseDTO> gameResponseDTOS = gameService.getUserGameResponseDTOs(userName);
+      System.out.println("Talált játékok száma: " + gameResponseDTOS.size()); // LOG
+      return ResponseEntity.ok(gameResponseDTOS);
+   }
+
+   @GetMapping("/available")
+   public ResponseEntity<List<GameResponseDTO>> getAvailableGames() {
+      System.out.println("Beérkező kérés minden elérhetoo játékra"); // LOG
+      List<GameResponseDTO> gameResponseDTOS = gameService.getAvailableGameResponseDTOs();
+      System.out.println("Talált játékok száma: " + gameResponseDTOS.size()); // LOG
+      return ResponseEntity.ok(gameResponseDTOS);
+   }
+
+   @PatchMapping("/{gameId}/join")
+   public ResponseEntity<Void> joinGame(@PathVariable int gameId, @RequestBody JoinGameRequestDTO joinGameRequestDTO, Principal principal) {
+      String userName = (principal != null) ? principal.getName() : null;
+
+      if (userName == null || userName.isBlank()) {
+         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+      }
+      gameService.joinGame(gameId, userName, joinGameRequestDTO.character());
+
+      // TODO: broadcast notifications to players
+
       return ResponseEntity.ok().build();
    }
 
-   @PatchMapping("/{id}/leave")
-   public ResponseEntity<Void> leaveGame(@PathVariable int id, @RequestBody LeaveGameRequest leaveGameRequest) {
-      gameService.leaveGame(id, leaveGameRequest.userName());
+   @PatchMapping("/{gameId}/leave")
+   public ResponseEntity<Void> leaveGame(@PathVariable int gameId, @RequestBody LeaveGameRequestDTO leaveGameRequestDTO) {
+      gameService.leaveGame(gameId, leaveGameRequestDTO.userName());
       return ResponseEntity.ok().build();
    }
 
-   @PatchMapping("/{id}/start")
-   public ResponseEntity<Void> startGame(@PathVariable int id) {
-      gameService.startGame(id);
+   @PatchMapping("/{gameId}/start")
+   public ResponseEntity<Void> startGame(@PathVariable int gameId) {
+      gameService.startGame(gameId);
+      messagingTemplate.convertAndSend("/topic/games/" + gameId, gameService.getGameStatus(gameId));
       return ResponseEntity.ok().build();
    }
 
-   @PatchMapping("/{id}/end")
-   public ResponseEntity<Void> endGame(@PathVariable int id) {
-      gameService.endGame(id);
+   @GetMapping("/{gameId}")
+   public ResponseEntity<GameStatusResponseDTO> getGameStatus(@PathVariable int gameId) {
+      return ResponseEntity.ok(gameService.getGameStatus(gameId));
+   }
+
+   @PatchMapping("/{gameId}/end")
+   public ResponseEntity<Void> endGame(@PathVariable int gameId) {
+      gameService.endGame(gameId);
       return ResponseEntity.ok().build();
    }
 
-   @PatchMapping("/{id}/move")
-   public ResponseEntity<GameStatusResponse> makeMove(@PathVariable int id, @RequestBody MoveRequest moveRequest) {
-      GameStatusResponse response = gameService.makeMove(id, new Move(gameService.getPlayer(id, moveRequest.userName()), new Position(moveRequest.br(), moveRequest.bc()), new Position(moveRequest.sr(), moveRequest.sc())));
+   @MessageMapping("/{gameId}/move")
+   public ResponseEntity<GameStatusResponseDTO> makeMove(@DestinationVariable int gameId, @RequestBody MoveRequestDTO moveRequestDTO) {
+      GameStatusResponseDTO response = gameService.makeMove(gameId, new Move(gameService.getPlayer(gameId, moveRequestDTO.userName()), new Position(moveRequestDTO.br(), moveRequestDTO.bc()), new Position(moveRequestDTO.sr(), moveRequestDTO.sc())));
+      if (response == null) return new ResponseEntity<>(HttpStatus.FORBIDDEN);
 
-      // Broadcast to everyone watching/playing this game. (Huni)
-      messagingTemplate.convertAndSend("/topic/games/" + id, response);
+      messagingTemplate.convertAndSend("/topic/games/" + gameId, response);
 
       return ResponseEntity.ok(response);
    }
 
-   @PatchMapping("/{id}/win")
-   public ResponseEntity<Void> winGame(@PathVariable int id, @RequestBody WinGameRequest winGameRequest) {
-      gameService.winGame(id, winGameRequest.winnerName());
-      gameService.endGame(id);
+   @PatchMapping("/{gameId}/win")
+   public ResponseEntity<Void> winGame(@PathVariable int gameId, @RequestBody WinGameRequestDTO winGameRequestDTO) {
+      gameService.winGame(gameId, winGameRequestDTO.winnerName());
+      gameService.endGame(gameId);
       return ResponseEntity.ok().build();
    }
 }

@@ -1,64 +1,76 @@
-import {useState} from "react";
-import {api} from "../state/config";
+import { useState } from "react";
+import { api } from "../state/config";
+import { useNotifications } from "../state/NotificationContext";
+import { useWebSocket } from "../state/WebSocketContext";
+import '../StyleCSS/auth.css'
+import '../StyleCSS/global.css'
 
-function Login({className = "", style, onSubmit, onRegister}) {
-    const emptyData = {
-        username: "",
-        password: "",
-    };
+function Login({ className = "", style, onSubmit, onRegister }) {
+  const { connect, subscribe } = useWebSocket();
+  const { addNotification } = useNotifications();
 
-    const [data, setData] = useState(emptyData);
+  const emptyData = {
+    username: "",
+    password: "",
+  };
+  const [data, setData] = useState(emptyData);
 
-    // console.log(data);
+  function handleChange(event) {
+    // console.log(event.target.value);
 
-    function handleChange(event) {
-        console.log(event.target.value);
+    let newData = {};
+    if (event.target.dataset.index) {
+      newData = {
+        ...data,
+      };
 
-        let newData = {};
-        if (event.target.dataset.index) {
-            newData = {
-                ...data,
-            };
+      newData[event.target.dataset.key].splice(
+        event.target.dataset.index,
+        1,
+        event.target.value,
+      );
 
-            newData[event.target.dataset.key].splice(
-                event.target.dataset.index,
-                1,
-                event.target.value,
-            );
+      setData(newData);
+    } else {
+      newData = {
+        ...data,
+        [event.target.name]: event.target.value,
+      };
+      setData(newData);
+    }
+    // console.log(newData);
+  }
 
-            setData(newData);
-        } else {
-            newData = {
-                ...data,
-                [event.target.name]: event.target.value,
-            };
-            setData(newData);
-        }
-        console.log(newData);
+  async function handleSubmit(e) {
+    e.preventDefault();
+
+    if (!data.username || !data.password) {
+      alert("Please enter username and password");
+      return;
     }
 
-    async function handleSubmit(e) {
-        e.preventDefault();
+    // with POST:
+    try {
+      const resp = await fetch(api(`/api/auth/login`), {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      });
 
-        if (!data.username || !data.password) {
-            alert("Please enter username and password");
-            return;
-        }
+      if (resp.ok) {
+        const body = await resp.json();
+        const jwt = body.token;
+        localStorage.setItem("userName", data.username);
+        localStorage.setItem("jwt", jwt);
+        console.log("JWT token: "+ jwt);
+        connect();
 
-        // with POST:
-        try {
-            const resp = await fetch(api(`/user/login`), {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify(data),
-            });
-
-            if (resp.ok) {
-                localStorage.setItem('userName', data.username);
-
-                {/* TODO: Save Auth string in state or http cookie! (attach every time)*/}
+        // subscribe(`/user/${jwt}/notifications`, (msg) => {
+        //   const body = JSON.parse(msg.body);
+        //   addNotification(body);
+        // });
 
                 onSubmit && onSubmit(data);
             } else {
@@ -66,52 +78,55 @@ function Login({className = "", style, onSubmit, onRegister}) {
                 alert(`Failed to log in (${resp.status}). ${msg || ""}`);
             }
         } catch (err) {
-            alert("Network error during login");
+            alert("Network error during login: " + err);
         }
     }
-
     return (
-        <>
-            <form className="" onSubmit={handleSubmit}>
-                <div
-                    className={["loginPanel", className].join(" ").trim()}
-                    style={style}
-                >
-                    {Object.entries(data).map(([key, value]) => (
-                        <div key={key} className="edit-input-box">
-                            <label className="edit-label" htmlFor={key}>
-                                {key}:
-                            </label>
-                            {
-                                <input
-                                    className="edit-input"
-                                    name={key}
-                                    onChange={handleChange}
-                                    type={key === "password" ? "password" : "text"}
-                                    placeholder={value}
-                                    defaultValue={value}
-                                />
-                            }
-                        </div>
-                    ))}
-                    <button className="loginButton" type="submit">
-                        Log In
+        <div className={`auth-page ${className}`} style={style}>
+            {/* <h2 className="helptext">Welcome</h2> */}
+
+            <form className="auth-card" onSubmit={handleSubmit}>
+
+                <div className="form-group">
+                    <label className="form-label">Username</label>
+                    <input
+                        className="form-input"
+                        name="username"
+                        type="text"
+                        value={data.username}
+                        onChange={handleChange}
+                        required
+                    />
+                </div>
+
+                <div className="form-group">
+                    <label className="form-label">Password</label>
+                    <input
+                        className="form-input"
+                        name="password"
+                        type="password"
+                        value={data.password}
+                        onChange={handleChange}
+                        required
+                    />
+                </div>
+
+                <div className="auth-actions">
+                    <button className="base-btn btn-ghost" type="submit">
+                        Login
                     </button>
-                    <div className="loginRegister">
-                        <label htmlFor="register">Don't have an account yet?</label>
-                        <button
-                            className="loginSecondaryButton"
-                            type="button"
-                            key="register"
-                            onClick={() => onRegister && onRegister()}
-                        >
-                            Register
-                        </button>
-                    </div>
+                    <button
+                        className="base-btn btn-ghost"
+                        type="button"
+                        onClick={onRegister}
+                    >
+                        Register
+                    </button>
                 </div>
             </form>
-        </>
+        </div>
     );
+
 }
 
 export default Login;

@@ -1,10 +1,18 @@
-import { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
-import './index.css'
-import App from './App.jsx'
+import { StrictMode } from "react";
+import { createRoot } from "react-dom/client";
+import { WebSocketProvider } from "./state/WebSocketContext.jsx";
+import { NotificationProvider } from "./state/NotificationContext.jsx";
+import App from "./App.jsx";
 
-createRoot(document.getElementById('root')).render(
+
+window.global ||= window;
+
+createRoot(document.getElementById("root")).render(
   <StrictMode>
-    <App />
+    <WebSocketProvider>
+      <NotificationProvider>
+        <App />
+      </NotificationProvider>
+    </WebSocketProvider>
   </StrictMode>,
-)
+);

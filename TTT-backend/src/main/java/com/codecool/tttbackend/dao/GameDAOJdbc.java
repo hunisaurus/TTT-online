@@ -140,7 +140,7 @@ public class GameDAOJdbc implements GameDAO {
    }
 
    @Override
-   public void addGame(Game game) {
+   public int addGame(Game game) {
       String sql = "INSERT INTO games (name, creation_date, game_state, max_players, creator_id, active_board) VALUES (?, ?, ?, ?, ?, ?) RETURNING id";
 
       Integer gameId = jdbcTemplate.queryForObject(
@@ -154,16 +154,16 @@ public class GameDAOJdbc implements GameDAO {
           null
       );
 
-      if (gameId == null) return;
 
       game.setId(gameId);
 
       if (game.getPlayers() != null) {
-         String joinSql = "INSERT INTO players (game_id, user_id) VALUES (?, ?)";
+         String joinSql = "INSERT INTO players (game_id, user_id, character) VALUES (?, ?, ?)";
          for (Player player : game.getPlayers()) {
-            jdbcTemplate.update(joinSql, gameId, player.getUser().getId());
+            jdbcTemplate.update(joinSql, gameId, player.getUser().getId(), player.getCharacter());
          }
       }
+      return gameId;
    }
 
     @Override
@@ -240,4 +240,15 @@ public class GameDAOJdbc implements GameDAO {
 
         return jdbcTemplate.query(sql, gameMapper, userId, userId);
     }
+
+   @Override
+   public List<Game> getAvailableGames() {
+      String sql = """
+        SELECT DISTINCT g.* FROM games g 
+        LEFT JOIN players p ON g.id = p.game_id 
+        WHERE g.game_state = ?
+        """;
+
+      return jdbcTemplate.query(sql, gameMapper,GameState.WAITING.name());
+   }
 }

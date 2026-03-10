@@ -12,9 +12,10 @@ public interface GameDAO {
     List<Game> getAllGames();
     List<Player> findPlayersByGameId(int id);
     Player findPlayer(int gameId, int userId);
-    void addGame(Game game);
+    int addGame(Game game);
     void removeGame(Game game);
     void updateGame(Game game);
     Position getActiveBoardByGameId(int id);
     List<Game> getAllGamesByUserId(int userId);
+    List<Game> getAvailableGames();
 }

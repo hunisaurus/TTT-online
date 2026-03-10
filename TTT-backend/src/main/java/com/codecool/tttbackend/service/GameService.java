@@ -1,6 +1,8 @@
 package com.codecool.tttbackend.service;
 
-import com.codecool.tttbackend.controller.dto.response.GameStatusResponse;
+import com.codecool.tttbackend.controller.dto.request.CreateGameRequestDTO;
+import com.codecool.tttbackend.controller.dto.response.GameResponseDTO;
+import com.codecool.tttbackend.controller.dto.response.GameStatusResponseDTO;
 import com.codecool.tttbackend.controller.dto.response.PlayerResponseDTO;
 import com.codecool.tttbackend.dao.GameDAO;
 import com.codecool.tttbackend.dao.model.game.*;
@@ -25,16 +27,21 @@ public class GameService {
       this.userService = userService;
    }
 
-   public void createGame(String creatorName, String gameName, int maxPlayers) {
-      User creator = userService.getUserByUserName(creatorName);
+   public int createGame(CreateGameRequestDTO createGameRequestDTO) {
+      User creator = userService.getUserByUserName(createGameRequestDTO.userName());
+
+      Player creatorPlayer = new Player();
+      creatorPlayer.setUser(creator);
+      creatorPlayer.setCharacter(createGameRequestDTO.character());
+
       Game game = new Game();
+      game.addPlayer(creatorPlayer);
       game.setCreator(creator);
-      game.setName(gameName);
-      game.setMaxPlayers(maxPlayers);
+      game.setName(createGameRequestDTO.gameName());
+      game.setMaxPlayers(createGameRequestDTO.maxPlayerCount());
       game.setTimeCreated(LocalDateTime.now());
       game.setGameState(GameState.WAITING);
-
-      gameDAO.addGame(game);
+      return gameDAO.addGame(game);
    }
 
    public void startGame(int id) {
@@ -124,7 +131,7 @@ public class GameService {
       return gameDAO.getAllGames();
    }
 
-   public GameStatusResponse makeMove(int gameId, Move move) {
+   public GameStatusResponseDTO makeMove(int gameId, Move move) {
       Game game = gameDAO.findGameById(gameId);
       if (!GameLogic.validateMove(game, move)) return null;
       GameLogic.applyMove(game, move);
@@ -132,31 +139,7 @@ public class GameService {
       GameLogic.setActiveBoardFromMove(move, game);
       gameDAO.updateGame(game);
 
-      Player currentPlayer = game.getCurrentPlayer();
-
-      Player winningPlayer = GameLogic.getWinningPlayer(game);
-      PlayerResponseDTO winningPlayerDTO = null;
-      if (winningPlayer != null)
-         winningPlayerDTO = new PlayerResponseDTO(
-             winningPlayer.getUser().getId(),
-             winningPlayer.getUser().getUsername(),
-             winningPlayer.getCharacter(),
-             winningPlayer.getNumberOfWins()
-         );
-
-      GameStatusResponse response = new GameStatusResponse(
-          new PlayerResponseDTO(
-              currentPlayer.getUser().getId(),
-              currentPlayer.getUser().getUsername(),
-              currentPlayer.getCharacter(),
-              currentPlayer.getNumberOfWins()
-          ),
-          game.getBoard().toSmallBoardsStrings(),
-          game.getBoard().toBigBoardStrings(),
-          game.getBoard().getActiveBoardPositions().stream().map(Position::toString).toList(),
-          winningPlayerDTO
-      );
-      return response;
+      return getGameStatusResponseDTOFromGame(game);
    }
 
    public Player getPlayer(int gameId, String userName) {
@@ -166,12 +149,66 @@ public class GameService {
       return player;
    }
 
-    public List<Game> listUserGames(String username) {
-        User user = userService.getUserByUserName(username);
-        if (user == null) return new ArrayList<>();
+   public List<GameResponseDTO> getUserGameResponseDTOs(String username) {
+      User user = userService.getUserByUserName(username);
+      if (user == null) return new ArrayList<>();
 
-        return gameDAO.getAllGamesByUserId(user.getId());
-    }
+      return gameDAO
+          .getAllGamesByUserId(
+              user.getId())
+          .stream()
+          .map(this::getGameResponseDTOFromGame)
+          .toList();
+   }
 
+   public List<GameResponseDTO> getAvailableGameResponseDTOs() {
+      return gameDAO.getAvailableGames().stream().map(this::getGameResponseDTOFromGame).toList();
+   }
+
+   public GameStatusResponseDTO getGameStatus(int id) {
+      Game game = gameDAO.findGameById(id);
+      return getGameStatusResponseDTOFromGame(game);
+   }
+
+   private GameStatusResponseDTO getGameStatusResponseDTOFromGame(Game game) {
+      boolean started = game != null && game.getGameState() == GameState.IN_PROGRESS;
+
+      return new GameStatusResponseDTO(
+          getPlayerResponseDTOFromPlayer(game.getCurrentPlayer()),
+          game.getBoard().toSmallBoardsStrings(),
+          game.getBoard().toBigBoardStrings(),
+          getActiveBoardsFromGame(game),
+          getPlayerResponseDTOFromPlayer(GameLogic.getWinningPlayer(game)),
+          game.getRotation(),
+          started
+      );
+   }
+
+   private PlayerResponseDTO getPlayerResponseDTOFromPlayer(Player player) {
+      if (player == null) return null;
+      return new PlayerResponseDTO(
+          player.getUser().getId(),
+          player.getUser().getUsername(),
+          player.getCharacter(),
+          player.getNumberOfWins()
+      );
+   }
+
+   private List<String> getActiveBoardsFromGame(Game game) {
+      return game.getBoard().getActiveBoardPositions().stream().map(Position::toString).toList();
+   }
+
+   private GameResponseDTO getGameResponseDTOFromGame(Game game) {
+      return new GameResponseDTO(
+          game.getId(),
+          game.getName(),
+          game.getCreator().getUsername(),
+          // change public and private logic later:
+          "public",
+          game.getMaxPlayers(),
+          game.getPlayers().size(),
+          game.getPlayers().stream().map(Player::getCharacter).toList()
+      );
+   }
 }
 

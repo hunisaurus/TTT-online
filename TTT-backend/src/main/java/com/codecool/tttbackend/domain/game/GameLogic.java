@@ -3,7 +3,6 @@ package com.codecool.tttbackend.domain.game;
 import com.codecool.tttbackend.dao.model.game.Game;
 import com.codecool.tttbackend.dao.model.game.Move;
 import com.codecool.tttbackend.dao.model.game.Player;
-import com.codecool.tttbackend.dao.model.game.Position;
 
 import java.util.Comparator;
 import java.util.List;
@@ -37,14 +36,14 @@ public class GameLogic {
 
       Player currentPlayer;
       if (i + 1 == players.size()) {
-         currentPlayer = players.get(0);
+         currentPlayer = players.getFirst();
       } else {
          currentPlayer = players.get(i + 1);
       }
       game.setCurrentPlayer(currentPlayer);
    }
 
-   public static void setActiveBoardFromMove(Move move, Game game){
+   public static void setActiveBoardFromMove(Move move, Game game) {
       game.getBoard().setActiveBoards(move.smallPosition());
    }
 }

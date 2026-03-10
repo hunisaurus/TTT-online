@@ -1,7 +1,8 @@
 package com.codecool.tttbackend.service;
 
-import com.codecool.tttbackend.controller.dto.request.LoginRequest;
+import com.codecool.tttbackend.controller.dto.request.LoginRequestDTO;
 import com.codecool.tttbackend.controller.dto.request.RefreshTokenRequest;
+import com.codecool.tttbackend.controller.dto.AuthDTO;
 import com.codecool.tttbackend.controller.dto.request.RegisterRequest;
 import com.codecool.tttbackend.controller.dto.response.AuthResponse;
 import com.codecool.tttbackend.dao.UserDAO;
@@ -9,7 +10,6 @@ import com.codecool.tttbackend.dao.model.User;
 import com.codecool.tttbackend.exception.BadRequestException;
 import com.codecool.tttbackend.exception.UnauthorizedException;
 import com.codecool.tttbackend.security.JwtUtil;
-import com.codecool.tttbackend.security.PasswordHasher;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -25,14 +25,12 @@ import java.util.Set;
 public class AuthService {
 
     private final UserDAO userDAO;
-    private final PasswordHasher passwordHasher;
     private final AuthenticationManager authManager;
     private final JwtUtil jwtUtil;
     private final UserDetailsService userDetailsService;
 
     public AuthService(UserDAO userDAO, AuthenticationManager authManager, JwtUtil jwtUtil, @Qualifier("customUserDetailsService") UserDetailsService userDetailsService) {
         this.userDAO = userDAO;
-        this.passwordHasher = new PasswordHasher();
         this.authManager = authManager;
         this.jwtUtil = jwtUtil;
         this.userDetailsService = userDetailsService;
@@ -116,7 +114,7 @@ public class AuthService {
             throw new UnauthorizedException("Invalid username or password");
         }
     }
-    public AuthResponse refreshToken(RefreshTokenRequest request) {
+    public AuthDTO refreshToken(RefreshTokenRequest request) {
         String refreshToken = request.getRefreshToken();
 
         if (!jwtUtil.validateToken(refreshToken, true)) {
@@ -134,7 +132,7 @@ public class AuthService {
 
         String newAccessToken = jwtUtil.generateAccessToken(authentication);
 
-        return new AuthResponse(
+        return new AuthDTO(
                 newAccessToken,
                 refreshToken,
                 user.getUsername(),
