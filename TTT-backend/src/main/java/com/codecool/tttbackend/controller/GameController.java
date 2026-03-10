@@ -1,6 +1,7 @@
 package com.codecool.tttbackend.controller;
 
 import com.codecool.tttbackend.controller.dto.request.*;
+import com.codecool.tttbackend.controller.dto.response.GameIdResponseDTO;
 import com.codecool.tttbackend.controller.dto.response.GameResponseDTO;
 import com.codecool.tttbackend.controller.dto.response.GameStatusResponseDTO;
 import com.codecool.tttbackend.dao.model.game.Move;
@@ -30,9 +31,9 @@ public class GameController {
    }
 
    @PostMapping("/create")
-   public ResponseEntity<Void> createGame(@RequestBody CreateGameRequestDTO createGameRequestDTO) {
-      gameService.createGame(createGameRequestDTO);
-      return ResponseEntity.status(HttpStatus.CREATED).build();
+   public ResponseEntity<GameIdResponseDTO> createGame(@RequestBody CreateGameRequestDTO createGameRequestDTO) {
+      int gameId = gameService.createGame(createGameRequestDTO);
+      return ResponseEntity.ok(new GameIdResponseDTO(gameId));
    }
 
    @GetMapping

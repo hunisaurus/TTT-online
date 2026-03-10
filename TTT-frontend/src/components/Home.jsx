@@ -39,7 +39,7 @@ export default function Home() {
                         </div>
                         <div className="user-profile-badge">
                             <div className="user-info">
-                                <span className="user-label">LOGGED IN AS</span>
+                                <span className="user-label">LOGGED IN AS: </span>
                                 <span className="user-name">{localStorage.getItem('userName') || 'Guest'}</span>
                             </div>
                             <div className="user-avatar">

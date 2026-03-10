@@ -13,17 +13,17 @@ export default function CreateGame({ onContinue, onBack }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+    
+    setLoading(true);
     try {
-      setLoading(true);
       const storedUserName = localStorage.getItem("userName");
-      await createOnlineGame(
+      const body = await createOnlineGame(
         storedUserName,
         formData.gameName,
         parseInt(formData.maxPlayerCount, 10),
         formData.character,
       );
-      onContinue();
+      onContinue(body.id);
     } catch (error) {
       console.error("Cant reach the backend! :", error);
     } finally {

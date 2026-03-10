@@ -2,11 +2,10 @@ package com.codecool.tttbackend.service;
 
 import com.codecool.tttbackend.controller.dto.request.LoginRequestDTO;
 import com.codecool.tttbackend.controller.dto.request.RefreshTokenRequest;
-import com.codecool.tttbackend.controller.dto.response.AuthResponseDTO;
+import com.codecool.tttbackend.controller.dto.AuthDTO;
 import com.codecool.tttbackend.dao.UserDAO;
 import com.codecool.tttbackend.dao.model.User;
 import com.codecool.tttbackend.security.JwtUtil;
-import com.codecool.tttbackend.security.PasswordHasher;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -30,7 +29,7 @@ public class AuthService {
         this.userDetailsService = userDetailsService;
     }
 
-    public AuthResponseDTO login(LoginRequestDTO req) {
+    public AuthDTO login(LoginRequestDTO req) {
         Authentication authentication = authManager.authenticate(
                 new UsernamePasswordAuthenticationToken(req.username(), req.password())
         );
@@ -41,7 +40,7 @@ public class AuthService {
         String accessToken = jwtUtil.generateAccessToken(authentication);
         String refreshToken = jwtUtil.generateRefreshToken(req.username());
 
-        return new AuthResponseDTO(
+        return new AuthDTO(
                 accessToken,
                 refreshToken,
                 user.getUsername(),
@@ -49,7 +48,7 @@ public class AuthService {
                 user.getRoles().stream().map(role -> "ROLE_" + role).toArray(String[]::new)
         );
     }
-    public AuthResponseDTO refreshToken(RefreshTokenRequest request) {
+    public AuthDTO refreshToken(RefreshTokenRequest request) {
         String refreshToken = request.getRefreshToken();
 
         if (!jwtUtil.validateToken(refreshToken, true)) {
@@ -67,7 +66,7 @@ public class AuthService {
 
         String newAccessToken = jwtUtil.generateAccessToken(authentication);
 
-        return new AuthResponseDTO(
+        return new AuthDTO(
                 newAccessToken,
                 refreshToken,
                 user.getUsername(),

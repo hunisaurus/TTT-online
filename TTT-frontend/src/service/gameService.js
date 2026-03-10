@@ -17,6 +17,7 @@ export const createOnlineGame = async (
     }),
   });
   if (!res.ok) throw new Error("Creation failed");
+  return res.json();
 };
 
 export const joinOnlineGame = async (character, gameId) => {

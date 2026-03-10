@@ -140,7 +140,7 @@ public class GameDAOJdbc implements GameDAO {
    }
 
    @Override
-   public void addGame(Game game) {
+   public int addGame(Game game) {
       String sql = "INSERT INTO games (name, creation_date, game_state, max_players, creator_id, active_board) VALUES (?, ?, ?, ?, ?, ?) RETURNING id";
 
       Integer gameId = jdbcTemplate.queryForObject(
@@ -154,7 +154,6 @@ public class GameDAOJdbc implements GameDAO {
           null
       );
 
-      if (gameId == null) return;
 
       game.setId(gameId);
 
@@ -164,6 +163,7 @@ public class GameDAOJdbc implements GameDAO {
             jdbcTemplate.update(joinSql, gameId, player.getUser().getId(), player.getCharacter());
          }
       }
+      return gameId;
    }
 
     @Override

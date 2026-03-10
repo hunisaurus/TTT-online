@@ -2,7 +2,8 @@ package com.codecool.tttbackend.controller;
 
 import com.codecool.tttbackend.controller.dto.request.LoginRequestDTO;
 import com.codecool.tttbackend.controller.dto.request.RefreshTokenRequest;
-import com.codecool.tttbackend.controller.dto.response.AuthResponseDTO;
+import com.codecool.tttbackend.controller.dto.AuthDTO;
+import com.codecool.tttbackend.controller.dto.response.JwtResponse;
 import com.codecool.tttbackend.service.AuthService;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
@@ -28,20 +29,20 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<AuthResponseDTO> login(
+    public ResponseEntity<JwtResponse> login(
             @RequestBody LoginRequestDTO request,
             HttpServletResponse response) {
-        AuthResponseDTO authResponse = authService.login(request);
+        AuthDTO authResponse = authService.login(request);
 
         setRefreshTokenCookie(response, authResponse.getRefreshToken());
 
         authResponse.setRefreshToken(null);
 
-        return ResponseEntity.ok(authResponse);
+        return ResponseEntity.ok(new JwtResponse(authResponse.getAccessToken()));
     }
 
     @PostMapping("/refresh")
-    public ResponseEntity<AuthResponseDTO> refreshToken(
+    public ResponseEntity<JwtResponse> refreshToken(
             HttpServletRequest request,
             HttpServletResponse response) {
         String refreshToken = getRefreshTokenFromCookie(request);
@@ -53,7 +54,7 @@ public class AuthController {
         RefreshTokenRequest refreshRequest = new RefreshTokenRequest();
         refreshRequest.setRefreshToken(refreshToken);
 
-        AuthResponseDTO authResponse = authService.refreshToken(refreshRequest);
+        AuthDTO authResponse = authService.refreshToken(refreshRequest);
 
         if (authResponse.getRefreshToken() != null) {
             setRefreshTokenCookie(response, authResponse.getRefreshToken());
@@ -61,7 +62,7 @@ public class AuthController {
 
         authResponse.setRefreshToken(null);
 
-        return ResponseEntity.ok(authResponse);
+        return ResponseEntity.ok(new JwtResponse(authResponse.getAccessToken()));
     }
 
     @PostMapping("/logout")

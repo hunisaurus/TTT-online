@@ -24,9 +24,9 @@
 /* BACK BUTTON */
 
 .back-button-modern {
-    position: absolute;
-    top: 25px;
-    left: 25px;
+    position: fixed;
+    top: 20%;
+    left: 20%;
     background: transparent;
     border: 1px solid var(--text-muted);
     color: var(--text-muted);

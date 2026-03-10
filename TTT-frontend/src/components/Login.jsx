@@ -16,7 +16,7 @@ function Login({ className = "", style, onSubmit, onRegister }) {
   const [data, setData] = useState(emptyData);
 
   function handleChange(event) {
-    console.log(event.target.value);
+    // console.log(event.target.value);
 
     let newData = {};
     if (event.target.dataset.index) {
@@ -38,7 +38,7 @@ function Login({ className = "", style, onSubmit, onRegister }) {
       };
       setData(newData);
     }
-    console.log(newData);
+    // console.log(newData);
   }
 
   async function handleSubmit(e) {
@@ -61,10 +61,10 @@ function Login({ className = "", style, onSubmit, onRegister }) {
 
       if (resp.ok) {
         const body = await resp.json();
-        const jwt = body.jwt;
-        const gameIds = body.games ?? [];
+        const jwt = body.token;
         localStorage.setItem("userName", data.username);
         localStorage.setItem("jwt", jwt);
+        console.log("JWT token: "+ jwt);
         connect();
 
         // subscribe(`/user/${jwt}/notifications`, (msg) => {
@@ -83,7 +83,7 @@ function Login({ className = "", style, onSubmit, onRegister }) {
     }
     return (
         <div className={`auth-page ${className}`} style={style}>
-            <h2 className="helptext">Welcome</h2>
+            {/* <h2 className="helptext">Welcome</h2> */}
 
             <form className="auth-card" onSubmit={handleSubmit}>
 

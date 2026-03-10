@@ -23,8 +23,14 @@ export default function GameMenu({ onStart }) {
   const [entering, setEntering] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [currentGameId, setCurrentGameId] = useState(null);
+  const [selectedServer, setSelectedServer] = useState(null);
+  const [selectedOnlineChar, setSelectedOnlineChar] = useState(null);
 
   const requiredChars = mode === "pvp" ? playerCount : 2;
+  const takenOnlineChars = selectedServer?.characters || [];
+  const availableOnlineChars = CHARSET.filter(
+    (ch) => !takenOnlineChars.includes(ch),
+  );
 
   const go = (next) => {
     setStep(next);
@@ -99,6 +105,11 @@ export default function GameMenu({ onStart }) {
         break;
       case "onlineLoadList":
         go("onlineType");
+        break;
+      case "onlineJoinChar":
+        setSelectedOnlineChar(null);
+        setSelectedServer(null);
+        go("serverBrowser");
         break;
       case "start":
         go("char");
@@ -318,7 +329,13 @@ export default function GameMenu({ onStart }) {
       )}
       {step === "createGame" && (
         <CreateGame
-          onContinue={() => {
+          onContinue={(gameId) => {
+            play("click");
+            setCurrentGameId(gameId);
+            onStart({
+              mode: "online",
+              gameId: gameId,
+            });
             go("game");
           }}
         />
@@ -326,21 +343,81 @@ export default function GameMenu({ onStart }) {
 
       {step === "serverBrowser" && (
         <ServerBrowser
-          onJoin={async (game) => {
+          onJoin={(game) => {
             play("click");
             setCurrentGameId(game.gameId);
-            onStart({
-              mode: "online",
-              gameId: game.gameId
-            });
-            try {
-                await joinOnlineGame(game.gameId);
-            } catch (error) {
-                console.log(error);
-            }
-            go("game");
+            setSelectedServer(game);
+            setSelectedOnlineChar(null);
+            go("onlineJoinChar");
           }}
         />
+      )}
+
+      {step === "onlineJoinChar" && selectedServer && (
+        <div className="menu-step-container">
+          <h2 className="helptext">
+            {availableOnlineChars.length === 1
+              ? "YOUR CHARACTER"
+              : "CHOOSE YOUR CHARACTER"}
+          </h2>
+
+          <div className="char-grid">
+            {availableOnlineChars.length > 1 ? (
+              availableOnlineChars.map((ch) => (
+                <button
+                  key={ch}
+                  className={`charChoice ${selectedOnlineChar === ch ? "active-starter" : ""}`}
+                  onMouseOver={() => play("hover")}
+                  onClick={() => {
+                    play("click");
+                    setSelectedOnlineChar(ch);
+                  }}
+                >
+                  {ch}
+                </button>
+              ))
+            ) : (
+              <div className="single-char-display">
+                <span className="charChoice active-starter">
+                  {availableOnlineChars[0]}
+                </span>
+              </div>
+            )}
+          </div>
+
+          <div className="start-action-wrapper" style={{ marginTop: "30px" }}>
+            <button
+              className="bigPlayButton"
+              onClick={async () => {
+                const taken = selectedServer.characters || [];
+                const available = CHARSET.filter((ch) => !taken.includes(ch));
+                if (available.length === 0) return;
+
+                const chosenChar =
+                  available.length === 1 ? available[0] : selectedOnlineChar;
+                if (!chosenChar) return;
+
+                try {
+                  await joinOnlineGame(chosenChar, selectedServer.gameId);
+                  onStart({
+                    mode: "online",
+                    gameId: selectedServer.gameId,
+                    character: chosenChar,
+                  });
+                  go("game");
+                } catch (error) {
+                  console.log(error);
+                }
+              }}
+              disabled={
+                availableOnlineChars.length === 0 ||
+                (availableOnlineChars.length > 1 && !selectedOnlineChar)
+              }
+            >
+              JOIN GAME
+            </button>
+          </div>
+        </div>
       )}
 
       {step === "onlineLoadList" && (
@@ -351,7 +428,7 @@ export default function GameMenu({ onStart }) {
             setCurrentGameId(game.gameId);
             onStart({
               mode: "online",
-              gameId: game.gameId
+              gameId: game.gameId,
             });
             go("game");
           }}

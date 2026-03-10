@@ -27,7 +27,7 @@ public class GameService {
       this.userService = userService;
    }
 
-   public void createGame(CreateGameRequestDTO createGameRequestDTO) {
+   public int createGame(CreateGameRequestDTO createGameRequestDTO) {
       User creator = userService.getUserByUserName(createGameRequestDTO.userName());
 
       Player creatorPlayer = new Player();
@@ -41,7 +41,7 @@ public class GameService {
       game.setMaxPlayers(createGameRequestDTO.maxPlayerCount());
       game.setTimeCreated(LocalDateTime.now());
       game.setGameState(GameState.WAITING);
-      gameDAO.addGame(game);
+      return gameDAO.addGame(game);
    }
 
    public void startGame(int id) {
@@ -206,7 +206,8 @@ public class GameService {
           // change public and private logic later:
           "public",
           game.getMaxPlayers(),
-          game.getPlayers().size()
+          game.getPlayers().size(),
+          game.getPlayers().stream().map(Player::getCharacter).toList()
       );
    }
 }
