@@ -6,7 +6,7 @@ export default function ServerBrowser({ onJoin }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    setLoading(false);
+    setLoading(true);
     const loadServers = async () => {
       try {
         const games = await getAvailableGames();

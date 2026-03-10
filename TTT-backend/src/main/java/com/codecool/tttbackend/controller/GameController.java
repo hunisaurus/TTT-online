@@ -39,17 +39,16 @@ public class GameController {
       return ResponseEntity.ok(new GameIdResponseDTO(gameId));
    }
 
-   @GetMapping
+   @GetMapping("/mine")
    public ResponseEntity<List<GameResponseDTO>> getMyGames(Principal principal) {
       String userName = (principal != null) ? principal.getName() : null;
 
       if (userName == null || userName.isBlank()) {
-         // Not authenticated and no username provided
          return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
       }
-      LOG.info("Beérkező kérés username: {}", userName); // LOG
+      LOG.info("Incoming query for games created by {}", userName);
       List<GameResponseDTO> gameResponseDTOS = gameService.getUserGameResponseDTOs(userName);
-      LOG.info("Talált játékok száma: {}", gameResponseDTOS.size()); // LOG
+      LOG.info("Number of user's created games found: {}", gameResponseDTOS.size());
       return ResponseEntity.ok(gameResponseDTOS);
    }
 
@@ -60,9 +59,9 @@ public class GameController {
       if (userName == null || userName.isBlank()) {
          return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
       }
-      LOG.info("Incoming query for all avaliable games of {}", userName); // LOG
+      LOG.info("Incoming query for all avaliable games of {}", userName);
       List<GameResponseDTO> gameResponseDTOS = gameService.getAvailableGameResponseDTOs(userName);
-      LOG.info("Number of available games found: {}", gameResponseDTOS.size()); // LOG
+      LOG.info("Number of available games found: {}", gameResponseDTOS.size());
       return ResponseEntity.ok(gameResponseDTOS);
    }
 
@@ -74,9 +73,22 @@ public class GameController {
       if (userName == null || userName.isBlank()) {
          return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
       }
-      System.out.println("Incoming query for all active games of " + userName);
+      LOG.info("Incoming query for all active games of {}", userName);
       List<GameResponseDTO> gameResponseDTOS = gameService.getActiveGameResponseDTOs(userName);
-      System.out.println("Number of active games found: " + gameResponseDTOS.size());
+      LOG.info("Number of active games found: {}", gameResponseDTOS.size());
+      return ResponseEntity.ok(gameResponseDTOS);
+   }
+
+   @GetMapping("/joined")
+   public ResponseEntity<List<GameResponseDTO>> getJoinedGames(Principal principal){
+      String userName = (principal != null) ? principal.getName() : null;
+
+      if (userName == null || userName.isBlank()) {
+         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+      }
+      LOG.info("Incoming query for all joined games of {}", userName);
+      List<GameResponseDTO> gameResponseDTOS = gameService.getJoinedGameResponseDTOs(userName);
+      LOG.info("Number of joined games found: {}", gameResponseDTOS.size());
       return ResponseEntity.ok(gameResponseDTOS);
    }
 
