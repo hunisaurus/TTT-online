@@ -40,7 +40,7 @@ export default function Register({className = "", style, onBack, onSubmit}) {
         }
 
         try {
-            const resp = await fetch(api(`/auth/register`), {
+            const resp = await fetch(api(`/api/auth/register`), {
                 method: "POST",
                 headers: {"Content-Type": "application/json"},
                 body: JSON.stringify({
