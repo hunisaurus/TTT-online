@@ -2,8 +2,10 @@ package com.codecool.tttbackend.controller;
 
 import com.codecool.tttbackend.controller.dto.request.LoginRequestDTO;
 import com.codecool.tttbackend.controller.dto.request.RefreshTokenRequest;
-import com.codecool.tttbackend.controller.dto.AuthDTO;
-import com.codecool.tttbackend.controller.dto.response.JwtResponse;
+import com.codecool.tttbackend.controller.dto.request.RegisterRequest;
+import com.codecool.tttbackend.controller.dto.response.AuthResponse;
+import com.codecool.tttbackend.exception.GlobalExceptionHandler;
+import com.codecool.tttbackend.exception.UnauthorizedException;
 import com.codecool.tttbackend.service.AuthService;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
@@ -28,11 +30,25 @@ public class AuthController {
         this.authService = authService;
     }
 
+    @PostMapping("/register")
+    public ResponseEntity<AuthResponse> register(
+            @RequestBody RegisterRequest request,
+            HttpServletResponse response) {
+        AuthResponse authResponse = authService.register(request);
+
+        setRefreshTokenCookie(response, authResponse.getRefreshToken());
+
+        authResponse.setRefreshToken(null);
+
+        return ResponseEntity.ok(authResponse);
+    }
+
     @PostMapping("/login")
     public ResponseEntity<JwtResponse> login(
             @RequestBody LoginRequestDTO request,
             HttpServletResponse response) {
-        AuthDTO authResponse = authService.login(request);
+
+        AuthResponse authResponse = authService.login(request);
 
         setRefreshTokenCookie(response, authResponse.getRefreshToken());
 
@@ -85,11 +101,10 @@ public class AuthController {
 
     private void setRefreshTokenCookie(HttpServletResponse response, String refreshToken) {
         Cookie cookie = new Cookie("refreshToken", refreshToken);
-        cookie.setHttpOnly(true); // Prevents JavaScript access (XSS protection)
-        cookie.setSecure(false); // Set to TRUE in production (HTTPS only), FALSE for local development
-        cookie.setPath("/api/auth"); // Only send to auth endpoints
-        cookie.setMaxAge((int) (refreshTokenExpiration / 1000)); // Convert to seconds
-        // cookie.setSameSite("Strict"); // CSRF protection (requires Spring Boot 3.0+)
+        cookie.setHttpOnly(true);
+        cookie.setSecure(false);
+        cookie.setPath("/api/auth");
+        cookie.setMaxAge((int) (refreshTokenExpiration / 1000));
         response.addCookie(cookie);
     }
 
