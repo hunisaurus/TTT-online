@@ -51,9 +51,14 @@ public class GameController {
    }
 
    @GetMapping("/available")
-   public ResponseEntity<List<GameResponseDTO>> getAvailableGames() {
+   public ResponseEntity<List<GameResponseDTO>> getAvailableGames(Principal principal) {
+      String userName = (principal != null) ? principal.getName() : null;
+
+      if (userName == null || userName.isBlank()) {
+         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+      }
       System.out.println("Beérkező kérés minden elérhetoo játékra"); // LOG
-      List<GameResponseDTO> gameResponseDTOS = gameService.getAvailableGameResponseDTOs();
+      List<GameResponseDTO> gameResponseDTOS = gameService.getAvailableGameResponseDTOs(userName);
       System.out.println("Talált játékok száma: " + gameResponseDTOS.size()); // LOG
       return ResponseEntity.ok(gameResponseDTOS);
    }
