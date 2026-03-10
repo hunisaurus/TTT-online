@@ -1,32 +1,43 @@
-import Cell from './Cell';
+import Cell from "./Cell";
 
 export default function BigBoard({
-  r, c,
+  r,
+  c,
   board,
   bigStatus,
   isActive,
+  canPlay,
   onCellClick,
   onHover,
 }) {
-  if (bigStatus && bigStatus !== 'D') {
+  if (bigStatus && bigStatus !== "D") {
     return <td className="BB wonBoard">{bigStatus}</td>;
   }
-  if (bigStatus === 'D') {
+  if (bigStatus === "D") {
     return <td className="BB drawBoard"></td>;
   }
+
+  const clickable = isActive && canPlay;
+
   return (
-    <td className={`BB ${isActive ? 'activeBoard' : ''}`}>
+    <td
+      className={`BB ${
+        isActive ? (canPlay ? "activeBoard" : "activeBoard-other") : ""
+      }`}
+    >
       <table className="MB">
         <tbody>
-          {[0,1,2].map(rr => (
+          {[0, 1, 2].map((rr) => (
             <tr key={rr}>
-              {[0,1,2].map(cc => (
+              {[0, 1, 2].map((cc) => (
                 <Cell
                   key={cc}
                   value={board[rr][cc]}
                   isActive={isActive}
                   onHover={onHover}
-                  onClick={() => isActive && !board[rr][cc] && onCellClick(rr, cc)}
+                  onClick={() =>
+                    clickable && !board[rr][cc] && onCellClick(rr, cc)
+                  }
                 />
               ))}
             </tr>

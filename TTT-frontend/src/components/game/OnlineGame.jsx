@@ -12,9 +12,18 @@ export default function OnlineGame({ config, onExit }) {
   const [playersEntering, setPlayersEntering] = useState(false);
   const { subscribe, send } = useWebSocket();
   const [loading, setLoading] = useState(true);
+  const [myTurn, setMyTurn] = useState(true);
+  const userName = localStorage.getItem("userName");
 
-  console.log("OnlineGame component opened!");
-  console.log("OnlineGame config.gameId:", config.gameId);
+  useEffect(() => {
+    console.log("currentPlayer from server:", state?.currentPlayer);
+    console.log("local userName:", localStorage.getItem("userName"));
+    console.log("myTurn:", !!myTurn);
+  }, [state?.currentPlayer]);
+  
+  useEffect(() => {
+    setMyTurn(state?.currentPlayer && state.currentPlayer.username == userName);
+  }, [state]);
 
   useEffect(() => {
     if (!config?.gameId) return;
@@ -22,7 +31,12 @@ export default function OnlineGame({ config, onExit }) {
       setLoading(true);
       try {
         const gameState = await getGameStatus(config.gameId);
-        setState(gameState);
+
+        const activeBigs = new Set(gameState.activeBoards ?? []);
+        setState({
+          ...gameState,
+          activeBigs,
+        });
       } catch (error) {
         console.error("Cant reach the backend! :", error);
       } finally {
@@ -54,7 +68,7 @@ export default function OnlineGame({ config, onExit }) {
       // Merge with previous state to avoid losing other fields
       setState((prev) => ({
         ...prev,
-        smallboards: smallBoards,
+        smallBoards: smallBoards,
         bigBoard: bigBoard,
         activeBigs: activeBigs,
         currentPlayer: currentPlayer,
@@ -71,8 +85,6 @@ export default function OnlineGame({ config, onExit }) {
         console.warn("Failed to unsubscribe:", err);
       }
     };
-
-    return () => sub?.unsubscribe?.();
   }, [config?.gameId, subscribe]);
 
   useEffect(() => {
@@ -113,7 +125,8 @@ export default function OnlineGame({ config, onExit }) {
 
   const handlePlay = (br, bc, sr, sc) => {
     if (!state) return;
-    if (!state.activeBigs.has(`${br},${bc}`)) return;
+    if (!myTurn) return; // not your turn
+    if (!state.activeBigs?.has(`${br},${bc}`)) return;
 
     const sb = state.smallBoards.map((row) =>
       row.map((b) => b.map((r) => [...r])),
@@ -124,8 +137,6 @@ export default function OnlineGame({ config, onExit }) {
       return;
     }
     play("click");
-
-    const userName = localStorage.getItem("userName");
 
     send("/app/games/move", {
       gameId: config.gameId,
@@ -177,6 +188,7 @@ export default function OnlineGame({ config, onExit }) {
               smallBoards={state.smallBoards}
               bigBoard={state.bigBoard}
               activeBigs={state.activeBigs}
+              canPlay={myTurn}
               onPlay={handlePlay}
               onHover={onHover}
               entering={boardEntering}
