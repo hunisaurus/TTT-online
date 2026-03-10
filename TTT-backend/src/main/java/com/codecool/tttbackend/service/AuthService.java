@@ -1,15 +1,15 @@
 package com.codecool.tttbackend.service;
 
+import com.codecool.tttbackend.controller.dto.AuthDTO;
 import com.codecool.tttbackend.controller.dto.request.LoginRequestDTO;
 import com.codecool.tttbackend.controller.dto.request.RefreshTokenRequest;
-import com.codecool.tttbackend.controller.dto.AuthDTO;
-import com.codecool.tttbackend.controller.dto.request.RegisterRequest;
-import com.codecool.tttbackend.controller.dto.response.AuthResponse;
+import com.codecool.tttbackend.controller.dto.request.RegisterRequestDTO;
 import com.codecool.tttbackend.dao.UserDAO;
 import com.codecool.tttbackend.dao.model.User;
 import com.codecool.tttbackend.exception.BadRequestException;
 import com.codecool.tttbackend.exception.UnauthorizedException;
 import com.codecool.tttbackend.security.JwtUtil;
+import com.codecool.tttbackend.security.PasswordHasher;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -28,15 +28,17 @@ public class AuthService {
     private final AuthenticationManager authManager;
     private final JwtUtil jwtUtil;
     private final UserDetailsService userDetailsService;
+    private final PasswordHasher passwordHasher;
 
-    public AuthService(UserDAO userDAO, AuthenticationManager authManager, JwtUtil jwtUtil, @Qualifier("customUserDetailsService") UserDetailsService userDetailsService) {
+    public AuthService(UserDAO userDAO, AuthenticationManager authManager, JwtUtil jwtUtil, @Qualifier("customUserDetailsService") UserDetailsService userDetailsService, PasswordHasher passwordHasher) {
         this.userDAO = userDAO;
         this.authManager = authManager;
         this.jwtUtil = jwtUtil;
         this.userDetailsService = userDetailsService;
+       this.passwordHasher = passwordHasher;
     }
 
-    public AuthResponse register(RegisterRequest request) {
+    public AuthDTO register(RegisterRequestDTO request) {
 
         if (userDAO.findByUsername(request.username()) != null) {
             throw new BadRequestException("Username already exists");
@@ -67,7 +69,7 @@ public class AuthService {
             String accessToken = jwtUtil.generateAccessToken(authentication);
             String refreshToken = jwtUtil.generateRefreshToken(user.getUsername());
 
-            return new AuthResponse(
+            return new AuthDTO(
                     accessToken,
                     refreshToken,
                     user.getUsername(),
@@ -81,7 +83,7 @@ public class AuthService {
             throw new UnauthorizedException("Authentication failed after registration");
         }
     }
-    public AuthResponse login(LoginRequest req) {
+    public AuthDTO login(LoginRequestDTO req) {
 
         try {
             Authentication authentication = authManager.authenticate(
@@ -100,7 +102,7 @@ public class AuthService {
             String accessToken = jwtUtil.generateAccessToken(authentication);
             String refreshToken = jwtUtil.generateRefreshToken(req.username());
 
-            return new AuthResponse(
+            return new AuthDTO(
                     accessToken,
                     refreshToken,
                     user.getUsername(),

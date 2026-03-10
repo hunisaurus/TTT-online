@@ -1,11 +1,10 @@
 package com.codecool.tttbackend.controller;
 
+import com.codecool.tttbackend.controller.dto.AuthDTO;
 import com.codecool.tttbackend.controller.dto.request.LoginRequestDTO;
 import com.codecool.tttbackend.controller.dto.request.RefreshTokenRequest;
-import com.codecool.tttbackend.controller.dto.request.RegisterRequest;
-import com.codecool.tttbackend.controller.dto.response.AuthResponse;
-import com.codecool.tttbackend.exception.GlobalExceptionHandler;
-import com.codecool.tttbackend.exception.UnauthorizedException;
+import com.codecool.tttbackend.controller.dto.request.RegisterRequestDTO;
+import com.codecool.tttbackend.controller.dto.response.JwtResponseDTO;
 import com.codecool.tttbackend.service.AuthService;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
@@ -31,34 +30,34 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<AuthResponse> register(
-            @RequestBody RegisterRequest request,
+    public ResponseEntity<JwtResponseDTO> register(
+            @RequestBody RegisterRequestDTO request,
             HttpServletResponse response) {
-        AuthResponse authResponse = authService.register(request);
+        AuthDTO authResponse = authService.register(request);
 
         setRefreshTokenCookie(response, authResponse.getRefreshToken());
 
         authResponse.setRefreshToken(null);
 
-        return ResponseEntity.ok(authResponse);
+        return ResponseEntity.ok(new JwtResponseDTO(authResponse.getAccessToken()));
     }
 
     @PostMapping("/login")
-    public ResponseEntity<JwtResponse> login(
+    public ResponseEntity<JwtResponseDTO> login(
             @RequestBody LoginRequestDTO request,
             HttpServletResponse response) {
 
-        AuthResponse authResponse = authService.login(request);
+        AuthDTO authResponse = authService.login(request);
 
         setRefreshTokenCookie(response, authResponse.getRefreshToken());
 
         authResponse.setRefreshToken(null);
 
-        return ResponseEntity.ok(new JwtResponse(authResponse.getAccessToken()));
+        return ResponseEntity.ok(new JwtResponseDTO(authResponse.getAccessToken()));
     }
 
     @PostMapping("/refresh")
-    public ResponseEntity<JwtResponse> refreshToken(
+    public ResponseEntity<JwtResponseDTO> refreshToken(
             HttpServletRequest request,
             HttpServletResponse response) {
         String refreshToken = getRefreshTokenFromCookie(request);
@@ -78,7 +77,7 @@ public class AuthController {
 
         authResponse.setRefreshToken(null);
 
-        return ResponseEntity.ok(new JwtResponse(authResponse.getAccessToken()));
+        return ResponseEntity.ok(new JwtResponseDTO(authResponse.getAccessToken()));
     }
 
     @PostMapping("/logout")

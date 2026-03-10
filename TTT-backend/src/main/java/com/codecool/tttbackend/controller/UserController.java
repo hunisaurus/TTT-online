@@ -20,10 +20,5 @@ public class UserController {
         this.userService = userService;
     }
 
-    @PostMapping("/register")
-    public ResponseEntity<String> register(@RequestBody RegisterRequestDTO req) throws SQLException {
-        userService.register(req);
 
-        return ResponseEntity.ok("Registered");
-    }
 }

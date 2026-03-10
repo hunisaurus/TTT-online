@@ -5,7 +5,6 @@ import com.codecool.tttbackend.controller.dto.response.GameResponseDTO;
 import com.codecool.tttbackend.controller.dto.response.GameStatusResponseDTO;
 import com.codecool.tttbackend.controller.dto.response.PlayerResponseDTO;
 import com.codecool.tttbackend.dao.GameDAO;
-import com.codecool.tttbackend.dao.UserDAO;
 import com.codecool.tttbackend.dao.model.game.*;
 import com.codecool.tttbackend.dao.model.User;
 import com.codecool.tttbackend.domain.game.GameLogic;
@@ -20,16 +19,16 @@ import java.util.List;
 public class GameService {
 
    private final GameDAO gameDAO;
-   private final UserDAO userDao;
+   private final UserService userService;
 
    @Autowired
-   public GameService(GameDAO gameDAO, UserDAO userDao) {
+   public GameService(GameDAO gameDAO, UserService userService) {
       this.gameDAO = gameDAO;
-      this.userDao = userDao;
+      this.userService = userService;
    }
 
    public int createGame(CreateGameRequestDTO createGameRequestDTO) {
-      User creator = userDao.findByUsername(createGameRequestDTO.userName());
+      User creator = userService.getUserByUserName(createGameRequestDTO.userName());
 
       Player creatorPlayer = new Player();
       creatorPlayer.setUser(creator);
@@ -71,7 +70,7 @@ public class GameService {
          throw new IllegalArgumentException("Game not found: " + id);
       }
 
-      User user = userDao.findByUsername(userName);
+      User user = userService.getUserByUserName(userName);
       if (user == null) {
          throw new IllegalArgumentException("User not found: " + userName);
       }
@@ -91,7 +90,7 @@ public class GameService {
          throw new IllegalArgumentException("Game not found: " + id);
       }
 
-      User user = userDao.findByUsername(userName);
+      User user = userService.getUserByUserName(userName);
 
       List<Player> players = gameDAO.findPlayersByGameId(game.getId());
 
@@ -110,7 +109,7 @@ public class GameService {
          throw new IllegalArgumentException("Game not found: " + id);
       }
 
-      User user = userDao.findByUsername(winnerName);
+      User user = userService.getUserByUserName(winnerName);
 
       Player winner = gameDAO.findPlayer(game.getId(), user.getId());
 
@@ -144,14 +143,14 @@ public class GameService {
    }
 
    public Player getPlayer(int gameId, String userName) {
-      User user = userDao.findByUsername(userName);
+      User user = userService.getUserByUserName(userName);
       Player player = gameDAO.findPlayer(gameId, user.getId());
       player.setUser(user);
       return player;
    }
 
    public List<GameResponseDTO> getUserGameResponseDTOs(String username) {
-      User user = userDao.findByUsername(username);
+      User user = userService.getUserByUserName(username);
       if (user == null) return new ArrayList<>();
 
       return gameDAO
@@ -163,8 +162,8 @@ public class GameService {
    }
 
    public List<GameResponseDTO> getAvailableGameResponseDTOs(String userName) {
-      User user = userDao.findByUsername(userName);
-      return gameDAO.getAvailableGames().stream().filter(game -> game.getCreator().getId() !=).map(this::getGameResponseDTOFromGame).toList();
+      User user = userService.getUserByUserName(userName);
+      return gameDAO.getAvailableGames().stream().filter(game -> game.getCreator().getId() != user.getId() && game.getPlayers().stream().noneMatch(player -> player.getUser().getId() == user.getId())).map(this::getGameResponseDTOFromGame).toList();
    }
 
    public GameStatusResponseDTO getGameStatus(int id) {
