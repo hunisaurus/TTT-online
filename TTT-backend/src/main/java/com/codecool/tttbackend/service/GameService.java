@@ -163,7 +163,17 @@ public class GameService {
 
    public List<GameResponseDTO> getAvailableGameResponseDTOs(String userName) {
       User user = userService.getUserByUserName(userName);
-      return gameDAO.getAvailableGames().stream().filter(game -> game.getCreator().getId() != user.getId() && game.getPlayers().stream().noneMatch(player -> player.getUser().getId() == user.getId())).map(this::getGameResponseDTOFromGame).toList();
+      return gameDAO.getAvailableGames().stream().filter(game -> game.getCreator().getId() != user.getId() && game.getPlayers().stream().noneMatch(player -> player.getUser().getId() == user.getId()) && game.getMaxPlayers() > game.getPlayers().size()).map(this::getGameResponseDTOFromGame).toList();
+   }
+
+   public List<GameResponseDTO> getActiveGameResponseDTOs(String userName) {
+      User user = userService.getUserByUserName(userName);
+      return gameDAO.getAllGamesByUserId(user.getId()).stream().filter(game -> game.getGameState().equals(GameState.IN_PROGRESS)).map(this::getGameResponseDTOFromGame).toList();
+   }
+
+   public List<GameResponseDTO> getUser(String userName) {
+      User user = userService.getUserByUserName(userName);
+      return gameDAO.getAllGamesByUserId(user.getId()).stream().filter(game -> game.getGameState().equals(GameState.IN_PROGRESS)).map(this::getGameResponseDTOFromGame).toList();
    }
 
    public GameStatusResponseDTO getGameStatus(int id) {
@@ -211,5 +221,7 @@ public class GameService {
           game.getPlayers().stream().map(Player::getCharacter).toList()
       );
    }
+
+
 }
 
