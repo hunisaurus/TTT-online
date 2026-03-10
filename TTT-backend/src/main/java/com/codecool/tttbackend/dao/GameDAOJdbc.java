@@ -251,4 +251,18 @@ public class GameDAOJdbc implements GameDAO {
 
       return jdbcTemplate.query(sql, gameMapper,GameState.WAITING.name());
    }
+
+    @Override
+    public int countWinsByUserId(int userId) {
+        String sql = "SELECT COUNT(*) FROM games WHERE winner = ?";
+        Integer count = jdbcTemplate.queryForObject(sql, Integer.class, userId);
+        return count != null ? count : 0;
+    }
+
+    @Override
+    public int countTotalGamesByUserId(int userId) {
+        String sql = "SELECT COUNT(*) FROM players WHERE user_id = ?";
+        Integer count = jdbcTemplate.queryForObject(sql, Integer.class, userId);
+        return count != null ? count : 0;
+    }
 }
