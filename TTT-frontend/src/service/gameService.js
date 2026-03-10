@@ -32,7 +32,6 @@ export const joinOnlineGame = async (character, gameId) => {
     }),
   });
   if (!res.ok) throw new Error("Joining online game failed");
-  return res.json();
 };
 
 export const startOnlineGame = async (gameId) => {

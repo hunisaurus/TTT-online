@@ -121,6 +121,20 @@ export default function GameMenu({ onStart }) {
     }
   };
 
+  const joinGame = async (chosenChar) => {
+    try {
+      await joinOnlineGame(chosenChar, selectedServer.gameId);
+      onStart({
+        mode: "online",
+        gameId: selectedServer.gameId,
+        character: chosenChar,
+      });
+      go("game");
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
   return (
     <main className="game-menu-container">
       <div
@@ -397,17 +411,7 @@ export default function GameMenu({ onStart }) {
                   available.length === 1 ? available[0] : selectedOnlineChar;
                 if (!chosenChar) return;
 
-                try {
-                  await joinOnlineGame(chosenChar, selectedServer.gameId);
-                  onStart({
-                    mode: "online",
-                    gameId: selectedServer.gameId,
-                    character: chosenChar,
-                  });
-                  go("game");
-                } catch (error) {
-                  console.log(error);
-                }
+                joinGame(chosenChar);
               }}
               disabled={
                 availableOnlineChars.length === 0 ||
