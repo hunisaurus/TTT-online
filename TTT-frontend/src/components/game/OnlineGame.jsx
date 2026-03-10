@@ -152,20 +152,20 @@ export default function OnlineGame({ config, onExit }) {
         <main>
           <div
             id="playerOneElement"
-            className={`playerElement leftPlayer ${playersEntering ? "outLeft" : ""} ${state.currentPlayer.character === state.rotation[0] ? "activePlayer" : ""}`}
+            className={`playerElement leftPlayer ${playersEntering ? "outLeft" : ""} ${state?.currentPlayer?.character === state.rotation[0] ? "activePlayer" : ""}`}
           >
             {state.rotation[0]}
           </div>
           <div
             id="playerTwoElement"
-            className={`playerElement rightPlayer ${playersEntering ? "outRight" : ""} ${state.currentPlayer.character === state.rotation[1] ? "activePlayer" : ""}`}
+            className={`playerElement rightPlayer ${playersEntering ? "outRight" : ""} ${state?.currentPlayer?.character === state.rotation[1] ? "activePlayer" : ""}`}
           >
             {state.rotation[1]}
           </div>
           {state.rotation.length === 3 && (
             <div
               id="playerThreeElement"
-              className={`playerElement rightPlayer ${playersEntering ? "outAbove" : ""} ${state.currentPlayer.character === state.rotation[2] ? "activePlayer" : ""}`}
+              className={`playerElement rightPlayer ${playersEntering ? "outAbove" : ""} ${state?.currentPlayer?.character === state.rotation[2] ? "activePlayer" : ""}`}
               style={{ top: "12%" }}
             >
               {state.rotation[2]}
@@ -212,7 +212,7 @@ export default function OnlineGame({ config, onExit }) {
                   try {
                     await startOnlineGame(config.gameId);
                   } catch (error) {
-                    console.error("Cant reach the backend! :", error);
+                    console.error("Can't start online game: " + error);
                   }
                 }}
               >

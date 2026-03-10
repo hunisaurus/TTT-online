@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { getMyGames, startOnlineGame } from "../../../service/gameService";
 
-export default function OnlineLoadList({ onSelect, currentUserId }) {
+export default function OnlineLoadList({ onSelect, onStartGame }) {
   const [savedGames, setSavedGames] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -38,11 +38,7 @@ export default function OnlineLoadList({ onSelect, currentUserId }) {
                   return a.gameId - b.gameId;
                 })
                 .map((game) => (
-                  <div
-                    key={game.gameId}
-                    className="load-item"
-                    onClick={() => onSelect(game)}
-                  >
+                  <div key={game.gameId} className="load-item">
                     <div className="load-info">
                       <div className="game-name">{game.gameName}</div>
                       <div className="game-meta">
@@ -51,11 +47,24 @@ export default function OnlineLoadList({ onSelect, currentUserId }) {
                       </div>
                     </div>
                     {game.state == "IN_PROGRESS" ? (
-                      <button className="base-btn btn-primary">OPEN</button>
+                      <button
+                        className="base-btn btn-primary"
+                        onClick={() => onSelect(game)}
+                      >
+                        OPEN
+                      </button>
                     ) : game.currentPlayers < 2 ? (
                       <h6>WAITING FOR PLAYERS TO JOIN...</h6>
                     ) : game.creator == localStorage.getItem("userName") ? (
-                      <button className="base-btn btn-primary">START</button>
+                      <button
+                        className="base-btn btn-primary"
+                        onClick={async (e) => {
+                          e.stopPropagation();
+                          await onStartGame(game);
+                        }}
+                      >
+                        START
+                      </button>
                     ) : (
                       <h6>WAITING FOR GAME TO START...</h6>
                     )}

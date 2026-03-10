@@ -135,19 +135,6 @@ export default function GameMenu({ onStart }) {
     }
   };
 
-  const startOnlineGame = async (gameId) => {
-    try {
-      await startOnlineGame(gameId);
-      onStart({
-        mode: "online",
-        gameId: gameId,
-      });
-      go("game");
-    } catch (error) {
-      console.log(error);
-    }
-  };
-
   return (
     <main className="game-menu-container">
       <div
@@ -442,6 +429,20 @@ export default function GameMenu({ onStart }) {
           currentUserId={localStorage.getItem("userName")}
           onSelect={(game) => {
             play("click");
+            setCurrentGameId(game.gameId);
+            onStart({
+              ...game,
+              mode: "online",
+            });
+            go("game");
+          }}
+          onStartGame={async (game) => {
+            play("click");
+            try {
+              await startOnlineGame(game.gameId);
+            } catch (error) {
+              console.log("Can't start online game: " + error);
+            }
             setCurrentGameId(game.gameId);
             onStart({
               ...game,
