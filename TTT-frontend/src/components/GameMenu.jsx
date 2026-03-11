@@ -1,11 +1,11 @@
-import {useState} from "react";
-import {useAudio} from "../hooks/useAudio";
+import { useState } from "react";
+import { useAudio } from "../hooks/useAudio";
 import "../StyleCSS/menu.css";
 import "../StyleCSS/global.css";
 import CreateGame from "./game/steps/CreateGame.jsx";
 import ServerBrowser from "./game/steps/ServerBrowser";
 import OnlineLoadList from "./game/steps/OnlineLoadList";
-import {joinOnlineGame} from "../service/gameService.js";
+import { joinOnlineGame, startOnlineGame } from "../service/gameService.js";
 import Profile from "./game/steps/Profile";
 import profile from "./game/steps/Profile";
 
@@ -427,20 +427,34 @@ export default function GameMenu({onStart}) {
                 </div>
             )}
 
-            {step === "onlineLoadList" && (
-                <OnlineLoadList
-                    currentUserId={localStorage.getItem("userName")}
-                    onSelect={(game) => {
-                        play("click");
-                        setCurrentGameId(game.gameId);
-                        onStart({
-                            mode: "online",
-                            gameId: game.gameId,
-                        });
-                        go("game");
-                    }}
-                />
-            )}
+      {step === "onlineLoadList" && (
+        <OnlineLoadList
+          currentUserId={localStorage.getItem("userName")}
+          onSelect={(game) => {
+            play("click");
+            setCurrentGameId(game.gameId);
+            onStart({
+              ...game,
+              mode: "online",
+            });
+            go("game");
+          }}
+          onStartGame={async (game) => {
+            play("click");
+            try {
+              await startOnlineGame(game.gameId);
+            } catch (error) {
+              console.log("Can't start online game: " + error);
+            }
+            setCurrentGameId(game.gameId);
+            onStart({
+              ...game,
+              mode: "online",
+            });
+            go("game");
+          }}
+        />
+      )}
 
             {step === "pveDiff" && (
                 <div className="menu-step-content">

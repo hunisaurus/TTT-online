@@ -1,65 +1,80 @@
-import {useState, useEffect} from "react";
+import { useState, useEffect } from "react";
+import { getMyGames, startOnlineGame } from "../../../service/gameService";
 
-export default function OnlineLoadList({onSelect, currentUserId}) {
-    const [savedGames, setSavedGames] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
+export default function OnlineLoadList({ onSelect, onStartGame }) {
+  const [savedGames, setSavedGames] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-    useEffect(() => {
-        const fetchSavedGames = async () => {
-            try {
-                setLoading(true);
+  useEffect(() => {
+    setLoading(true);
+    const loadServers = async () => {
+      try {
+        const games = await getMyGames();
+        setSavedGames(games);
+      } catch (e) {
+        console.error("Failed to load user's games", e);
+        setSavedGames([]);
+      }
+      setLoading(false);
+    };
+    loadServers();
+  }, []);
 
-                const response = await fetch(`http://localhost:8080/games?username=${currentUserId}`);
+  return (
+    <div className="menu-step.container">
+      <h2 className="helptext">RESUME ONLINE GAME</h2>
+      <div className="menu-card list-card">
+        <div className="load-list-wrapper">
+          {loading && <p className="status-msg loading">Loading...</p>}
+          {error && <p className="status-msg error">{error}</p>}
 
-                if (!response.ok) throw new Error("Cant reach the games");
-                const data = await response.json();
-
-                setSavedGames(data);
-            } catch (err) {
-                console.error("Error in Loading:", err);
-                setError(err.message);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        if (currentUserId) {
-            fetchSavedGames();
-        }
-    }, [currentUserId]);
-
-    return (
-
-        <div className="menu-step.container">
-            <h2 className="helptext">RESUME ONLINE GAME</h2>
-            <div className="menu-card list-card">
-                <div className="load-list-wrapper">
-                    {loading && <p className="status-msg loading">Loading...</p>}
-                    {error && <p className="status-msg error">{error}</p>}
-
-                    {!loading && savedGames.length > 0 ? (
-                        savedGames.map(game => (
-                            <div
-                                key={game.gameId}
-                                className="load-item"
-                                onClick={() => onSelect(game)}
-                            >
-                                <div className="load-info">
-                                    <div className="game-name">{game.name}</div>
-                                    <div className="game-meta">
-                                        State: {game.gameState} |
-                                        Created: {game.timeCreated ? new Date(game.timeCreated).toLocaleDateString() : "Unknown"}
-                                    </div>
-                                </div>
-                                <div className="load-action">RESUME</div>
-                            </div>
-                        ))
+          {!loading && savedGames.length > 0
+            ? [...savedGames]
+                .sort((a, b) => {
+                  const aReady = a.currentPlayers >= 2 ? 1 : 0;
+                  const bReady = b.currentPlayers >= 2 ? 1 : 0;
+                  if (aReady !== bReady) return bReady - aReady;
+                  return a.gameId - b.gameId;
+                })
+                .map((game) => (
+                  <div key={game.gameId} className="load-item">
+                    <div className="load-info">
+                      <div className="game-name">{game.gameName}</div>
+                      <div className="game-meta">
+                        State: {game.state} | Created by:{" "}
+                        {game.creator ? game.creator : "Unknown"}
+                      </div>
+                    </div>
+                    {game.state == "IN_PROGRESS" ? (
+                      <button
+                        className="base-btn btn-primary"
+                        onClick={() => onSelect(game)}
+                      >
+                        OPEN
+                      </button>
+                    ) : game.currentPlayers < 2 ? (
+                      <h6>WAITING FOR PLAYERS TO JOIN...</h6>
+                    ) : game.creator == localStorage.getItem("userName") ? (
+                      <button
+                        className="base-btn btn-primary"
+                        onClick={async (e) => {
+                          e.stopPropagation();
+                          await onStartGame(game);
+                        }}
+                      >
+                        START
+                      </button>
                     ) : (
-                        !loading && <p className="status-msg empty">No active games found.</p>
+                      <h6>WAITING FOR GAME TO START...</h6>
                     )}
-                </div>
-            </div>
+                  </div>
+                ))
+            : !loading && (
+                <p className="status-msg empty">No active games found.</p>
+              )}
         </div>
-    );
+      </div>
+    </div>
+  );
 }

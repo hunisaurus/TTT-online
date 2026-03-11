@@ -161,10 +161,25 @@ public class GameService {
                 .toList();
     }
 
-    public List<GameResponseDTO> getAvailableGameResponseDTOs(String userName) {
-        User user = userService.getUserByUserName(userName);
-        return gameDAO.getAvailableGames().stream().filter(game -> game.getCreator().getId() != user.getId() && game.getPlayers().stream().noneMatch(player -> player.getUser().getId() == user.getId())).map(this::getGameResponseDTOFromGame).toList();
-    }
+   public List<GameResponseDTO> getAvailableGameResponseDTOs(String userName) {
+      User user = userService.getUserByUserName(userName);
+      return gameDAO.getAvailableGames().stream().filter(game -> game.getCreator().getId() != user.getId() && game.getPlayers().stream().noneMatch(player -> player.getUser().getId() == user.getId()) && game.getMaxPlayers() > game.getPlayers().size()).map(this::getGameResponseDTOFromGame).toList();
+   }
+
+   public List<GameResponseDTO> getActiveGameResponseDTOs(String userName) {
+      User user = userService.getUserByUserName(userName);
+      return gameDAO.getAllGamesByUserId(user.getId()).stream().filter(game -> game.getGameState().equals(GameState.IN_PROGRESS)).map(this::getGameResponseDTOFromGame).toList();
+   }
+
+   public List<GameResponseDTO> getJoinedGameResponseDTOs(String userName) {
+      User user = userService.getUserByUserName(userName);
+      return gameDAO.getAllGamesByUserId(user.getId()).stream().filter(game -> game.getCreator().getId() != user.getId()).map(this::getGameResponseDTOFromGame).toList();
+   }
+
+   public List<GameResponseDTO> getUser(String userName) {
+      User user = userService.getUserByUserName(userName);
+      return gameDAO.getAllGamesByUserId(user.getId()).stream().filter(game -> game.getGameState().equals(GameState.IN_PROGRESS)).map(this::getGameResponseDTOFromGame).toList();
+   }
 
     public GameStatusResponseDTO getGameStatus(int id) {
         Game game = gameDAO.findGameById(id);
@@ -201,17 +216,19 @@ public class GameService {
         return game.getBoard().getActiveBoardPositions().stream().map(Position::toString).toList();
     }
 
-    private GameResponseDTO getGameResponseDTOFromGame(Game game) {
-        return new GameResponseDTO(
-                game.getId(),
-                game.getName(),
-                game.getCreator().getUsername(),
-                // change public and private logic later:
-                "public",
-                game.getMaxPlayers(),
-                game.getPlayers().size(),
-                game.getPlayers().stream().map(Player::getCharacter).toList()
-        );
-    }
+   private GameResponseDTO getGameResponseDTOFromGame(Game game) {
+      return new GameResponseDTO(
+          game.getId(),
+          game.getGameState().name(),
+          game.getName(),
+          game.getCreator().getUsername(),
+          // change public and private logic later:
+          "public",
+          game.getMaxPlayers(),
+          game.getPlayers().size(),
+          game.getPlayers().stream().map(Player::getCharacter).toList()
+      );
+   }
+
 }
 

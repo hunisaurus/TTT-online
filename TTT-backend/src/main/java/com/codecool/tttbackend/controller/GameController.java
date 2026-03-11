@@ -7,6 +7,8 @@ import com.codecool.tttbackend.controller.dto.response.GameStatusResponseDTO;
 import com.codecool.tttbackend.dao.model.game.Move;
 import com.codecool.tttbackend.dao.model.game.Position;
 import com.codecool.tttbackend.service.GameService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
@@ -24,6 +26,7 @@ public class GameController {
 
    private final GameService gameService;
    private final SimpMessagingTemplate messagingTemplate;
+   private static final Logger LOG = LoggerFactory.getLogger(GameController.class);
 
    public GameController(GameService gameService, SimpMessagingTemplate messagingTemplate) {
       this.gameService = gameService;
@@ -36,17 +39,16 @@ public class GameController {
       return ResponseEntity.ok(new GameIdResponseDTO(gameId));
    }
 
-   @GetMapping
+   @GetMapping("/mine")
    public ResponseEntity<List<GameResponseDTO>> getMyGames(Principal principal) {
       String userName = (principal != null) ? principal.getName() : null;
 
       if (userName == null || userName.isBlank()) {
-         // Not authenticated and no username provided
          return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
       }
-      System.out.println("Beérkező kérés username: " + userName); // LOG
+      LOG.info("Incoming query for games created by {}", userName);
       List<GameResponseDTO> gameResponseDTOS = gameService.getUserGameResponseDTOs(userName);
-      System.out.println("Talált játékok száma: " + gameResponseDTOS.size()); // LOG
+      LOG.info("Number of user's created games found: {}", gameResponseDTOS.size());
       return ResponseEntity.ok(gameResponseDTOS);
    }
 
@@ -57,9 +59,36 @@ public class GameController {
       if (userName == null || userName.isBlank()) {
          return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
       }
-      System.out.println("Beérkező kérés minden elérhetoo játékra"); // LOG
+      LOG.info("Incoming query for all avaliable games of {}", userName);
       List<GameResponseDTO> gameResponseDTOS = gameService.getAvailableGameResponseDTOs(userName);
-      System.out.println("Talált játékok száma: " + gameResponseDTOS.size()); // LOG
+      LOG.info("Number of available games found: {}", gameResponseDTOS.size());
+      return ResponseEntity.ok(gameResponseDTOS);
+   }
+
+
+   @GetMapping("/active")
+   public ResponseEntity<List<GameResponseDTO>> getActiveGames(Principal principal){
+      String userName = (principal != null) ? principal.getName() : null;
+
+      if (userName == null || userName.isBlank()) {
+         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+      }
+      LOG.info("Incoming query for all active games of {}", userName);
+      List<GameResponseDTO> gameResponseDTOS = gameService.getActiveGameResponseDTOs(userName);
+      LOG.info("Number of active games found: {}", gameResponseDTOS.size());
+      return ResponseEntity.ok(gameResponseDTOS);
+   }
+
+   @GetMapping("/joined")
+   public ResponseEntity<List<GameResponseDTO>> getJoinedGames(Principal principal){
+      String userName = (principal != null) ? principal.getName() : null;
+
+      if (userName == null || userName.isBlank()) {
+         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+      }
+      LOG.info("Incoming query for all joined games of {}", userName);
+      List<GameResponseDTO> gameResponseDTOS = gameService.getJoinedGameResponseDTOs(userName);
+      LOG.info("Number of joined games found: {}", gameResponseDTOS.size());
       return ResponseEntity.ok(gameResponseDTOS);
    }
 
@@ -117,4 +146,5 @@ public class GameController {
       gameService.endGame(gameId);
       return ResponseEntity.ok().build();
    }
+
 }
