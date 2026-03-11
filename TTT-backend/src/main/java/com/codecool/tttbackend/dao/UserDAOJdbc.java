@@ -73,14 +73,25 @@ public class UserDAOJdbc implements UserDAO {
 
    @Override
    public void addNewUser(User user) {
-      jdbcTemplate.update(
-          "INSERT INTO users (email, username, password_hash, birth_date, roles) VALUES (?, ?, ?, ?, ?)",
-              user.getEmail(),
-              user.getUsername(),
-              user.getPasswordHash(),
-              user.getBirthDate(),
-              user.getRoles().toArray(new String[0])
+      String sql = """
+        INSERT INTO users (username, email, password_hash, birth_date, registration_date)
+        VALUES (?, ?, ?, ?, ?)
+        RETURNING id
+    """;
+
+      Integer id = jdbcTemplate.queryForObject(
+              sql,
+              new Object[] {
+                      user.getUsername(),
+                      user.getEmail(),
+                      user.getPasswordHash(),
+                      user.getBirthDate(),
+                      user.getRegistrationDate()
+              },
+              Integer.class
       );
+
+      user.setId(id);
    }
 
    @Override

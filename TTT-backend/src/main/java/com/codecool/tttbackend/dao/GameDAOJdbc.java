@@ -1,9 +1,9 @@
 package com.codecool.tttbackend.dao;
 
+import com.codecool.tttbackend.dao.model.User;
 import com.codecool.tttbackend.dao.model.game.Game;
 import com.codecool.tttbackend.dao.model.game.GameState;
 import com.codecool.tttbackend.dao.model.game.Player;
-import com.codecool.tttbackend.dao.model.User;
 import com.codecool.tttbackend.dao.model.game.Position;
 import com.codecool.tttbackend.domain.game.board.BigBoard;
 import com.codecool.tttbackend.domain.game.GameLogic;
@@ -27,7 +27,7 @@ public class GameDAOJdbc implements GameDAO {
    }
 
    private final RowMapper<Player> playerMapper = (rs, rowNum) -> {
-      User u = new User();
+       User u = new User();
       u.setId(rs.getInt("id"));
       u.setEmail(rs.getString("email"));
       u.setUsername(rs.getString("username"));

@@ -3,8 +3,8 @@ package com.codecool.tttbackend.service;
 import com.codecool.tttbackend.controller.dto.response.GameStatusResponse;
 import com.codecool.tttbackend.controller.dto.response.PlayerResponseDTO;
 import com.codecool.tttbackend.dao.GameDAO;
-import com.codecool.tttbackend.dao.model.game.*;
 import com.codecool.tttbackend.dao.model.User;
+import com.codecool.tttbackend.dao.model.game.*;
 import com.codecool.tttbackend.domain.game.GameLogic;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -167,7 +167,7 @@ public class GameService {
    }
 
     public List<Game> listUserGames(String username) {
-        User user = userService.getUserByUserName(username);
+       User user = userService.getUserByUserName(username);
         if (user == null) return new ArrayList<>();
 
         return gameDAO.getAllGamesByUserId(user.getId());

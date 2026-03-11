@@ -4,9 +4,13 @@ import com.codecool.tttbackend.controller.dto.request.LoginRequest;
 import com.codecool.tttbackend.controller.dto.request.RefreshTokenRequest;
 import com.codecool.tttbackend.controller.dto.request.RegisterRequest;
 import com.codecool.tttbackend.controller.dto.response.AuthResponse;
+import com.codecool.tttbackend.dao.RefreshTokenDAO;
+import com.codecool.tttbackend.dao.RefreshTokenDAOJdbc;
+import com.codecool.tttbackend.dao.model.RefreshToken;
 import com.codecool.tttbackend.exception.GlobalExceptionHandler;
 import com.codecool.tttbackend.exception.UnauthorizedException;
 import com.codecool.tttbackend.service.AuthService;
+import com.codecool.tttbackend.service.RefreshTokenService;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -21,13 +25,17 @@ import java.util.Arrays;
 public class AuthController {
 
     private final AuthService authService;
+    private final RefreshTokenService refreshTokenService;
+    private final RefreshTokenDAO refreshTokenDAO;
 
     @Value("${jwt.refresh-token-expiration}")
     private long refreshTokenExpiration;
 
-    public AuthController(AuthService authService){
+    public AuthController(AuthService authService, RefreshTokenService refreshTokenService, RefreshTokenDAO refreshTokenDAO){
 
         this.authService = authService;
+        this.refreshTokenService = refreshTokenService;
+        this.refreshTokenDAO = refreshTokenDAO;
     }
 
     @PostMapping("/register")
@@ -82,7 +90,16 @@ public class AuthController {
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<Void> logout(HttpServletResponse response) {
+    public ResponseEntity<Void> logout(HttpServletRequest request, HttpServletResponse response) {
+
+        String rawToken = getRefreshTokenFromCookie(request);
+        if (rawToken != null){
+            System.out.println(rawToken);
+            RefreshToken refreshToken = refreshTokenDAO.findByRawToken(rawToken);
+            if(refreshToken != null){
+                refreshTokenService.revokeToken(refreshToken);
+            }
+        }
 
         Cookie cookie = new Cookie("refreshToken", null);
         cookie.setHttpOnly(true);
