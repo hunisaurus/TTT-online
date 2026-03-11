@@ -93,7 +93,7 @@ export default function CreateGame({ onContinue, onBack }) {
               className="base-btn btn-primary"
               disabled={loading}
             >
-              {loading ? "CREATE GAME" : "Loading..."}
+              {loading ? "Loading..." : "CREATE GAME"}
             </button>
             <button
               className="base-btn btn-ghost"

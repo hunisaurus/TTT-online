@@ -8,6 +8,7 @@ import OnlineLoadList from "./game/steps/OnlineLoadList";
 import {joinOnlineGame} from "../service/gameService.js";
 import Profile from "./game/steps/Profile";
 import profile from "./game/steps/Profile";
+import { joinOnlineGame, startOnlineGame } from "../service/gameService.js";
 
 const CHARSET = ["◯", "✖", "△"];
 
@@ -554,4 +555,169 @@ export default function GameMenu({onStart}) {
             )}
         </main>
     );
+          </div>
+
+          <div className="start-action-wrapper" style={{ marginTop: "30px" }}>
+            <button
+              className="bigPlayButton"
+              onClick={async () => {
+                const taken = selectedServer.characters || [];
+                const available = CHARSET.filter((ch) => !taken.includes(ch));
+                if (available.length === 0) return;
+
+                const chosenChar =
+                  available.length === 1 ? available[0] : selectedOnlineChar;
+                if (!chosenChar) return;
+
+                joinGame(chosenChar);
+              }}
+              disabled={
+                availableOnlineChars.length === 0 ||
+                (availableOnlineChars.length > 1 && !selectedOnlineChar)
+              }
+            >
+              JOIN GAME
+            </button>
+          </div>
+        </div>
+      )}
+
+      {step === "onlineLoadList" && (
+        <OnlineLoadList
+          currentUserId={localStorage.getItem("userName")}
+          onSelect={(game) => {
+            play("click");
+            setCurrentGameId(game.gameId);
+            onStart({
+              ...game,
+              mode: "online",
+            });
+            go("game");
+          }}
+          onStartGame={async (game) => {
+            play("click");
+            try {
+              await startOnlineGame(game.gameId);
+            } catch (error) {
+              console.log("Can't start online game: " + error);
+            }
+            setCurrentGameId(game.gameId);
+            onStart({
+              ...game,
+              mode: "online",
+            });
+            go("game");
+          }}
+        />
+      )}
+
+      {step === "pveDiff" && (
+        <div className="menu-step-content">
+          <h2 className={`helptext ${entering ? "outBelow" : ""}`}>
+            HOW ADEPT SHOULD THE AI BE?
+          </h2>
+          <div className="difficulty-container">
+            {["easy", "medium", "hard", "unbeatable"].map((d, i) => (
+              <button
+                key={d}
+                className={`game-btn diff-btn ${d === difficulty ? "active" : ""}`}
+                onClick={() => {
+                  play("click");
+                  setDifficulty(d);
+                  go("char");
+                }}
+              >
+                {d.toUpperCase()}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {step === "char" && (
+        <div className="menu-step-container">
+          <h2 className="helptext">
+            {mode === "pve" && chars.length === 0
+              ? "PICK YOUR TOKEN!"
+              : mode === "pve" && chars.length === 1
+                ? "PICK THE CPU'S TOKEN!"
+                : `PLAYER ${chars.length + 1} PICK!`}
+          </h2>
+
+          <div className="char-grid">
+            {CHARSET.filter((ch) => !chars.includes(ch)).map((ch) => (
+              <button
+                key={ch}
+                className="charChoice"
+                onMouseOver={() => play("hover")}
+                onClick={() => {
+                  play("click");
+                  const newChars = [...chars, ch];
+                  setChars(newChars);
+
+                  if (newChars.length === playerCount) {
+                    go("start");
+                  }
+                }}
+              >
+                {ch}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {step === "start" && (
+        <div className="start-confirm-area">
+          <h2 className="helptext">WHO STARTS THE GAME?</h2>
+
+          <div className="char-grid">
+            {chars.map((ch) => (
+              <button
+                key={ch}
+                className={`charChoice ${rotation[0] === ch ? "active-starter" : ""}`}
+                onClick={() => {
+                  play("click");
+                  const others = chars.filter((c) => c !== ch);
+                  setRotation([ch, ...others]);
+                }}
+              >
+                {ch}
+              </button>
+            ))}
+          </div>
+
+          {rotation.length > 0 && (
+            <div className="start-action-wrapper" style={{ marginTop: "30px" }}>
+              <button className="bigPlayButton" onClick={startGame}>
+                START GAME
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+
+      {step === "game" && (
+        <button
+          className="game-exit-button"
+          style={{
+            zIndex: 10000,
+            position: "fixed",
+            display: "block",
+            visibility: "visible",
+            opacity: 1,
+          }}
+          onClick={() => {
+            play("click");
+            setChars([]);
+            setRotation([]);
+            setMode(null);
+            go("startMenu");
+          }}
+        >
+          QUIT TO MENU
+        </button>
+      )}
+    </main>
+  );
 }
