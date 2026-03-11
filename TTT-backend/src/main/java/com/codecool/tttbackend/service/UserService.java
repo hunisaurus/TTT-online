@@ -40,9 +40,28 @@ public class UserService {
             return null;
         }
 
+        int idForStats = (int) user.getId();
+
         int wins = gameDAO.countWinsByUserId((int) user.getId());
         int totalGames = gameDAO.countTotalGamesByUserId((int) user.getId());
 
-        return new PlayerResponseDTO(user.getUsername(), wins, totalGames);
+        return new PlayerResponseDTO(idForStats, user.getUsername(), ' ', wins, totalGames, user.getProfileImage());
+    }
+    public void updateProfileImage(String username, String base64Image) {
+        User user = userDAO.findByUsername(username);
+
+        if (user != null) {
+            userDAO.updateProfileImage(user.getId(), base64Image);
+        } else {
+            throw new RuntimeException("User not found: " + username);
+        }
+    }
+
+    public User findUserByUsername(String username) {
+        return userDAO.findByUsername(username);
+    }
+
+    public void deleteProfileImage(long userId) {
+        userDAO.deleteProfileImage(userId);
     }
 }

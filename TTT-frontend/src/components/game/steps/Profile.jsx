@@ -1,52 +1,110 @@
 import React, { useState, useEffect } from 'react';
-import "./profile.css";
+import "../../../StyleCSS/profile.css";
+import { useUser } from "../../../state/UserContext";
 
 const Profile = ({ onBack }) => {
     const [userData, setUserData] = useState({
         username: localStorage.getItem('userName') || "Player",
         wins: 0,
         losses: 0,
-        totalGames: 0
+        totalGames: 0,
+        profileImage: null
     });
+    const { user, refreshUser } = useUser();
+
     const [loading, setLoading] = useState(true);
+    const fileInputRef = React.useRef(null);
+
+    const fetchProfileData = async () => {
+        try {
+            const token = localStorage.getItem('jwt');
+            if (!token) return;
+
+            const response = await fetch('http://localhost:8080/api/user/me', {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                setUserData({
+                    username: data.username,
+                    wins: data.numberOfWins || 0,
+                    losses: (data.totalGames - data.numberOfWins) || 0,
+                    totalGames: data.totalGames || 0,
+                    profileImage: data.profileImage
+                });
+            }
+        } catch (error) {
+            console.error("Fetch error:", error);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     useEffect(() => {
-        const fetchProfileData = async () => {
-            try {
-                const token = localStorage.getItem('token');
-                if (!token) {
-                    console.error("There is no user token!");
-                    setLoading(false);
-                    return;
-                }
-
-                const response = await fetch('http://localhost:8080/user/me', {
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    }
-                });
-
-                if (response.ok) {
-                    const data = await response.json();
-                    setUserData({
-                        username: data.username || userData.username,
-                        wins: data.winCount || 0,
-                        losses: (data.totalGames - data.winCount) || 0,
-                        totalGames: data.totalGames || 0
-                    });
-                } else {
-                    console.error("Server erro in user fetch:", response.status);
-                }
-            } catch (error) {
-                console.error("network error:", error);
-            } finally {
-                setLoading(false);
-            }
-        };
-
         fetchProfileData();
-    }, []);
+    }, [user]);
+
+    const handleImageUpload = async (event) => {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const formData = new FormData();
+        formData.append('image', file);
+
+        const token = localStorage.getItem('jwt');
+
+        try {
+            const response = await fetch('http://localhost:8080/api/user/upload-image', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                },
+                body: formData
+            });
+
+            if (response.ok) {
+                await refreshUser();
+            } else {
+                const errorText = await response.text();
+                console.error("Server error message:", errorText);
+                alert("Upload failed: " + errorText);
+            }
+        } catch (error) {
+            console.error("Network error:", error);
+        }
+        if (fileInputRef.current) {
+            fileInputRef.current.value = "";
+        }
+    };
+
+    const handleRemoveImage = async () => {
+        if (!window.confirm("Are u sure deleting the image?")) return;
+
+        const token = localStorage.getItem('jwt');
+        try {
+            const response = await fetch('http://localhost:8080/api/user/delete-image', {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if (response.ok) {
+                await refreshUser();
+            } else {
+                alert("Error in deleting.");
+            }
+        } catch (error) {
+            console.error("Network error during delete:", error);
+        }
+        if (fileInputRef.current) {
+            fileInputRef.current.value = "";
+        }
+    };
 
     const winRate = userData.totalGames > 0
         ? Math.round((userData.wins / userData.totalGames) * 100)
@@ -57,11 +115,43 @@ const Profile = ({ onBack }) => {
             <div className="profile-dashboard">
 
                 <div className="auth-card profile-info-card">
-                    <div className="user-avatar-large">
-                        {userData.username.charAt(0).toUpperCase()}
+                    <div className="avatar-wrapper">
+                        <label htmlFor="image-input" className="avatar-label">
+                            {userData.profileImage ? (
+                                <img
+                                    src={`data:image/jpeg;base64,${userData.profileImage}`}
+                                    alt="Avatar"
+                                    className="profile-avatar-img"
+                                />
+                            ) : (
+                                <div className="user-avatar-large">
+                                    {userData.username.charAt(0).toUpperCase()}
+                                </div>
+                            )}
+                            <div className="avatar-overlay">CHANGE PHOTO</div>
+                        </label>
+                        <input
+                            id="image-input"
+                            type="file"
+                            accept="image/*"
+                            onChange={handleImageUpload}
+                            style={{ display: 'none' }}
+                        />
                     </div>
+                    <div className="profile-actions">
+                        {userData.profileImage && (
+                            <button
+                                className="base-btn btn-ghost"
+                                onClick={handleRemoveImage}
+                                style={{ color: '#ff4d4d', marginTop: '10px' }}
+                            >
+                                Remove Photo
+                            </button>
+                        )}
+                    </div>
+
                     <h2 className="profile-username">{userData.username}</h2>
-                    <p className="profile-role">Grandmaster</p>
+                    <p className="profile-role">THE MAN</p>
 
                     <div className="auth-actions" style={{marginTop: 'auto', width: '100%'}}>
                         <button className="base-btn btn-ghost" onClick={onBack}>

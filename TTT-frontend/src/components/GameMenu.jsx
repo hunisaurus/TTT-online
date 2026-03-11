@@ -7,6 +7,7 @@ import ServerBrowser from "./game/steps/ServerBrowser";
 import OnlineLoadList from "./game/steps/OnlineLoadList";
 import {joinOnlineGame} from "../service/gameService.js";
 import Profile from "./game/steps/Profile";
+import profile from "./game/steps/Profile";
 
 const CHARSET = ["◯", "✖", "△"];
 
@@ -233,7 +234,7 @@ export default function GameMenu({onStart}) {
                 </div>
             )}
 
-            {step !== "startMenu" && step !== "leaving" && (
+            {step !== "startMenu" && step !== "leaving" && step !== "profile" &&(
                 <button className="back-button-modern" onClick={back}>
                     <span className="arrow-icon">←</span>
                 </button>

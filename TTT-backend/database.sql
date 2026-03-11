@@ -35,3 +35,5 @@ CREATE TABLE players
     character  VARCHAR(1),
     PRIMARY KEY (game_id, user_id)
 );
+
+ALTER TABLE users ADD COLUMN profile_image TEXT;

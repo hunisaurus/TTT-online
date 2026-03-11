@@ -1,78 +1,82 @@
-import { useState } from "react";
-import { api } from "../state/config";
-import { useNotifications } from "../state/NotificationContext";
-import { useWebSocket } from "../state/WebSocketContext";
+import {useState} from "react";
+import {api} from "../state/config";
+import {useNotifications} from "../state/NotificationContext";
+import {useWebSocket} from "../state/WebSocketContext";
 import '../StyleCSS/auth.css'
 import '../StyleCSS/global.css'
+import {useUser} from "../state/UserContext";
 
-function Login({ className = "", style, onSubmit, onRegister }) {
-  const { connect, subscribe } = useWebSocket();
-  const { addNotification } = useNotifications();
+function Login({className = "", style, onSubmit, onRegister}) {
+    const {connect, subscribe} = useWebSocket();
+    const {addNotification} = useNotifications();
+    const {refreshUser} = useUser();
 
-  const emptyData = {
-    username: "",
-    password: "",
-  };
-  const [data, setData] = useState(emptyData);
+    const emptyData = {
+        username: "",
+        password: "",
+    };
+    const [data, setData] = useState(emptyData);
 
-  function handleChange(event) {
-    // console.log(event.target.value);
+    function handleChange(event) {
 
-    let newData = {};
-    if (event.target.dataset.index) {
-      newData = {
-        ...data,
-      };
+        let newData = {};
+        if (event.target.dataset.index) {
+            newData = {
+                ...data,
+            };
 
-      newData[event.target.dataset.key].splice(
-        event.target.dataset.index,
-        1,
-        event.target.value,
-      );
+            newData[event.target.dataset.key].splice(
+                event.target.dataset.index,
+                1,
+                event.target.value,
+            );
 
-      setData(newData);
-    } else {
-      newData = {
-        ...data,
-        [event.target.name]: event.target.value,
-      };
-      setData(newData);
-    }
-    // console.log(newData);
-  }
-
-  async function handleSubmit(e) {
-    e.preventDefault();
-
-    if (!data.username || !data.password) {
-      alert("Please enter username and password");
-      return;
+            setData(newData);
+        } else {
+            newData = {
+                ...data,
+                [event.target.name]: event.target.value,
+            };
+            setData(newData);
+        }
+        // console.log(newData);
     }
 
-    // with POST:
-    try {
-      const resp = await fetch(api(`/api/auth/login`), {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(data),
-      });
+    async function handleSubmit(e) {
+        e.preventDefault();
 
-      if (resp.ok) {
-        const body = await resp.json();
-        const jwt = body.token;
-        localStorage.setItem("userName", data.username);
-        localStorage.setItem("jwt", jwt);
-        console.log("JWT token: "+ jwt);
-        connect();
+        if (!data.username || !data.password) {
+            alert("Please enter username and password");
+            return;
+        }
 
-        // subscribe(`/user/${jwt}/notifications`, (msg) => {
-        //   const body = JSON.parse(msg.body);
-        //   addNotification(body);
-        // });
+        // with POST:
+        try {
+            const resp = await fetch(api(`/api/auth/login`), {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(data),
+            });
 
-                onSubmit && onSubmit(data);
+            if (resp.ok) {
+                const body = await resp.json();
+                const jwt = body.token;
+                localStorage.setItem("userName", data.username);
+                localStorage.setItem("jwt", jwt);
+
+                await refreshUser();
+                connect();
+
+                // subscribe(`/user/${jwt}/notifications`, (msg) => {
+                //   const body = JSON.parse(msg.body);
+                //   addNotification(body);
+                // });
+
+                setTimeout(() => {
+                    onSubmit && onSubmit(data);
+                }, 100);
             } else {
                 const msg = await resp.text().catch(() => "");
                 alert(`Failed to log in (${resp.status}). ${msg || ""}`);
@@ -81,6 +85,7 @@ function Login({ className = "", style, onSubmit, onRegister }) {
             alert("Network error during login: " + err);
         }
     }
+
     return (
         <div className={`auth-page ${className}`} style={style}>
             {/* <h2 className="helptext">Welcome</h2> */}
