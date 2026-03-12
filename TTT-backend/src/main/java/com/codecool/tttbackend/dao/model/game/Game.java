@@ -31,7 +31,7 @@ public class Game {
    private GameState gameState;
 
    @ManyToOne(fetch = FetchType.LAZY)
-   @JoinColumn(name = "winner")
+   @JoinColumn(name = "winner_id")
    private User winner;
 
    @Column(name = "max_players")
