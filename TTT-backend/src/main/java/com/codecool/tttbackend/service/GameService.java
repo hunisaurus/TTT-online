@@ -67,7 +67,7 @@ public class GameService {
 
         game.setGameState(GameState.IN_PROGRESS);
         if (game.getCurrentPlayer() == null && !game.getPlayers().isEmpty()) {
-            game.setCurrentPlayer(game.getPlayers().get(0).getUser());
+            game.setCurrentPlayer(game.getPlayers().getFirst().getUser());
         }
 
         syncPersistenceFieldsFromRuntimeState(game);

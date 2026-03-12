@@ -60,8 +60,8 @@ public class Game {
       if (player == null) {
          return;
       }
-      players.add(player);
       player.setGame(this);
+      players.add(player);
    }
 
    public void removePlayer(Player player) {

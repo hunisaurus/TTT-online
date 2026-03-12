@@ -10,7 +10,7 @@ import java.util.Objects;
 public class Player {
 
     @EmbeddedId
-    private PlayerId id;
+    private PlayerId id = new PlayerId();
 
     @ManyToOne(fetch = FetchType.LAZY)
     @MapsId("gameId")
@@ -31,14 +31,6 @@ public class Player {
     public Player() {
     }
 
-    @PrePersist
-    @PreUpdate
-    public void syncId() {
-        if (game != null && user != null && game.getId() != null && user.getId() != null) {
-            this.id = new PlayerId(game.getId(), user.getId());
-        }
-    }
-
     public PlayerId getId() {
         return id;
     }
@@ -53,6 +45,10 @@ public class Player {
 
     public void setGame(Game game) {
         this.game = game;
+        if (this.id == null) {
+            this.id = new PlayerId();
+        }
+        this.id.setGameId(game != null ? game.getId() : null);
     }
 
     public User getUser() {
@@ -61,6 +57,10 @@ public class Player {
 
     public void setUser(User user) {
         this.user = user;
+        if (this.id == null) {
+            this.id = new PlayerId();
+        }
+        this.id.setUserId(user != null ? user.getId() : null);
     }
 
     public Character getCharacter() {
