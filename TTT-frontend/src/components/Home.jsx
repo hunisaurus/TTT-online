@@ -18,7 +18,6 @@ export default function Home() {
     const [authEntering, setAuthEntering] = useState(false);
     const [gameConfig, setGameConfig] = useState(null);
     const {user, refreshUser} = useUser();
-    console.log("User in header:", user);
 
 
     const go = async (next) => {
