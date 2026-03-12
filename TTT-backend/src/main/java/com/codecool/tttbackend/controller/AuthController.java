@@ -1,14 +1,11 @@
 package com.codecool.tttbackend.controller;
 
-import com.codecool.tttbackend.controller.dto.request.LoginRequest;
+import com.codecool.tttbackend.controller.dto.AuthDTO;
+import com.codecool.tttbackend.controller.dto.request.LoginRequestDTO;
 import com.codecool.tttbackend.controller.dto.request.RefreshTokenRequest;
-import com.codecool.tttbackend.controller.dto.request.RegisterRequest;
-import com.codecool.tttbackend.controller.dto.response.AuthResponse;
+import com.codecool.tttbackend.controller.dto.request.RegisterRequestDTO;
 import com.codecool.tttbackend.dao.RefreshTokenDAO;
-import com.codecool.tttbackend.dao.RefreshTokenDAOJdbc;
 import com.codecool.tttbackend.dao.model.RefreshToken;
-import com.codecool.tttbackend.exception.GlobalExceptionHandler;
-import com.codecool.tttbackend.exception.UnauthorizedException;
 import com.codecool.tttbackend.service.AuthService;
 import com.codecool.tttbackend.service.RefreshTokenService;
 import jakarta.servlet.http.Cookie;
@@ -39,10 +36,10 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<AuthResponse> register(
-            @RequestBody RegisterRequest request,
+    public ResponseEntity<AuthDTO> register(
+            @RequestBody RegisterRequestDTO request,
             HttpServletResponse response) {
-        AuthResponse authResponse = authService.register(request);
+        AuthDTO authResponse = authService.register(request);
 
         setRefreshTokenCookie(response, authResponse.getRefreshToken());
 
@@ -52,11 +49,11 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<AuthResponse> login(
-            @RequestBody LoginRequest request,
+    public ResponseEntity<AuthDTO> login(
+            @RequestBody LoginRequestDTO request,
             HttpServletResponse response) {
 
-        AuthResponse authResponse = authService.login(request);
+        AuthDTO authResponse = authService.login(request);
 
         setRefreshTokenCookie(response, authResponse.getRefreshToken());
 
@@ -66,7 +63,7 @@ public class AuthController {
     }
 
     @PostMapping("/refresh")
-    public ResponseEntity<AuthResponse> refreshToken(
+    public ResponseEntity<AuthDTO> refreshToken(
             HttpServletRequest request,
             HttpServletResponse response) {
         String refreshToken = getRefreshTokenFromCookie(request);
@@ -78,7 +75,7 @@ public class AuthController {
         RefreshTokenRequest refreshRequest = new RefreshTokenRequest();
         refreshRequest.setRefreshToken(refreshToken);
 
-        AuthResponse authResponse = authService.refreshToken(refreshRequest);
+        AuthDTO authResponse = authService.refreshToken(refreshRequest);
 
         if (authResponse.getRefreshToken() != null) {
             setRefreshTokenCookie(response, authResponse.getRefreshToken());

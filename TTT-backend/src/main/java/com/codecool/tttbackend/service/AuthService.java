@@ -1,9 +1,9 @@
 package com.codecool.tttbackend.service;
 
-import com.codecool.tttbackend.controller.dto.request.LoginRequest;
+import com.codecool.tttbackend.controller.dto.AuthDTO;
+import com.codecool.tttbackend.controller.dto.request.LoginRequestDTO;
 import com.codecool.tttbackend.controller.dto.request.RefreshTokenRequest;
-import com.codecool.tttbackend.controller.dto.request.RegisterRequest;
-import com.codecool.tttbackend.controller.dto.response.AuthResponse;
+import com.codecool.tttbackend.controller.dto.request.RegisterRequestDTO;
 import com.codecool.tttbackend.dao.UserDAO;
 
 import com.codecool.tttbackend.dao.model.RefreshToken;
@@ -19,9 +19,11 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Set;
 
 @Service
@@ -52,7 +54,7 @@ public class AuthService {
         this.encoder = encoder;
     }
 
-    public AuthResponse register(RegisterRequest request) {
+    public AuthDTO register(RegisterRequestDTO request) {
 
         if (userDAO.findByUsername(request.username()) != null) {
             throw new BadRequestException("Username already exists");
@@ -91,7 +93,7 @@ public class AuthService {
         String accessToken = jwtUtil.generateAccessToken(auth);
         String refreshToken = refreshTokenService.createRefreshToken(user.getId()); // ensure saveToken() converts Instant → Timestamp
 
-        return new AuthResponse(
+        return new AuthDTO(
                 accessToken,
                 refreshToken,
                 user.getUsername(),
@@ -101,7 +103,7 @@ public class AuthService {
                         .toArray(String[]::new)
         );
     }
-    public AuthResponse login(LoginRequest request) {
+    public AuthDTO login(LoginRequestDTO request) {
         String username = request.username();
         String password = request.password();
 
@@ -124,7 +126,7 @@ public class AuthService {
 
         String refreshToken = refreshTokenService.createRefreshToken(user.getId());
 
-        return new AuthResponse(
+        return new AuthDTO(
                 accessToken,
                 refreshToken,
                 user.getUsername(),
@@ -132,7 +134,7 @@ public class AuthService {
                 user.getRoles().stream().map(role -> "ROLE_" + role).toArray(String[]::new)
         );
     }
-    public AuthResponse refreshToken(RefreshTokenRequest request) {
+    public AuthDTO refreshToken(RefreshTokenRequest request) {
 
         String refreshToken = request.getRefreshToken();
 
@@ -152,7 +154,7 @@ public class AuthService {
 
         String newRefreshToken = refreshTokenService.createRefreshToken(user.getId());
 
-        return new AuthResponse(
+        return new AuthDTO(
                 newAccessToken,
                 newRefreshToken,
                 user.getUsername(),
