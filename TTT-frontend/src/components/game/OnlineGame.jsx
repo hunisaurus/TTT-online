@@ -4,6 +4,7 @@ import { useAudio } from "../../hooks/useAudio";
 import { useWebSocket } from "../../state/WebSocketContext";
 import { getWinner, isFull3 } from "../../state/gameLogic";
 import { getGameStatus, startOnlineGame } from "../../service/gameService";
+import { useAuth } from "../../state/AuthContext";
 
 export default function OnlineGame({ config, onExit }) {
   const [state, setState] = useState(null);
@@ -14,6 +15,7 @@ export default function OnlineGame({ config, onExit }) {
   const [loading, setLoading] = useState(true);
   const [myTurn, setMyTurn] = useState(true);
   const [pendingMove, setPendingMove] = useState(null); // optimistic move
+  const { accessToken } = useAuth();
   const userName = localStorage.getItem("userName");
 
   useEffect(() => {
@@ -31,7 +33,7 @@ export default function OnlineGame({ config, onExit }) {
     const loadState = async () => {
       setLoading(true);
       try {
-        const gameState = await getGameStatus(config.gameId);
+        const gameState = await getGameStatus(accessToken, config.gameId);
 
         const activeBigs = new Set(gameState.activeBoards ?? []);
         setState({
@@ -320,7 +322,7 @@ export default function OnlineGame({ config, onExit }) {
                 onClick={async () => {
                   play("gamestart");
                   try {
-                    await startOnlineGame(config.gameId);
+                    await startOnlineGame(accessToken, config.gameId);
                   } catch (error) {
                     console.error("Can't start online game: " + error);
                   }

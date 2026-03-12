@@ -2,9 +2,15 @@ import {useState} from "react";
 import {useAudio} from "../hooks/useAudio";
 import {api} from "../state/config";
 import '../StyleCSS/auth.css'
+import { useAuth } from "../state/AuthContext";
+import { useUser } from "../state/UserContext";
+import { useWebSocket } from "../state/WebSocketContext";
 
 export default function Register({className = "", style, onBack, onSubmit}) {
     const {play} = useAudio();
+    const { setAccessToken } = useAuth();
+    const { refreshUser } = useUser();
+    const { connect } = useWebSocket();
     const emptyData = {
         ["birth-date"]: "",
         username: "",
@@ -43,6 +49,7 @@ export default function Register({className = "", style, onBack, onSubmit}) {
             const resp = await fetch(api(`/api/auth/register`), {
                 method: "POST",
                 headers: {"Content-Type": "application/json"},
+                credentials: "include",
                 body: JSON.stringify({
                     username: data.username,
                     email: data.email,
@@ -51,6 +58,21 @@ export default function Register({className = "", style, onBack, onSubmit}) {
                 }),
             });
             if (resp.ok) {
+                let jwt = null;
+                try {
+                    const body = await resp.json();
+                    jwt = body?.accessToken || body?.token || null;
+                } catch (e) {
+                    // backend might not return a body; ignore
+                }
+
+                if (jwt) {
+                    localStorage.setItem("userName", data.username);
+                    setAccessToken(jwt);
+                    await refreshUser();
+                    connect();
+                }
+
                 alert("Registration successful");
                 onSubmit && onSubmit({username: data.username, email: data.email});
             } else {

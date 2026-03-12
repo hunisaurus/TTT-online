@@ -1,15 +1,17 @@
 import { useState, useEffect } from "react";
 import { getAvailableGames } from "../../../service/gameService";
+import { useAuth } from "../../../state/AuthContext";
 
 export default function ServerBrowser({ onJoin }) {
   const [servers, setServers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const { accessToken } = useAuth();
 
   useEffect(() => {
     setLoading(true);
     const loadServers = async () => {
       try {
-        const games = await getAvailableGames();
+        const games = await getAvailableGames(accessToken);
         setServers(games);
       } catch (e) {
         console.error("Failed to load available games", e);

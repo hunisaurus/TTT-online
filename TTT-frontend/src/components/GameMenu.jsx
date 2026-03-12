@@ -8,11 +8,13 @@ import OnlineLoadList from "./game/steps/OnlineLoadList";
 import { joinOnlineGame, startOnlineGame } from "../service/gameService.js";
 import Profile from "./game/steps/Profile";
 import profile from "./game/steps/Profile";
+import { useAuth } from "../state/AuthContext";
 
 const CHARSET = ["◯", "✖", "△"];
 
 export default function GameMenu({onStart}) {
     const {play} = useAudio();
+    const { accessToken } = useAuth();
 
     const [mode, setMode] = useState(null); // 'pvp' | 'pve'
     const [onlineType, setOnlineType] = useState(null); // 'quick' | 'browser'
@@ -127,7 +129,7 @@ export default function GameMenu({onStart}) {
 
     const joinGame = async (chosenChar) => {
         try {
-            await joinOnlineGame(chosenChar, selectedServer.gameId);
+            await joinOnlineGame(accessToken, chosenChar, selectedServer.gameId);
             onStart({
                 mode: "online",
                 gameId: selectedServer.gameId,
@@ -446,7 +448,7 @@ export default function GameMenu({onStart}) {
           onStartGame={async (game) => {
             play("click");
             try {
-              await startOnlineGame(game.gameId);
+                            await startOnlineGame(accessToken, game.gameId);
             } catch (error) {
               console.log("Can't start online game: " + error);
             }
