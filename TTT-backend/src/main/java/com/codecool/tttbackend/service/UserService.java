@@ -1,8 +1,6 @@
 package com.codecool.tttbackend.service;
 
-import com.codecool.tttbackend.controller.dto.request.RegisterRequestDTO;
-import com.codecool.tttbackend.controller.dto.response.PlayerResponseDTO;
-import com.codecool.tttbackend.dao.GameDAO;
+import com.codecool.tttbackend.controller.dto.request.RegisterRequest;
 import com.codecool.tttbackend.dao.UserDAO;
 import com.codecool.tttbackend.dao.model.User;
 import com.codecool.tttbackend.security.PasswordHasher;

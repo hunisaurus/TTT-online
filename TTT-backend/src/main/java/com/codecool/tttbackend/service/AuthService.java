@@ -1,10 +1,12 @@
 package com.codecool.tttbackend.service;
 
-import com.codecool.tttbackend.controller.dto.AuthDTO;
-import com.codecool.tttbackend.controller.dto.request.LoginRequestDTO;
+import com.codecool.tttbackend.controller.dto.request.LoginRequest;
 import com.codecool.tttbackend.controller.dto.request.RefreshTokenRequest;
-import com.codecool.tttbackend.controller.dto.request.RegisterRequestDTO;
+import com.codecool.tttbackend.controller.dto.request.RegisterRequest;
+import com.codecool.tttbackend.controller.dto.response.AuthResponse;
 import com.codecool.tttbackend.dao.UserDAO;
+
+import com.codecool.tttbackend.dao.model.RefreshToken;
 import com.codecool.tttbackend.dao.model.User;
 import com.codecool.tttbackend.exception.BadRequestException;
 import com.codecool.tttbackend.exception.UnauthorizedException;
@@ -14,6 +16,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Service;
@@ -25,20 +28,31 @@ import java.util.Set;
 public class AuthService {
 
     private final UserDAO userDAO;
+    private final PasswordHasher passwordHasher;
     private final AuthenticationManager authManager;
     private final JwtUtil jwtUtil;
     private final UserDetailsService userDetailsService;
-    private final PasswordHasher passwordHasher;
+    private final RefreshTokenService refreshTokenService;
+    private final PasswordEncoder encoder;
 
-    public AuthService(UserDAO userDAO, AuthenticationManager authManager, JwtUtil jwtUtil, @Qualifier("customUserDetailsService") UserDetailsService userDetailsService, PasswordHasher passwordHasher) {
+    public AuthService(
+            UserDAO userDAO,
+            AuthenticationManager authManager,
+            JwtUtil jwtUtil,
+            @Qualifier("customUserDetailsService") UserDetailsService userDetailsService,
+            RefreshTokenService refreshTokenService,
+            PasswordEncoder encoder
+    ) {
         this.userDAO = userDAO;
+        this.refreshTokenService = refreshTokenService;
+        this.passwordHasher = new PasswordHasher();
         this.authManager = authManager;
         this.jwtUtil = jwtUtil;
         this.userDetailsService = userDetailsService;
-       this.passwordHasher = passwordHasher;
+        this.encoder = encoder;
     }
 
-    public AuthDTO register(RegisterRequestDTO request) {
+    public AuthResponse register(RegisterRequest request) {
 
         if (userDAO.findByUsername(request.username()) != null) {
             throw new BadRequestException("Username already exists");
@@ -51,82 +65,82 @@ public class AuthService {
         User user = new User();
         user.setUsername(request.username());
         user.setEmail(request.email());
-        user.setPasswordHash(passwordHasher.hash(request.password()));
+        user.setPasswordHash(passwordHasher.hash(request.password())); // hashed password
         user.setBirthDate(request.birthDate());
         user.setRegistrationDate(LocalDateTime.now());
         user.setRoles(Set.of("USER"));
 
         userDAO.addNewUser(user);
 
-        try {
-            Authentication authentication = authManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(
-                            request.username(),
-                            request.password()
-                    )
-            );
+        List<SimpleGrantedAuthority> authorities = user.getRoles().stream()
+                .map(role -> new SimpleGrantedAuthority("ROLE_" + role))
+                .toList();
 
-            String accessToken = jwtUtil.generateAccessToken(authentication);
-            String refreshToken = jwtUtil.generateRefreshToken(user.getUsername());
+        UserDetails userDetails = org.springframework.security.core.userdetails.User
+                .withUsername(user.getUsername())
+                .password(user.getPasswordHash())
+                .authorities(authorities)
+                .build();
 
-            return new AuthDTO(
-                    accessToken,
-                    refreshToken,
-                    user.getUsername(),
-                    user.getEmail(),
-                    user.getRoles().stream()
-                            .map(role -> "ROLE_" + role)
-                            .toArray(String[]::new)
-            );
+        Authentication auth = new UsernamePasswordAuthenticationToken(
+                userDetails,
+                null,
+                userDetails.getAuthorities()
+        );
 
-        } catch (Exception e) {
-            throw new UnauthorizedException("Authentication failed after registration");
-        }
+        String accessToken = jwtUtil.generateAccessToken(auth);
+        String refreshToken = refreshTokenService.createRefreshToken(user.getId()); // ensure saveToken() converts Instant → Timestamp
+
+        return new AuthResponse(
+                accessToken,
+                refreshToken,
+                user.getUsername(),
+                user.getEmail(),
+                user.getRoles().stream()
+                        .map(role -> "ROLE_" + role)
+                        .toArray(String[]::new)
+        );
     }
-    public AuthDTO login(LoginRequestDTO req) {
+    public AuthResponse login(LoginRequest request) {
+        String username = request.username();
+        String password = request.password();
 
-        try {
-            Authentication authentication = authManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(
-                            req.username(),
-                            req.password()
-                    )
-            );
-
-            User user = userDAO.findByUsername(req.username());
-
-            if (user == null) {
-                throw new UnauthorizedException("Invalid credentials");
-            }
-
-            String accessToken = jwtUtil.generateAccessToken(authentication);
-            String refreshToken = jwtUtil.generateRefreshToken(req.username());
-
-            return new AuthDTO(
-                    accessToken,
-                    refreshToken,
-                    user.getUsername(),
-                    user.getEmail(),
-                    user.getRoles().stream()
-                            .map(role -> "ROLE_" + role)
-                            .toArray(String[]::new)
-            );
-
-        } catch (Exception e) {
-            throw new UnauthorizedException("Invalid username or password");
+        User user = userDAO.findByUsername(username);
+        if (user == null) {
+            System.out.println("User not found in DB");
+            throw new UnauthorizedException("Invalid credentials");
         }
+
+        boolean passwordMatches = encoder.matches(password, user.getPasswordHash());
+        if (!passwordMatches) {
+            throw new UnauthorizedException("Invalid credentials");
+        }
+        UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+        Authentication auth = new UsernamePasswordAuthenticationToken(
+                userDetails, null, userDetails.getAuthorities()
+        );
+
+        String accessToken = jwtUtil.generateAccessToken(auth);
+
+        String refreshToken = refreshTokenService.createRefreshToken(user.getId());
+
+        return new AuthResponse(
+                accessToken,
+                refreshToken,
+                user.getUsername(),
+                user.getEmail(),
+                user.getRoles().stream().map(role -> "ROLE_" + role).toArray(String[]::new)
+        );
     }
-    public AuthDTO refreshToken(RefreshTokenRequest request) {
+    public AuthResponse refreshToken(RefreshTokenRequest request) {
+
         String refreshToken = request.getRefreshToken();
 
-        if (!jwtUtil.validateToken(refreshToken, true)) {
-            throw new UnauthorizedException("Invalid or expired refresh token");
-        }
+        RefreshToken token = refreshTokenService.verifyToken(refreshToken);
 
-        String username = jwtUtil.getUsernameFromToken(refreshToken, true);
+        User user = userDAO.findUserById(token.getUserId());
 
-        UserDetails userDetails = userDetailsService.loadUserByUsername(username);
-        User user = userDAO.findByUsername(username);
+        UserDetails userDetails = userDetailsService.loadUserByUsername(user.getUsername());
 
         Authentication authentication = new UsernamePasswordAuthenticationToken(
                 userDetails, null, userDetails.getAuthorities()
@@ -134,12 +148,18 @@ public class AuthService {
 
         String newAccessToken = jwtUtil.generateAccessToken(authentication);
 
-        return new AuthDTO(
+        refreshTokenService.revokeToken(token);
+
+        String newRefreshToken = refreshTokenService.createRefreshToken(user.getId());
+
+        return new AuthResponse(
                 newAccessToken,
-                refreshToken,
+                newRefreshToken,
                 user.getUsername(),
                 user.getEmail(),
-                user.getRoles().stream().map(role -> "ROLE_" + role).toArray(String[]::new)
+                user.getRoles().stream()
+                        .map(role -> "ROLE_" + role)
+                        .toArray(String[]::new)
         );
     }
 }
