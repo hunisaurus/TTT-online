@@ -51,4 +51,20 @@ public class GameLogic {
    public static void setActiveBoardFromMove(Move move, Game game) {
       game.getBoard().setActiveBoards(move.smallPosition());
    }
+
+   public static void setPlayerWins(Game game){
+      if (game == null) return;
+      if (game.getPlayers() == null || game.getBoard() == null) return;
+
+      for (Player player : game.getPlayers()) {
+         Character ch = player.getCharacter();
+         if (ch == null) {
+            player.setNumberOfWins(0);
+            continue;
+         }
+         int wins = game.getBoard().getNumberOfSmallWinsByChar(ch);
+         player.setNumberOfWins(wins);
+      }
+
+   }
 }

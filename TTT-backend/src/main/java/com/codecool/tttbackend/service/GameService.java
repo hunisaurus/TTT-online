@@ -144,31 +144,25 @@ public class GameService {
          System.out.println("Not a valid move!");
          return null;
       }
-      // log board before applying move
-      try {
-         System.out.println("BigBoard before apply: " + Arrays.deepToString(game.getBoard().toBigBoardStrings()));
-      } catch (Exception ex) {
-         System.out.println("Failed to stringify board before apply: " + ex.getMessage());
-      }
 
+      // actually apply the move to the board
       GameLogic.applyMove(game, move);
 
-      // log the small board and its winning character after apply
-      try {
-         BigBoard bb = game.getBoard();
-         String[][][][] smallBoardsStrings = bb.toSmallBoardsStrings();
-         String[][] bigBoardStrings = bb.toBigBoardStrings();
-         System.out.println("Applied move at big=" + move.bigPosition() + " small=" + move.smallPosition());
-         System.out.println("Affected smallBoard after apply: " + Arrays.deepToString(smallBoardsStrings[move.bigPosition().getRow()]));
-         System.out.println("SmallBoard winner at " + move.bigPosition() + ": " + bb.getSmallBoard(move.bigPosition()).getWinningCharacter());
-         System.out.println("BigBoard winning char after apply: " + bb.getWinningCharacter());
-         System.out.println("Board after apply (bigBoard): " + Arrays.deepToString(bigBoardStrings));
-      } catch (Exception e) {
-         System.out.println("Failed to log board after apply: " + e.getMessage());
+      // update small-board win counts for players
+      GameLogic.setPlayerWins(game);
+
+      // check for a winner (including draw-resolved winner)
+      Player winningPlayer = GameLogic.getWinningPlayer(game);
+      if (winningPlayer != null) {
+         game.setWinner(winningPlayer);
+         game.setGameState(GameState.ENDED);
+      } else {
+         // no winner yet -> advance turn and active board
+         GameLogic.setNextCurrentPlayer(game);
+         GameLogic.setActiveBoardFromMove(move, game);
       }
 
-      GameLogic.setNextCurrentPlayer(game);
-      GameLogic.setActiveBoardFromMove(move, game);
+      // persist changes
       gameDAO.updateGame(game);
 
       return getGameStatusResponseDTOFromGame(gameDAO.findGameById(gameId));
@@ -189,6 +183,7 @@ public class GameService {
           .getAllGamesByUserId(
               user.getId())
           .stream()
+          .filter(game -> !game.getGameState().equals(GameState.ENDED))
           .map(this::getGameResponseDTOFromGame)
           .toList();
    }
@@ -219,6 +214,7 @@ public class GameService {
    }
 
    private GameStatusResponseDTO getGameStatusResponseDTOFromGame(Game game) {
+      GameLogic.setPlayerWins(game);
       boolean started = game != null && game.getGameState() == GameState.IN_PROGRESS;
 
       return new GameStatusResponseDTO(

@@ -56,6 +56,7 @@ export default function OnlineGame({ config, onExit }) {
         console.error("Invalid WS message JSON:", err, msg.body);
         return;
       }
+      if (body.winner)
       console.log("Incoming GameState message from server");
       console.log("body.smallBoards:", body.smallBoards);
       console.log("body.bigBoard:", body.bigBoard);
@@ -246,10 +247,10 @@ export default function OnlineGame({ config, onExit }) {
         </main>
       ) : (
         <main>
-          {!loading && userName != config.creator && (
+          {!loading && state.started && userName != config.creator && (
             <h2 className={`helptext`}>WAITING FOR GAME TO START</h2>
           )}
-          {!loading &&
+          {!loading && state.started &&
             userName == config.creator &&
             state?.rotation?.length > 1 && (
               <h2 className={`helptext`}>
@@ -261,7 +262,7 @@ export default function OnlineGame({ config, onExit }) {
             state?.rotation?.length == 1 && (
               <h2 className={`helptext`}>WAIT FOR MORE PLAYERS TO JOIN</h2>
             )}
-          {userName == config.creator && state?.rotation?.length > 1 && (
+          {state.winner == null &&userName == config.creator && state?.rotation?.length > 1 && (
             <button
               className="base-btn btn-primary"
               onMouseOver={() => play("hover")}
@@ -285,10 +286,12 @@ export default function OnlineGame({ config, onExit }) {
         </button>
       )}
       <div className="game-name">{`${config.gameName}`}</div>
-      <div className="winner">
+      {state?.winner &&
+        <div className="winner">
         <div className="winner-name">{`winner: ${state.winner.username}`}</div>
         <div className="winner-score">{`(small boards won: ${state.winner.numberOfWins})`}</div>
       </div>
+      }
     </>
   );
 }

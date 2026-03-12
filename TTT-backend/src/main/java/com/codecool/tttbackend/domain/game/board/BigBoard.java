@@ -137,7 +137,10 @@ public class BigBoard implements Board {
       int numberOfSmallWins = 0;
       for (int r = 0; r < 3; r++) {
          for (int c = 0; c < 3; c++) {
-            if (smallBoards[r][c].getWinningCharacter() == character) numberOfSmallWins++;
+            Character winner = smallBoards[r][c].getWinningCharacter();
+            if (winner != null && winner.charValue() == character) {
+               numberOfSmallWins++;
+            }
          }
       }
       return numberOfSmallWins;
