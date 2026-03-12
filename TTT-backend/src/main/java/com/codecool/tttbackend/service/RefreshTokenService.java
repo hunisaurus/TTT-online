@@ -1,7 +1,7 @@
 package com.codecool.tttbackend.service;
 
-import com.codecool.tttbackend.dao.RefreshTokenDAO;
-import com.codecool.tttbackend.dao.UserDAO;
+import com.codecool.tttbackend.dao.RefreshTokenRepository;
+import com.codecool.tttbackend.dao.UserRepository;
 import com.codecool.tttbackend.dao.model.RefreshToken;
 import com.codecool.tttbackend.dao.model.User;
 import com.codecool.tttbackend.exception.BadRequestException;
@@ -15,44 +15,49 @@ import java.time.Instant;
 @Service
 public class RefreshTokenService {
 
-    private final RefreshTokenDAO refreshTokenDAO;
-    private final UserDAO userDAO;
+    private final RefreshTokenRepository refreshTokenRepository;
+    private final UserRepository userRepository;
     private final JwtUtil jwtUtil;
 
     @Value("${jwt.refresh-token-expiration}")
     private long refreshTokenExpiration;
 
-    public RefreshTokenService(RefreshTokenDAO refreshTokenDAO, UserDAO userDAO, JwtUtil jwtUtil){
-        this.refreshTokenDAO = refreshTokenDAO;
-        this.userDAO = userDAO;
+    public RefreshTokenService(
+            RefreshTokenRepository refreshTokenRepository,
+            UserRepository userRepository,
+            JwtUtil jwtUtil
+    ) {
+        this.refreshTokenRepository = refreshTokenRepository;
+        this.userRepository = userRepository;
         this.jwtUtil = jwtUtil;
     }
 
-    public String createRefreshToken(int userId){
-        User user = userDAO.findUserById(userId);
-        if (user == null) {
-            throw new BadRequestException("Cannot create refresh token: user not found");
-        }
-        RefreshToken refreshToken = new RefreshToken();
+    public String createRefreshToken(int userId) {
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BadRequestException("Cannot create refresh token: user not found"));
 
         String token = jwtUtil.generateRefreshToken(user.getUsername());
         String tokenHash = TokenHashUtil.hash(token);
 
+        RefreshToken refreshToken = new RefreshToken();
         refreshToken.setUserId(userId);
         refreshToken.setTokenHash(tokenHash);
         refreshToken.setCreatedAt(Instant.now());
         refreshToken.setExpiresAt(Instant.now().plusMillis(refreshTokenExpiration));
         refreshToken.setRevoked(false);
 
-        refreshTokenDAO.saveToken(refreshToken);
+        refreshTokenRepository.save(refreshToken);
 
         return token;
     }
+
     public RefreshToken verifyToken(String token) {
 
         String hash = TokenHashUtil.hash(token);
 
-        RefreshToken refreshToken = refreshTokenDAO.findByHash(hash);
+        RefreshToken refreshToken = refreshTokenRepository.findByTokenHash(hash)
+                .orElseThrow(() -> new RuntimeException("Token not found"));
 
         if (refreshToken.isRevoked()) {
             throw new RuntimeException("Token revoked");
@@ -67,6 +72,11 @@ public class RefreshTokenService {
 
     public void revokeToken(RefreshToken token) {
         token.setRevoked(true);
-        refreshTokenDAO.updateToken(token);
+        refreshTokenRepository.save(token);
+    }
+
+    public void verifyAndRevoke(String rawToken) {
+        RefreshToken token = verifyToken(rawToken);
+        revokeToken(token);
     }
 }
