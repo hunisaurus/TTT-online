@@ -50,6 +50,7 @@ public class UserService {
         User user = userDAO.findByUsername(username);
 
         if (user != null) {
+            user.setProfileImage(base64Image);
             userDAO.updateProfileImage(user.getId(), base64Image);
         } else {
             throw new RuntimeException("User not found: " + username);

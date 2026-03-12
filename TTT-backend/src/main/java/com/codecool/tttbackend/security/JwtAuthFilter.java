@@ -21,7 +21,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
     private final JwtUtil jwtUtil;
 
-    public JwtAuthFilter(JwtUtil jwtUtil){
+    public JwtAuthFilter(JwtUtil jwtUtil) {
         this.jwtUtil = jwtUtil;
     }
 
@@ -42,9 +42,15 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                     String username = jwtUtil.getUsernameFromToken(token, false);
                     String rolesString = jwtUtil.getRolesFromToken(token);
 
+
                     List<SimpleGrantedAuthority> authorities = Arrays.stream(rolesString.split(","))
+                            .map(role -> role.replaceAll("[\\[\\]{}]", "").trim())
+                            .filter(role -> !role.isEmpty())
+                            .map(role -> role.startsWith("ROLE_") ? role : "ROLE_" + role)
                             .map(SimpleGrantedAuthority::new)
                             .collect(Collectors.toList());
+
+                    System.out.println("DEBUG: Final authorities list: " + authorities);
 
                     UsernamePasswordAuthenticationToken authentication =
                             new UsernamePasswordAuthenticationToken(username, null, authorities);
@@ -52,11 +58,10 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                     authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                     SecurityContextHolder.getContext().setAuthentication(authentication);
                 }
+            } catch (Exception e) {
+                SecurityContextHolder.clearContext();
+                throw new RuntimeException("Invalid JWT token");
             }
-            catch (Exception e) {
-                    SecurityContextHolder.clearContext();
-                    throw new RuntimeException("Invalid JWT token");
-                }
         }
 
         filterChain.doFilter(request, response);

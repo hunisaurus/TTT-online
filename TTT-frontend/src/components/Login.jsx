@@ -62,7 +62,14 @@ function Login({className = "", style, onSubmit, onRegister}) {
 
             if (resp.ok) {
                 const body = await resp.json();
-                const jwt = body.token;
+                const jwt = body.accessToken || body.token;
+
+                if (!jwt) {
+                    console.error("error: Backend didnt send a token!", body);
+                    return;
+                }
+
+
                 localStorage.setItem("userName", data.username);
                 localStorage.setItem("jwt", jwt);
 

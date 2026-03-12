@@ -52,6 +52,8 @@ const Profile = ({ onBack }) => {
         const file = event.target.files[0];
         if (!file) return;
 
+
+
         const formData = new FormData();
         formData.append('image', file);
 
@@ -68,6 +70,7 @@ const Profile = ({ onBack }) => {
 
             if (response.ok) {
                 await refreshUser();
+                await fetchProfileData();
             } else {
                 const errorText = await response.text();
                 console.error("Server error message:", errorText);
