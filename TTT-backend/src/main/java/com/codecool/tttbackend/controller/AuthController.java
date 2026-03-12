@@ -4,10 +4,8 @@ import com.codecool.tttbackend.controller.dto.AuthDTO;
 import com.codecool.tttbackend.controller.dto.request.LoginRequestDTO;
 import com.codecool.tttbackend.controller.dto.request.RefreshTokenRequest;
 import com.codecool.tttbackend.controller.dto.request.RegisterRequestDTO;
-import com.codecool.tttbackend.dao.RefreshTokenDAO;
-import com.codecool.tttbackend.dao.model.RefreshToken;
-import com.codecool.tttbackend.controller.dto.response.JwtResponseDTO;
 import com.codecool.tttbackend.service.AuthService;
+import com.codecool.tttbackend.controller.dto.response.JwtResponseDTO;
 import com.codecool.tttbackend.service.RefreshTokenService;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
@@ -24,16 +22,13 @@ public class AuthController {
 
     private final AuthService authService;
     private final RefreshTokenService refreshTokenService;
-    private final RefreshTokenDAO refreshTokenDAO;
 
     @Value("${jwt.refresh-token-expiration}")
     private long refreshTokenExpiration;
 
-    public AuthController(AuthService authService, RefreshTokenService refreshTokenService, RefreshTokenDAO refreshTokenDAO){
-
+    public AuthController(AuthService authService, RefreshTokenService refreshTokenService) {
         this.authService = authService;
         this.refreshTokenService = refreshTokenService;
-        this.refreshTokenDAO = refreshTokenDAO;
     }
 
     @PostMapping("/register")
@@ -91,12 +86,9 @@ public class AuthController {
     public ResponseEntity<Void> logout(HttpServletRequest request, HttpServletResponse response) {
 
         String rawToken = getRefreshTokenFromCookie(request);
-        if (rawToken != null){
-            System.out.println(rawToken);
-            RefreshToken refreshToken = refreshTokenDAO.findByRawToken(rawToken);
-            if(refreshToken != null){
-                refreshTokenService.revokeToken(refreshToken);
-            }
+
+        if (rawToken != null) {
+            refreshTokenService.verifyAndRevoke(rawToken);
         }
 
         Cookie cookie = new Cookie("refreshToken", null);

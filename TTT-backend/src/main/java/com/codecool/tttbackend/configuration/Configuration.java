@@ -1,9 +1,5 @@
 package com.codecool.tttbackend.configuration;
 
-import com.codecool.tttbackend.dao.GameDAO;
-import com.codecool.tttbackend.dao.GameDAOJdbc;
-import com.codecool.tttbackend.dao.UserDAO;
-import com.codecool.tttbackend.dao.UserDAOJdbc;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.context.annotation.Bean;
@@ -32,20 +28,5 @@ public class Configuration {
         dataSource.setUsername(dataBaseUsername);
         dataSource.setPassword(dataBasePassword);
         return dataSource;
-    }
-
-    @Bean
-    public JdbcTemplate jdbcTemplate(DataSource dataSource) {
-        return new JdbcTemplate(dataSource);
-    }
-
-    @Bean
-    public UserDAO userDAO(JdbcTemplate jdbcTemplate) {
-        return new UserDAOJdbc(jdbcTemplate);
-    }
-
-    @Bean
-    public GameDAO gameDAO(JdbcTemplate jdbcTemplate) {
-        return new GameDAOJdbc(jdbcTemplate);
     }
 }
