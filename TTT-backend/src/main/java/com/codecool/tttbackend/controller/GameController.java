@@ -13,6 +13,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.*;
 
@@ -130,14 +131,27 @@ public class GameController {
       return ResponseEntity.ok().build();
    }
 
+   // STOMP message handler: use @Payload and void return type so STOMP message conversion is used correctly
    @MessageMapping("/{gameId}/move")
-   public ResponseEntity<GameStatusResponseDTO> makeMove(@DestinationVariable int gameId, @RequestBody MoveRequestDTO moveRequestDTO) {
+   public void makeMove(@DestinationVariable int gameId, @Payload MoveRequestDTO moveRequestDTO) {
+      LOG.info("Incoming move request to game #{} payload: {}", gameId, moveRequestDTO);
       GameStatusResponseDTO response = gameService.makeMove(gameId, new Move(gameService.getPlayer(gameId, moveRequestDTO.userName()), new Position(moveRequestDTO.br(), moveRequestDTO.bc()), new Position(moveRequestDTO.sr(), moveRequestDTO.sc())));
-      if (response == null) return new ResponseEntity<>(HttpStatus.FORBIDDEN);
 
+      if (response == null) {
+         LOG.info("Move rejected by server for game #{} and player {}", gameId, moveRequestDTO.userName());
+         return;
+      }
+      LOG.info("About to send update to /topic/games/{} : {}", gameId, response);
       messagingTemplate.convertAndSend("/topic/games/" + gameId, response);
+      LOG.info("Move made! (sent)");
+   }
 
-      return ResponseEntity.ok(response);
+   // Temporary test endpoint to broadcast the current game status to subscribed clients
+   @GetMapping("/{gameId}/test-broadcast")
+   public ResponseEntity<Void> testBroadcast(@PathVariable int gameId) {
+      messagingTemplate.convertAndSend("/topic/games/" + gameId, gameService.getGameStatus(gameId));
+      LOG.info("Test broadcast sent for game {}", gameId);
+      return ResponseEntity.ok().build();
    }
 
    @PatchMapping("/{gameId}/win")

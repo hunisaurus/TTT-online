@@ -20,7 +20,7 @@ export default function OnlineGame({ config, onExit }) {
     console.log("local userName:", localStorage.getItem("userName"));
     console.log("myTurn:", !!myTurn);
   }, [state?.currentPlayer]);
-  
+
   useEffect(() => {
     setMyTurn(state?.currentPlayer && state.currentPlayer.username == userName);
   }, [state]);
@@ -46,7 +46,9 @@ export default function OnlineGame({ config, onExit }) {
 
     loadState();
 
-    const sub = subscribe(`/topic/games/${config.gameId}`, (msg) => {
+    const destination = `/topic/games/${config.gameId}`;
+
+    const sub = subscribe(destination, (msg) => {
       let body;
       try {
         body = JSON.parse(msg.body);
@@ -54,33 +56,29 @@ export default function OnlineGame({ config, onExit }) {
         console.error("Invalid WS message JSON:", err, msg.body);
         return;
       }
+      console.log("Incoming GameState message from server");
+      console.log("body.smallBoards:", body.smallBoards);
+      console.log("body.bigBoard:", body.bigBoard);
 
-      // Defensive defaults
-      const smallBoards = body.smallBoards ?? null;
-      const bigBoard = body.bigBoard ?? null;
-      const activeBoardsArr = body.activeBoards ?? [];
-      const activeBigs = new Set(activeBoardsArr);
-      const currentPlayer = body.currentPlayer ?? null;
-      const winner = body.winner ?? null;
-      const rotation = body.rotation ?? [];
-      const started = !!body.started; // coerce to boolean
-
-      // Merge with previous state to avoid losing other fields
-      setState((prev) => ({
-        ...prev,
-        smallBoards: smallBoards,
-        bigBoard: bigBoard,
-        activeBigs: activeBigs,
-        currentPlayer: currentPlayer,
-        winner: winner,
-        rotation: rotation,
-        started: started,
+      setState(() => ({
+        ...body,
+        activeBigs: new Set(body.activeBoards ?? []),
       }));
     });
+
+    if (sub) {
+      console.log("WS subscribed successfully to", destination, sub);
+    } else {
+      console.warn(
+        "WS subscription not active yet (client not connected?)",
+        destination,
+      );
+    }
 
     return () => {
       try {
         sub && sub.unsubscribe && sub.unsubscribe();
+        console.log("WS unsubscribed from", destination);
       } catch (err) {
         console.warn("Failed to unsubscribe:", err);
       }
@@ -123,10 +121,20 @@ export default function OnlineGame({ config, onExit }) {
     return isFull3(state.bigBoard);
   }, [state]);
 
-  const handlePlay = (br, bc, sr, sc) => {
-    if (!state) return;
-    if (!myTurn) return; // not your turn
-    if (!state.activeBigs?.has(`${br},${bc}`)) return;
+  const handlePlay = async (br, bc, sr, sc) => {
+    console.log("Entered handlePlay!");
+    if (!state) {
+      console.log("handlePlay fails: No state");
+      return;
+    }
+    if (!myTurn) {
+      console.log("handlePlay fails: Not your turn!");
+      return;
+    }
+    if (!state.activeBigs?.has(`${br},${bc}`)) {
+      console.log("handlePlay fails: Board not active");
+      return;
+    }
 
     const sb = state.smallBoards.map((row) =>
       row.map((b) => b.map((r) => [...r])),
@@ -138,14 +146,25 @@ export default function OnlineGame({ config, onExit }) {
     }
     play("click");
 
-    send("/app/games/move", {
-      gameId: config.gameId,
+    send(`/app/${config.gameId}/move`, {
       userName,
       br,
       bc,
       sr,
       sc,
     });
+
+    // TEMP: force refresh from REST to see if board updates
+  try {
+    const gameState = await getGameStatus(config.gameId);
+    const activeBigs = new Set(gameState.activeBoards ?? []);
+    setState({
+      ...gameState,
+      activeBigs,
+    });
+  } catch (err) {
+    console.error("Failed to refresh state after move", err);
+  }
   };
 
   const onHover = () => play("hover");
@@ -159,7 +178,7 @@ export default function OnlineGame({ config, onExit }) {
           <div>Loading...</div>
         </main>
       )}
-      {!loading && state.started ? (
+      {!loading && state?.started ? (
         <main>
           <div
             id="playerOneElement"
@@ -211,10 +230,18 @@ export default function OnlineGame({ config, onExit }) {
         </main>
       ) : (
         <main>
-          {!loading && (
+          {!loading && userName != config.creator && (
             <h2 className={`helptext`}>WAITING FOR GAME TO START</h2>
           )}
-          {localStorage.getItem("userName") == config.creator &&
+          {!loading && userName == config.creator &&
+            state?.rotation?.length > 1 && (
+            <h2 className={`helptext`}>WAIT FOR MORE PLAYERS OR START THE GAME</h2>
+          )}
+          {!loading && userName == config.creator &&
+            state?.rotation?.length == 1 && (
+            <h2 className={`helptext`}>WAIT FOR MORE PLAYERS TO JOIN</h2>
+          )}
+          {userName == config.creator &&
             state?.rotation?.length > 1 && (
               <button
                 className="base-btn btn-primary"

@@ -3,6 +3,7 @@ package com.codecool.tttbackend.domain.game;
 import com.codecool.tttbackend.dao.model.game.Game;
 import com.codecool.tttbackend.dao.model.game.Move;
 import com.codecool.tttbackend.dao.model.game.Player;
+import com.codecool.tttbackend.dao.model.game.Position;
 
 import java.util.Comparator;
 import java.util.List;
@@ -11,8 +12,12 @@ public class GameLogic {
 
    public static boolean validateMove(Game game, Move move) {
       boolean condition1 = game.getBoard().getCell(move.bigPosition().getRow(), move.bigPosition().getColumn(), move.smallPosition().getRow(), move.smallPosition().getColumn()) == '_';
-      boolean condition2 = game.getCurrentPlayer().equals(move.player());
+      if (!condition1) System.out.println("Cell is not empty!");
+      boolean condition2 = game.getCurrentPlayer().getUser().getUsername().equals(move.player().getUser().getUsername());
+      if (!condition2) System.out.println("Player " + move.player().getUser().getUsername() + " is not the currentPlayer!\ncurrentPlayer: " + game.getCurrentPlayer().getUser().getUsername());
+      System.out.println("move.bigPosition() = " + move.bigPosition() + " class=" + move.bigPosition().getClass().getName()); List<Position> active = game.getBoard().getActiveBoardPositions(); System.out.println("active list: " + active); active.forEach(p -> System.out.println(" item: " + p + " class=" + p.getClass().getName() + " hash=" + p.hashCode())); System.out.println("contains? " + active.contains(move.bigPosition())); System.out.println("equals checks:"); active.forEach(p -> System.out.println(" equals(" + p + ") -> " + p.equals(move.bigPosition())));
       boolean condition3 = game.getBoard().getActiveBoardPositions().contains(move.bigPosition());
+      if (!condition3) System.out.println("Board is not active: (" + move.bigPosition() + ")\nActive boards: \n" + game.getBoard().getActiveBoardPositions().toString());
       return condition1 && condition2 && condition3;
    }
 

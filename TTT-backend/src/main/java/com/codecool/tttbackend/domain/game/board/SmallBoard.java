@@ -15,7 +15,8 @@ public class SmallBoard implements Board {
       cells[row][column] = character;
    }
 
-   public char getCell(int row, int column){
+   public char getCell(int row, int column) {
+      if (cells[row][column] == null) return '_';
       return cells[row][column];
    }
 

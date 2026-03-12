@@ -51,6 +51,9 @@ public class GameService {
       }
       game.setGameState(GameState.IN_PROGRESS);
 
+      List<Player> players = game.getPlayers();
+      game.setCurrentPlayer(players.getFirst());
+
       gameDAO.updateGame(game);
    }
 
@@ -132,14 +135,19 @@ public class GameService {
    }
 
    public GameStatusResponseDTO makeMove(int gameId, Move move) {
+      System.out.println("makeMove service method entered!");
       Game game = gameDAO.findGameById(gameId);
-      if (!GameLogic.validateMove(game, move)) return null;
+      System.out.println("game found, state: " + game.getGameState().name());
+      if (!GameLogic.validateMove(game, move)) {
+         System.out.println("Not a valid move!");
+         return null;
+      }
       GameLogic.applyMove(game, move);
       GameLogic.setNextCurrentPlayer(game);
       GameLogic.setActiveBoardFromMove(move, game);
       gameDAO.updateGame(game);
 
-      return getGameStatusResponseDTOFromGame(game);
+      return getGameStatusResponseDTOFromGame(gameDAO.findGameById(gameId));
    }
 
    public Player getPlayer(int gameId, String userName) {
