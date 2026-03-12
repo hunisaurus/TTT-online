@@ -8,6 +8,7 @@ export default function GiantBoard({
   onPlay,
   onHover,
   entering,
+  pendingMove,
 }) {
   const isActive = (r, c) => (activeBigs?.has(`${r},${c}`) && bigBoard[r][c] == '') ?? false;
   return (
@@ -24,6 +25,7 @@ export default function GiantBoard({
             canPlay={canPlay}
             onHover={onHover}
             onCellClick={(sr, sc) => onPlay(r, c, sr, sc)}
+            pendingMove={pendingMove}
           />
         )),
       )}

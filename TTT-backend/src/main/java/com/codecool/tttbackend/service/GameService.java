@@ -228,15 +228,17 @@ public class GameService {
       );
    }
 
-   private PlayerResponseDTO getPlayerResponseDTOFromPlayer(Player player) {
-      if (player == null) return null;
-      return new PlayerResponseDTO(
-          player.getUser().getId(),
-          player.getUser().getUsername(),
-          player.getCharacter(),
-          player.getNumberOfWins()
-      );
-   }
+    private PlayerResponseDTO getPlayerResponseDTOFromPlayer(Player player) {
+        if (player == null) return null;
+        return new PlayerResponseDTO(
+                player.getUser().getId(),
+                player.getUser().getUsername(),
+                player.getCharacter(),
+                player.getNumberOfWins(),
+                0,
+                null
+        );
+    }
 
    private List<String> getActiveBoardsFromGame(Game game) {
       return game.getBoard().getActiveBoardPositions().stream().map(Position::toString).toList();

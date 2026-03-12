@@ -35,7 +35,7 @@
 
 .BB:hover {
   border-width: 0.3rem;
-  background-color: rgb(54, 3, 36);
+  background-color: rgb(41, 2, 27);
   border-radius: 10px;
   scale: 1.05;
 }
@@ -89,6 +89,15 @@
 
 .activeCell:hover {
   background-color: rgb(189, 99, 156);
+}
+
+/* optimistic move highlight */
+.pendingCell {
+  color: gold;
+}
+
+/* only show pointer when the cell is actually clickable for current player */
+.clickableCell:hover {
   cursor: pointer;
 }
 
@@ -103,6 +112,7 @@
   border-color: rgb(41, 8, 71);
   border-radius: 20px;
   background-color: rgb(33, 1, 22);
+  animation: winFadeIn 0.35s ease-out;
 }
 
 .drawBoard {
@@ -114,6 +124,7 @@
   border-color: rgb(41, 8, 71);
   border-radius: 20px;
   background-color: rgb(33, 1, 22);
+  animation: winFadeIn 0.35s ease-out;
 }
 
 .drawBoard:hover {
@@ -138,6 +149,7 @@
   background-color: rgb(33, 1, 22);
   transition: 0.5s ease-in-out;
   aspect-ratio: 1 / 1;
+  animation: winFadeInBig 0.4s ease-out;
 }
 
 /* keep your existing colors/fonts/hover from before, e.g.: */
@@ -165,6 +177,28 @@
 
 .drawBigBoard:hover {
   color: rgb(37, 7, 167);
+}
+
+@keyframes winFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes winFadeInBig {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.7);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
 }
 
 .winner {
@@ -196,6 +230,65 @@
 .fade-out {
   opacity: 0;
   scale: 0.5;
+}
+
+.game-title {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  display: grid;
+  display: flex;
+  position: fixed;
+  color: aquamarine;
+  font-size: 2rem;
+  top: 5%;
+}
+
+.game-name {
+  display: flex;
+  color: aquamarine;
+  font-size: 1.5rem;
+  justify-self: center;
+  margin-bottom: 1rem;
+}
+
+.start-game {
+  position: fixed;
+  justify-self: center;
+  bottom: 20%;
+}
+
+.player-list {
+  display: flex;
+  flex-direction: row;
+  gap: 1rem;
+  position: fixed;
+  top: 30%;
+  justify-content: center;
+  align-items: center;
+  justify-self: center;
+}
+
+.waitingPlayer {
+  display: flex;
+  flex-direction: column;
+  color: aquamarine;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  background-color: rgb(33, 1, 22);
+  padding: 1.7rem;
+  border-radius: 30px;
+  width: 20vh;
+  aspect-ratio: 1/1.1;
+}
+
+.waitingPlayer-character {
+  font-size: 5rem;
+}
+.waitingPlayer-name {
+  font-size: 1.5rem;
 }
 
 /* ================= PLAYER INDICATORS ================= */
@@ -230,7 +323,7 @@
 }
 
 .activePlayer {
-  transform: scale(1.2);
+  transform: scale(1.1) translate(0%, -20%);
   background-color: rgb(33, 1, 22);
   border-color: blueviolet;
   border-style: dotted;

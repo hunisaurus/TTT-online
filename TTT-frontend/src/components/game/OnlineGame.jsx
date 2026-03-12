@@ -13,6 +13,7 @@ export default function OnlineGame({ config, onExit }) {
   const { subscribe, send } = useWebSocket();
   const [loading, setLoading] = useState(true);
   const [myTurn, setMyTurn] = useState(true);
+  const [pendingMove, setPendingMove] = useState(null); // optimistic move
   const userName = localStorage.getItem("userName");
 
   useEffect(() => {
@@ -37,6 +38,7 @@ export default function OnlineGame({ config, onExit }) {
           ...gameState,
           activeBigs,
         });
+        setPendingMove(null);
       } catch (error) {
         console.error("Cant reach the backend! :", error);
       } finally {
@@ -56,8 +58,7 @@ export default function OnlineGame({ config, onExit }) {
         console.error("Invalid WS message JSON:", err, msg.body);
         return;
       }
-      if (body.winner)
-      console.log("Incoming GameState message from server");
+      if (body.winner) console.log("Incoming GameState message from server");
       console.log("body.smallBoards:", body.smallBoards);
       console.log("body.bigBoard:", body.bigBoard);
 
@@ -65,6 +66,8 @@ export default function OnlineGame({ config, onExit }) {
         ...body,
         activeBigs: new Set(body.activeBoards ?? []),
       }));
+      // server state has arrived, drop any optimistic move
+      setPendingMove(null);
     });
 
     if (sub) {
@@ -115,7 +118,7 @@ export default function OnlineGame({ config, onExit }) {
 
   const resolvedWinner = useMemo(() => {
     if (!state || !state.winner) return false;
-    if (state.winner) return state.winner.character;
+    return state.winner.character; // '✖' or '◯'
   }, [state]);
 
   const resolvedDraw = useMemo(() => {
@@ -123,6 +126,30 @@ export default function OnlineGame({ config, onExit }) {
     if (getWinner(state.bigBoard)) return false;
     return isFull3(state.bigBoard);
   }, [state]);
+
+  // smallBoards including any local optimistic move so the user sees their
+  // mark immediately, before the server confirms it
+  const displaySmallBoards = useMemo(() => {
+    if (!state?.smallBoards) return state?.smallBoards;
+    if (!pendingMove) return state.smallBoards;
+
+    const { br, bc, sr, sc, char } = pendingMove;
+
+    // if server already filled this cell, don't override it
+    if (state.smallBoards[br]?.[bc]?.[sr]?.[sc]) {
+      return state.smallBoards;
+    }
+
+    const sb = state.smallBoards.map((row) =>
+      row.map((b) => b.map((r) => [...r])),
+    );
+
+    sb[br][bc][sr][sc] = char || state.currentPlayer?.character || "";
+    return sb;
+  }, [state?.smallBoards, state?.currentPlayer, pendingMove]);
+
+  const showGameScreen =
+    !loading && (state?.started || resolvedWinner || resolvedDraw);
 
   const handlePlay = async (br, bc, sr, sc) => {
     console.log("Entered handlePlay!");
@@ -152,6 +179,9 @@ export default function OnlineGame({ config, onExit }) {
     }
     play("click");
 
+    // optimistic move: mark locally so player sees it immediately
+    setPendingMove({ br, bc, sr, sc, char: state.currentPlayer?.character });
+
     send(`/app/${config.gameId}/move`, {
       userName,
       br,
@@ -178,7 +208,7 @@ export default function OnlineGame({ config, onExit }) {
           <div>Loading...</div>
         </main>
       )}
-      {!loading && state?.started ? (
+      {showGameScreen ? (
         <main>
           <div
             id="playerOneElement"
@@ -219,13 +249,14 @@ export default function OnlineGame({ config, onExit }) {
 
           {!resolvedWinner && !resolvedDraw && (
             <GiantBoard
-              smallBoards={state.smallBoards}
+              smallBoards={displaySmallBoards}
               bigBoard={state.bigBoard}
               activeBigs={state.activeBigs}
               canPlay={myTurn}
               onPlay={handlePlay}
               onHover={onHover}
               entering={boardEntering}
+              pendingMove={pendingMove}
             />
           )}
 
@@ -234,9 +265,7 @@ export default function OnlineGame({ config, onExit }) {
               className={resolvedWinner ? "wonBigBoard" : "drawBigBoard"}
               onClick={(e) => {
                 e.currentTarget.classList.add("fade-out");
-                setTimeout(() => {
-                  if (onExit) onExit();
-                }, 500);
+                onExit();
               }}
             >
               {resolvedWinner
@@ -247,37 +276,59 @@ export default function OnlineGame({ config, onExit }) {
         </main>
       ) : (
         <main>
-          {!loading && state.started && userName != config.creator && (
-            <h2 className={`helptext`}>WAITING FOR GAME TO START</h2>
-          )}
-          {!loading && state.started &&
+          {!loading &&
+            !state.started &&
+            state.winner == null &&
+            userName != config.creator && (
+              <h2 className={`helptext waiting`}>
+                WAITING FOR GAME TO START...
+              </h2>
+            )}
+          {!loading &&
+            !state.started &&
             userName == config.creator &&
             state?.rotation?.length > 1 && (
-              <h2 className={`helptext`}>
-                WAIT FOR MORE PLAYERS OR START THE GAME
+              <h2 className={`helptext waiting`}>
+                WAIT FOR MORE PLAYERS OR START THE GAME...
               </h2>
             )}
           {!loading &&
             userName == config.creator &&
             state?.rotation?.length == 1 && (
-              <h2 className={`helptext`}>WAIT FOR MORE PLAYERS TO JOIN</h2>
+              <h2 className={`helptext waiting`}>
+                WAITING FOR MORE PLAYERS TO JOIN...
+              </h2>
             )}
-          {state.winner == null &&userName == config.creator && state?.rotation?.length > 1 && (
-            <button
-              className="base-btn btn-primary"
-              onMouseOver={() => play("hover")}
-              onClick={async () => {
-                play("gamestart");
-                try {
-                  await startOnlineGame(config.gameId);
-                } catch (error) {
-                  console.error("Can't start online game: " + error);
-                }
-              }}
-            >
-              START GAME
-            </button>
+          {!loading && state?.rotation && (
+            <div className="player-list">
+              {state.rotation.map((player) => (
+                <div className="waitingPlayer">
+                  <div className="waitingPlayer-character">
+                    {player[1]}
+                  </div>
+                  <div className="waitingPlayer-name">{player[0]}</div>
+                </div>
+              ))}
+            </div>
           )}
+          {state.winner == null &&
+            userName == config.creator &&
+            state?.rotation?.length > 1 && (
+              <button
+                className="base-btn btn-primary start-game"
+                onMouseOver={() => play("hover")}
+                onClick={async () => {
+                  play("gamestart");
+                  try {
+                    await startOnlineGame(config.gameId);
+                  } catch (error) {
+                    console.error("Can't start online game: " + error);
+                  }
+                }}
+              >
+                START GAME
+              </button>
+            )}
         </main>
       )}
       {!loading && (
@@ -285,13 +336,17 @@ export default function OnlineGame({ config, onExit }) {
           <span className="arrow-icon">←</span>
         </button>
       )}
-      <div className="game-name">{`${config.gameName}`}</div>
-      {state?.winner &&
+      <div className="game-title">{`"${config.gameName}"`}</div>
+      {state?.winner && (
         <div className="winner">
-        <div className="winner-name">{`winner: ${state.winner.username}`}</div>
-        <div className="winner-score">{`(small boards won: ${state.winner.numberOfWins})`}</div>
-      </div>
-      }
+          <div className="winner-name">
+            {state.winner.username == userName
+              ? "YOU WON!"
+              : `winner: ${state.winner.username}`}
+          </div>
+          <div className="winner-score">{`(small boards won: ${state.winner.numberOfWins})`}</div>
+        </div>
+      )}
     </>
   );
 }

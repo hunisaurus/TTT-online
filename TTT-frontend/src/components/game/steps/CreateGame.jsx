@@ -23,7 +23,7 @@ export default function CreateGame({ onContinue, onBack }) {
         parseInt(formData.maxPlayerCount, 10),
         formData.character,
       );
-      onContinue(body.id);
+      onContinue(body.id, formData.gameName);
     } catch (error) {
       console.error("Cant reach the backend! :", error);
     } finally {

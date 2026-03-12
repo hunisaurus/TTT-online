@@ -132,6 +132,7 @@ export default function GameMenu({onStart}) {
                 mode: "online",
                 gameId: selectedServer.gameId,
                 character: chosenChar,
+                gameName: selectedServer.gameName
             });
             go("game");
         } catch (error) {
@@ -347,13 +348,14 @@ export default function GameMenu({onStart}) {
       )}
       {step === "createGame" && (
         <CreateGame
-          onContinue={(gameId) => {
+          onContinue={(gameId, gameName) => {
             play("click");
             setCurrentGameId(gameId);
             onStart({
               mode: "online",
               gameId: gameId,
-              creator: userName
+              creator: userName,
+              gameName: gameName
             });
             go("game");
           }}

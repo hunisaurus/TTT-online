@@ -103,6 +103,7 @@ public class GameController {
       gameService.joinGame(gameId, userName, joinGameRequestDTO.character());
 
       // TODO: broadcast notifications to players
+      messagingTemplate.convertAndSend("/topic/games/" + gameId, gameService.getGameStatus(gameId));
 
       return ResponseEntity.ok().build();
    }

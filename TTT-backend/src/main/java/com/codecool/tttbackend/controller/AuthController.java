@@ -6,6 +6,7 @@ import com.codecool.tttbackend.controller.dto.request.RefreshTokenRequest;
 import com.codecool.tttbackend.controller.dto.request.RegisterRequestDTO;
 import com.codecool.tttbackend.dao.RefreshTokenDAO;
 import com.codecool.tttbackend.dao.model.RefreshToken;
+import com.codecool.tttbackend.controller.dto.response.JwtResponseDTO;
 import com.codecool.tttbackend.service.AuthService;
 import com.codecool.tttbackend.service.RefreshTokenService;
 import jakarta.servlet.http.Cookie;
@@ -36,7 +37,7 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<AuthDTO> register(
+    public ResponseEntity<JwtResponseDTO> register(
             @RequestBody RegisterRequestDTO request,
             HttpServletResponse response) {
         AuthDTO authResponse = authService.register(request);
@@ -45,11 +46,11 @@ public class AuthController {
 
         authResponse.setRefreshToken(null);
 
-        return ResponseEntity.ok(authResponse);
+        return ResponseEntity.ok(new JwtResponseDTO(authResponse.getAccessToken()));
     }
 
     @PostMapping("/login")
-    public ResponseEntity<AuthDTO> login(
+    public ResponseEntity<JwtResponseDTO> login(
             @RequestBody LoginRequestDTO request,
             HttpServletResponse response) {
 
@@ -59,11 +60,11 @@ public class AuthController {
 
         authResponse.setRefreshToken(null);
 
-        return ResponseEntity.ok(authResponse);
+        return ResponseEntity.ok(new JwtResponseDTO(authResponse.getAccessToken()));
     }
 
     @PostMapping("/refresh")
-    public ResponseEntity<AuthDTO> refreshToken(
+    public ResponseEntity<JwtResponseDTO> refreshToken(
             HttpServletRequest request,
             HttpServletResponse response) {
         String refreshToken = getRefreshTokenFromCookie(request);
@@ -83,7 +84,7 @@ public class AuthController {
 
         authResponse.setRefreshToken(null);
 
-        return ResponseEntity.ok(authResponse);
+        return ResponseEntity.ok(new JwtResponseDTO(authResponse.getAccessToken()));
     }
 
     @PostMapping("/logout")

@@ -21,43 +21,48 @@ export default function ServerBrowser({ onJoin }) {
   }, []);
 
   return (
-    <div className="menu-step-container">
-      <h2 className="helptext">SERVER BROWSER</h2>
+  <div className="menu-step-container">
+    <h2 className="helptext">SERVER BROWSER</h2>
 
-      <div className="menu-card list-card">
-        <div className="server-list-wrapper">
-          {loading && (
-            <p className="status-msg loading">Scanning for matches...</p>
-          )}
+    <div className="menu-card list-card">
+      <div className="load-list-wrapper">
+        {loading && (
+          <p className="status-msg loading">Scanning for matches...</p>
+        )}
 
-          {!loading && servers.length > 0
-            ? servers.map((server) => (
-                <div
-                  key={server.gameId}
-                  className="server-browser-item"
-                  onClick={() => onJoin(server)}
-                >
-                  <div className="server-main-info">
-                    <div className="server-name"> name: {server.gameName}</div>
-                    <div className="server-details">
-                      <span className="player-count">
-                        {server.currentPlayers} / {server.maxPlayers} Players  
-                      </span>
-                      <span className="divider"> | </span>
-                      <span className="server-status">(created by {server.creator})</span>
-                    </div>
-                  </div>
-
-                  <button className="base-btn btn-primary join-btn">
-                    JOIN
-                  </button>
+        {!loading && servers.length > 0 ? (
+          servers.map((server) => (
+            <div
+              key={server.gameId}
+              className="load-item"
+              onClick={() => onJoin(server)}
+            >
+              <div className="load-info">
+                <div className="game-name">{server.gameName}</div>
+                <div className="game-meta">
+                  Players: {server.currentPlayers} / {server.maxPlayers} |{" "}
+                  Created by: {server.creator || "Unknown"}
                 </div>
-              ))
-            : !loading && (
-                <p className="status-msg empty">No active servers found.</p>
-              )}
-        </div>
+              </div>
+
+              <button
+                className="base-btn btn-primary"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onJoin(server);
+                }}
+              >
+                JOIN
+              </button>
+            </div>
+          ))
+        ) : (
+          !loading && (
+            <p className="status-msg empty">No active servers found.</p>
+          )
+        )}
       </div>
     </div>
-  );
+  </div>
+);
 }
