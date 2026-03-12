@@ -8,11 +8,13 @@ import com.codecool.tttbackend.dao.GameDAO;
 import com.codecool.tttbackend.dao.model.game.*;
 import com.codecool.tttbackend.dao.model.User;
 import com.codecool.tttbackend.domain.game.GameLogic;
+import com.codecool.tttbackend.domain.game.board.BigBoard;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 @Service
@@ -142,7 +144,29 @@ public class GameService {
          System.out.println("Not a valid move!");
          return null;
       }
+      // log board before applying move
+      try {
+         System.out.println("BigBoard before apply: " + Arrays.deepToString(game.getBoard().toBigBoardStrings()));
+      } catch (Exception ex) {
+         System.out.println("Failed to stringify board before apply: " + ex.getMessage());
+      }
+
       GameLogic.applyMove(game, move);
+
+      // log the small board and its winning character after apply
+      try {
+         BigBoard bb = game.getBoard();
+         String[][][][] smallBoardsStrings = bb.toSmallBoardsStrings();
+         String[][] bigBoardStrings = bb.toBigBoardStrings();
+         System.out.println("Applied move at big=" + move.bigPosition() + " small=" + move.smallPosition());
+         System.out.println("Affected smallBoard after apply: " + Arrays.deepToString(smallBoardsStrings[move.bigPosition().getRow()]));
+         System.out.println("SmallBoard winner at " + move.bigPosition() + ": " + bb.getSmallBoard(move.bigPosition()).getWinningCharacter());
+         System.out.println("BigBoard winning char after apply: " + bb.getWinningCharacter());
+         System.out.println("Board after apply (bigBoard): " + Arrays.deepToString(bigBoardStrings));
+      } catch (Exception e) {
+         System.out.println("Failed to log board after apply: " + e.getMessage());
+      }
+
       GameLogic.setNextCurrentPlayer(game);
       GameLogic.setActiveBoardFromMove(move, game);
       gameDAO.updateGame(game);

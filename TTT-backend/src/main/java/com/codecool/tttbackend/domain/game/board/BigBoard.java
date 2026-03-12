@@ -10,13 +10,13 @@ public class BigBoard implements Board {
 
    public BigBoard() {
       smallBoards = new SmallBoard[3][3];
-       for (int i = 0; i < 3; i++) {
-           for (int j = 0; j < 3; j++) {
-               smallBoards[i][j] = new SmallBoard();
-               smallBoards[i][j].setPosition(new com.codecool.tttbackend.dao.model.game.Position(i, j));
-               smallBoards[i][j].setActive(true);
-           }
-       }
+      for (int i = 0; i < 3; i++) {
+         for (int j = 0; j < 3; j++) {
+            smallBoards[i][j] = new SmallBoard();
+            smallBoards[i][j].setPosition(new com.codecool.tttbackend.dao.model.game.Position(i, j));
+            smallBoards[i][j].setActive(true);
+         }
+      }
    }
 
    public SmallBoard getSmallBoard(Position position) {
@@ -66,8 +66,15 @@ public class BigBoard implements Board {
             }
             SmallBoard smallBoard = SmallBoard.smallBoardFromString(sb.toString());
             Position smallBoardPosition = new Position(sr, sc);
-            if (activeBoard == null && !smallBoard.isFull() || activeBoard.equals(smallBoardPosition))
+            // Set active: if no specific activeBoard is stored, make non-full boards active;
+            // otherwise only the activeBoard is active. Avoid calling equals on a null activeBoard.
+            if (activeBoard == null) {
+               if (!smallBoard.isFull()) {
+                  smallBoard.setActive(true);
+               }
+            } else if (activeBoard.equals(smallBoardPosition)) {
                smallBoard.setActive(true);
+            }
             newBigBoard.setSmallBoard(smallBoardPosition, smallBoard);
          }
       }
@@ -76,18 +83,45 @@ public class BigBoard implements Board {
    }
 
    public Character getWinningCharacter() {
-      for (int i = 0; i < 3; i++) {
-         if (smallBoards[i][0].getWinningCharacter() != null && smallBoards[i][0].getWinningCharacter() != 'D' && smallBoards[i][0].getWinningCharacter() == smallBoards[i][1].getWinningCharacter() && smallBoards[i][1].getWinningCharacter() == smallBoards[i][2].getWinningCharacter())
-            return smallBoards[i][0].getWinningCharacter();
-         if (smallBoards[0][i].getWinningCharacter() != null && smallBoards[0][i].getWinningCharacter() != 'D' && smallBoards[0][i].getWinningCharacter() == smallBoards[1][i].getWinningCharacter() && smallBoards[1][i].getWinningCharacter() == smallBoards[2][i].getWinningCharacter())
-            return smallBoards[0][i].getWinningCharacter();
-      }
-      if (smallBoards[0][0].getWinningCharacter() != null && smallBoards[0][0].getWinningCharacter() != 'D' && smallBoards[0][0].getWinningCharacter() == smallBoards[1][1].getWinningCharacter() && smallBoards[1][1].getWinningCharacter() == smallBoards[2][2].getWinningCharacter())
-         return smallBoards[0][0].getWinningCharacter();
-      if (smallBoards[0][2].getWinningCharacter() != null && smallBoards[0][2].getWinningCharacter() != 'D' && smallBoards[0][2].getWinningCharacter() == smallBoards[1][1].getWinningCharacter() && smallBoards[1][1].getWinningCharacter() == smallBoards[2][0].getWinningCharacter())
-         return smallBoards[0][2].getWinningCharacter();
+      // Cache the small-board winners to avoid repeated calls and make comparisons explicit and null-safe
+      Character a00 = smallBoards[0][0].getWinningCharacter();
+      Character a01 = smallBoards[0][1].getWinningCharacter();
+      Character a02 = smallBoards[0][2].getWinningCharacter();
+
+      Character a10 = smallBoards[1][0].getWinningCharacter();
+      Character a11 = smallBoards[1][1].getWinningCharacter();
+      Character a12 = smallBoards[1][2].getWinningCharacter();
+
+      Character a20 = smallBoards[2][0].getWinningCharacter();
+      Character a21 = smallBoards[2][1].getWinningCharacter();
+      Character a22 = smallBoards[2][2].getWinningCharacter();
+
+      // rows
+      if (isWinner(a00, a01, a02)) return a00;
+      if (isWinner(a10, a11, a12)) return a10;
+      if (isWinner(a20, a21, a22)) return a20;
+
+      // cols
+      if (isWinner(a00, a10, a20)) return a00;
+      if (isWinner(a01, a11, a21)) return a01;
+      if (isWinner(a02, a12, a22)) return a02;
+
+      // diagonals
+      if (isWinner(a00, a11, a22)) return a00;
+      if (isWinner(a02, a11, a20)) return a02;
+
+      // full big board -> draw
       if (isFull()) return 'D';
       return null;
+   }
+
+   // Helper to determine if three small-board winners form a valid big-board win
+   private boolean isWinner(Character c1, Character c2, Character c3) {
+      if (c1 == null || c2 == null || c3 == null) return false;
+      // ignore small-board draws
+      if (c1 == 'D' || c2 == 'D' || c3 == 'D') return false;
+      // compare primitive char values to avoid reference-equality issues
+      return c1.charValue() == c2.charValue() && c1.charValue() == c3.charValue();
    }
 
    public boolean isFull() {
@@ -114,7 +148,8 @@ public class BigBoard implements Board {
    }
 
    public void makeMove(char character, Position bigPosition, Position smallPosition) {
-      smallBoards[bigPosition.getRow()][bigPosition.getColumn()].setCell(smallPosition.getRow(), smallPosition.getColumn(), character);
+      SmallBoard smallBoard = smallBoards[bigPosition.getRow()][bigPosition.getColumn()];
+      smallBoard.setCell(smallPosition.getRow(), smallPosition.getColumn(), character);
    }
 
    public List<Position> getActiveBoardPositions() {
@@ -154,9 +189,9 @@ public class BigBoard implements Board {
    }
 
    public void setActiveBoards(Position position) {
-      if (position != null) {
-         setActiveAllNonFullBoards(false);
-         smallBoards[position.getRow()][position.getColumn()].setActive(true);
+      if (position != null && getSmallBoard(position).getWinningCharacter() == null) {
+            setActiveAllNonFullBoards(false);
+            smallBoards[position.getRow()][position.getColumn()].setActive(true);
       } else {
          setActiveAllNonFullBoards(true);
       }
@@ -165,7 +200,7 @@ public class BigBoard implements Board {
    private void setActiveAllNonFullBoards(boolean isActive) {
       for (SmallBoard[] row : smallBoards) {
          for (SmallBoard smallBoard : row) {
-            if (smallBoard.isFull() && smallBoard.isActive()) {
+            if ((smallBoard.isFull() && smallBoard.isActive()) || smallBoard.getWinningCharacter() != null) {
                smallBoard.setActive(false);
             } else {
                smallBoard.setActive(isActive);
@@ -179,8 +214,22 @@ public class BigBoard implements Board {
       for (int br = 0; br < 3; br++) {
          for (int bc = 0; bc < 3; bc++) {
             SmallBoard sb = smallBoards[br][bc];
-            Character winner = (sb == null) ? null : sb.getWinningCharacter();
-            big[br][bc] = winner == null || winner == '_' ? (sb != null && sb.isFull() ? "D" : "") : String.valueOf(winner);
+            if (sb == null) {
+               big[br][bc] = "";
+               continue;
+            }
+
+            Character winner = sb.getWinningCharacter();
+            if (winner == null) {
+               // no winner for this small board
+               big[br][bc] = sb.isFull() ? "D" : "";
+            } else if (winner == 'D') {
+               // draw
+               big[br][bc] = "D";
+            } else {
+               // a player won this small board
+               big[br][bc] = String.valueOf(winner);
+            }
          }
       }
       return big;

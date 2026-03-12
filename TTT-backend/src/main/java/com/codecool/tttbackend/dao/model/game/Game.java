@@ -113,7 +113,7 @@ public class Game {
       this.winner = winner;
    }
 
-   public List<Character> getRotation(){
-      return players.stream().map(Player::getCharacter).toList();
+   public List<String[]> getRotation() {
+      return players.stream().map(player -> new String[]{player.getUser().getUsername(), player.getCharacter().toString()}).toList();
    }
 }

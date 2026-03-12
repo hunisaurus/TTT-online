@@ -15,6 +15,7 @@ export function WebSocketProvider({ children }) {
       webSocketFactory: () => new SockJS("http://localhost:8080/ws"),
       reconnectDelay: 5000,
       onConnect: () => {
+        console.log("Connected to websocket, client:", client);
         const token = localStorage.getItem("jwt");
         const headers = token ? { Authorization: `Bearer ${token}` } : {};
 
@@ -23,6 +24,9 @@ export function WebSocketProvider({ children }) {
           subsRef.current.set(dest, { callback, sub });
         }
       },
+      onStompError: (frame) => {
+        console.error("STOMP error", frame);
+      }
     });
 
     client.activate();

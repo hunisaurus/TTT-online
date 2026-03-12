@@ -8,11 +8,11 @@ import App from "./App.jsx";
 window.global ||= window;
 
 createRoot(document.getElementById("root")).render(
-  <StrictMode>
+  // <StrictMode>
     <WebSocketProvider>
       <NotificationProvider>
         <App />
       </NotificationProvider>
     </WebSocketProvider>
-  </StrictMode>,
+  // </StrictMode>,
 );

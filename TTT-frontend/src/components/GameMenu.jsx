@@ -31,6 +31,7 @@ export default function GameMenu({ onStart }) {
   const availableOnlineChars = CHARSET.filter(
     (ch) => !takenOnlineChars.includes(ch),
   );
+  const userName = localStorage.getItem("userName");
 
   const go = (next) => {
     setStep(next);
@@ -349,6 +350,7 @@ export default function GameMenu({ onStart }) {
             onStart({
               mode: "online",
               gameId: gameId,
+              creator: userName
             });
             go("game");
           }}

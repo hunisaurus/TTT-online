@@ -9,7 +9,7 @@ export default function GiantBoard({
   onHover,
   entering,
 }) {
-  const isActive = (r, c) => activeBigs?.has(`${r},${c}`) ?? false;
+  const isActive = (r, c) => (activeBigs?.has(`${r},${c}`) && bigBoard[r][c] == '') ?? false;
   return (
     <table id="giantBoard" className={`GB ${entering ? "outAbove" : ""}`}>
       <tbody>

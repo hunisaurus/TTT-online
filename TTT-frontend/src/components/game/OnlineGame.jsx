@@ -75,6 +75,8 @@ export default function OnlineGame({ config, onExit }) {
       );
     }
 
+    console.log("Config: ", config);
+
     return () => {
       try {
         sub && sub.unsubscribe && sub.unsubscribe();
@@ -123,6 +125,9 @@ export default function OnlineGame({ config, onExit }) {
 
   const handlePlay = async (br, bc, sr, sc) => {
     console.log("Entered handlePlay!");
+    console.log(
+      "Making move - br: " + br + " bc: " + bc + " sr: " + sr + " sc: " + sc,
+    );
     if (!state) {
       console.log("handlePlay fails: No state");
       return;
@@ -153,24 +158,18 @@ export default function OnlineGame({ config, onExit }) {
       sr,
       sc,
     });
-
-    // TEMP: force refresh from REST to see if board updates
-  try {
-    const gameState = await getGameStatus(config.gameId);
-    const activeBigs = new Set(gameState.activeBoards ?? []);
-    setState({
-      ...gameState,
-      activeBigs,
-    });
-  } catch (err) {
-    console.error("Failed to refresh state after move", err);
-  }
   };
 
   const onHover = () => play("hover");
 
   if (!config || !state) return null;
-
+  console.log("userName:", JSON.stringify(userName), typeof userName);
+  console.log(
+    "config.creator:",
+    JSON.stringify(config.creator),
+    typeof config.creator,
+  );
+  console.log("equal? ", userName === config.creator);
   return (
     <>
       {loading && (
@@ -182,23 +181,26 @@ export default function OnlineGame({ config, onExit }) {
         <main>
           <div
             id="playerOneElement"
-            className={`playerElement leftPlayer ${playersEntering ? "outLeft" : ""} ${state?.currentPlayer?.character === state.rotation[0] ? "activePlayer" : ""}`}
+            className={`playerElement leftPlayer ${playersEntering ? "outLeft" : ""} ${state?.currentPlayer?.character === state.rotation[0][1] ? "activePlayer" : ""}`}
           >
-            {state.rotation[0]}
+            {state.rotation[0][1]}
+            <div>{state.rotation[0][0]}</div>
           </div>
           <div
             id="playerTwoElement"
-            className={`playerElement rightPlayer ${playersEntering ? "outRight" : ""} ${state?.currentPlayer?.character === state.rotation[1] ? "activePlayer" : ""}`}
+            className={`playerElement rightPlayer ${playersEntering ? "outRight" : ""} ${state?.currentPlayer?.character === state.rotation[1][1] ? "activePlayer" : ""}`}
           >
-            {state.rotation[1]}
+            {state.rotation[1][1]}
+            <div>{state.rotation[1][0]}</div>
           </div>
           {state.rotation.length === 3 && (
             <div
               id="playerThreeElement"
-              className={`playerElement rightPlayer ${playersEntering ? "outAbove" : ""} ${state?.currentPlayer?.character === state.rotation[2] ? "activePlayer" : ""}`}
+              className={`playerElement rightPlayer ${playersEntering ? "outAbove" : ""} ${state?.currentPlayer?.character === state.rotation[2][1] ? "activePlayer" : ""}`}
               style={{ top: "12%" }}
             >
-              {state.rotation[2]}
+              {state.rotation[2][1]}
+              <div>{state.rotation[2][0]}</div>
             </div>
           )}
 
@@ -224,7 +226,7 @@ export default function OnlineGame({ config, onExit }) {
                 }, 500);
               }}
             >
-              {resolvedWinner ? resolvedWinner : state.rotation.join("/")}
+              {resolvedWinner ? resolvedWinner : Object.values(state.rotation || {}).join("/")}
             </div>
           )}
         </main>
@@ -233,31 +235,34 @@ export default function OnlineGame({ config, onExit }) {
           {!loading && userName != config.creator && (
             <h2 className={`helptext`}>WAITING FOR GAME TO START</h2>
           )}
-          {!loading && userName == config.creator &&
+          {!loading &&
+            userName == config.creator &&
             state?.rotation?.length > 1 && (
-            <h2 className={`helptext`}>WAIT FOR MORE PLAYERS OR START THE GAME</h2>
-          )}
-          {!loading && userName == config.creator &&
-            state?.rotation?.length == 1 && (
-            <h2 className={`helptext`}>WAIT FOR MORE PLAYERS TO JOIN</h2>
-          )}
-          {userName == config.creator &&
-            state?.rotation?.length > 1 && (
-              <button
-                className="base-btn btn-primary"
-                onMouseOver={() => play("hover")}
-                onClick={async () => {
-                  play("gamestart");
-                  try {
-                    await startOnlineGame(config.gameId);
-                  } catch (error) {
-                    console.error("Can't start online game: " + error);
-                  }
-                }}
-              >
-                START GAME
-              </button>
+              <h2 className={`helptext`}>
+                WAIT FOR MORE PLAYERS OR START THE GAME
+              </h2>
             )}
+          {!loading &&
+            userName == config.creator &&
+            state?.rotation?.length == 1 && (
+              <h2 className={`helptext`}>WAIT FOR MORE PLAYERS TO JOIN</h2>
+            )}
+          {userName == config.creator && state?.rotation?.length > 1 && (
+            <button
+              className="base-btn btn-primary"
+              onMouseOver={() => play("hover")}
+              onClick={async () => {
+                play("gamestart");
+                try {
+                  await startOnlineGame(config.gameId);
+                } catch (error) {
+                  console.error("Can't start online game: " + error);
+                }
+              }}
+            >
+              START GAME
+            </button>
+          )}
         </main>
       )}
       {!loading && (
