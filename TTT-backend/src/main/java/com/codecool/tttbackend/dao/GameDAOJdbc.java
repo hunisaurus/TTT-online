@@ -1,9 +1,9 @@
 package com.codecool.tttbackend.dao;
 
+import com.codecool.tttbackend.dao.model.User;
 import com.codecool.tttbackend.dao.model.game.Game;
 import com.codecool.tttbackend.dao.model.game.GameState;
 import com.codecool.tttbackend.dao.model.game.Player;
-import com.codecool.tttbackend.dao.model.User;
 import com.codecool.tttbackend.dao.model.game.Position;
 import com.codecool.tttbackend.domain.game.board.BigBoard;
 import com.codecool.tttbackend.domain.game.GameLogic;
@@ -27,7 +27,7 @@ public class GameDAOJdbc implements GameDAO {
    }
 
    private final RowMapper<Player> playerMapper = (rs, rowNum) -> {
-      User u = new User();
+       User u = new User();
       u.setId(rs.getInt("id"));
       u.setEmail(rs.getString("email"));
       u.setUsername(rs.getString("username"));
@@ -251,4 +251,18 @@ public class GameDAOJdbc implements GameDAO {
 
       return jdbcTemplate.query(sql, gameMapper,GameState.WAITING.name());
    }
+
+    @Override
+    public int countWinsByUserId(int userId) {
+        String sql = "SELECT COUNT(*) FROM games WHERE winner = ?";
+        Integer count = jdbcTemplate.queryForObject(sql, Integer.class, userId);
+        return count != null ? count : 0;
+    }
+
+    @Override
+    public int countTotalGamesByUserId(int userId) {
+        String sql = "SELECT COUNT(*) FROM players WHERE user_id = ?";
+        Integer count = jdbcTemplate.queryForObject(sql, Integer.class, userId);
+        return count != null ? count : 0;
+    }
 }

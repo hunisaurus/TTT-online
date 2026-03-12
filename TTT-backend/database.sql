@@ -35,3 +35,18 @@ CREATE TABLE players
     character  VARCHAR(1),
     PRIMARY KEY (game_id, user_id)
 );
+
+CREATE TABLE refresh_token
+(
+    id          SERIAL PRIMARY KEY,
+    user_id     INTEGER REFERENCES users (id) NOT NULL,
+    token_hash  TEXT      NOT NULL,
+    expires_at  TIMESTAMP NOT NULL,
+    revoked     BOOLEAN   DEFAULT FALSE,
+    created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+
+);
+
+CREATE INDEX idx_refresh_token_hash ON refresh_token(token_hash);
+
+ALTER TABLE users ADD COLUMN profile_image TEXT;

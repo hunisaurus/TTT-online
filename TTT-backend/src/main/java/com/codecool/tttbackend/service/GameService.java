@@ -20,38 +20,38 @@ import java.util.List;
 @Service
 public class GameService {
 
-   private final GameDAO gameDAO;
-   private final UserService userService;
+    private final GameDAO gameDAO;
+    private final UserService userService;
 
-   @Autowired
-   public GameService(GameDAO gameDAO, UserService userService) {
-      this.gameDAO = gameDAO;
-      this.userService = userService;
-   }
+    @Autowired
+    public GameService(GameDAO gameDAO, UserService userService) {
+        this.gameDAO = gameDAO;
+        this.userService = userService;
+    }
 
-   public int createGame(CreateGameRequestDTO createGameRequestDTO) {
-      User creator = userService.getUserByUserName(createGameRequestDTO.userName());
+    public int createGame(CreateGameRequestDTO createGameRequestDTO) {
+        User creator = userService.getUserByUserName(createGameRequestDTO.userName());
 
-      Player creatorPlayer = new Player();
-      creatorPlayer.setUser(creator);
-      creatorPlayer.setCharacter(createGameRequestDTO.character());
+        Player creatorPlayer = new Player();
+        creatorPlayer.setUser(creator);
+        creatorPlayer.setCharacter(createGameRequestDTO.character());
 
-      Game game = new Game();
-      game.addPlayer(creatorPlayer);
-      game.setCreator(creator);
-      game.setName(createGameRequestDTO.gameName());
-      game.setMaxPlayers(createGameRequestDTO.maxPlayerCount());
-      game.setTimeCreated(LocalDateTime.now());
-      game.setGameState(GameState.WAITING);
-      return gameDAO.addGame(game);
-   }
+        Game game = new Game();
+        game.addPlayer(creatorPlayer);
+        game.setCreator(creator);
+        game.setName(createGameRequestDTO.gameName());
+        game.setMaxPlayers(createGameRequestDTO.maxPlayerCount());
+        game.setTimeCreated(LocalDateTime.now());
+        game.setGameState(GameState.WAITING);
+        return gameDAO.addGame(game);
+    }
 
-   public void startGame(int id) {
-      Game game = gameDAO.findGameById(id);
-      if (game == null) {
-         throw new IllegalArgumentException("Game not found: " + id);
-      }
-      game.setGameState(GameState.IN_PROGRESS);
+    public void startGame(int id) {
+        Game game = gameDAO.findGameById(id);
+        if (game == null) {
+            throw new IllegalArgumentException("Game not found: " + id);
+        }
+        game.setGameState(GameState.IN_PROGRESS);
 
       List<Player> players = game.getPlayers();
       game.setCurrentPlayer(players.getFirst());
@@ -59,82 +59,82 @@ public class GameService {
       gameDAO.updateGame(game);
    }
 
-   public void endGame(int id) {
-      Game game = gameDAO.findGameById(id);
-      if (game == null) {
-         throw new IllegalArgumentException("Game not found: " + id);
-      }
-      game.setGameState(GameState.ENDED);
+    public void endGame(int id) {
+        Game game = gameDAO.findGameById(id);
+        if (game == null) {
+            throw new IllegalArgumentException("Game not found: " + id);
+        }
+        game.setGameState(GameState.ENDED);
 
-      gameDAO.updateGame(game);
-   }
+        gameDAO.updateGame(game);
+    }
 
-   public void joinGame(int id, String userName, char character) {
-      Game game = gameDAO.findGameById(id);
-      if (game == null) {
-         throw new IllegalArgumentException("Game not found: " + id);
-      }
+    public void joinGame(int id, String userName, char character) {
+        Game game = gameDAO.findGameById(id);
+        if (game == null) {
+            throw new IllegalArgumentException("Game not found: " + id);
+        }
 
-      User user = userService.getUserByUserName(userName);
-      if (user == null) {
-         throw new IllegalArgumentException("User not found: " + userName);
-      }
+        User user = userService.getUserByUserName(userName);
+        if (user == null) {
+            throw new IllegalArgumentException("User not found: " + userName);
+        }
 
-      Player player = new Player();
-      player.setUser(user);
-      player.setCharacter(character);
+        Player player = new Player();
+        player.setUser(user);
+        player.setCharacter(character);
 
-      game.addPlayer(player);
-      gameDAO.updateGame(game);
-   }
+        game.addPlayer(player);
+        gameDAO.updateGame(game);
+    }
 
 
-   public void leaveGame(int id, String userName) {
-      Game game = gameDAO.findGameById(id);
-      if (game == null) {
-         throw new IllegalArgumentException("Game not found: " + id);
-      }
+    public void leaveGame(int id, String userName) {
+        Game game = gameDAO.findGameById(id);
+        if (game == null) {
+            throw new IllegalArgumentException("Game not found: " + id);
+        }
 
-      User user = userService.getUserByUserName(userName);
+        User user = userService.getUserByUserName(userName);
 
-      List<Player> players = gameDAO.findPlayersByGameId(game.getId());
+        List<Player> players = gameDAO.findPlayersByGameId(game.getId());
 
-      for (Player player : players) {
-         if (player.getUser().getId() == user.getId()) {
-            game.removePlayer(player);
-         }
-      }
+        for (Player player : players) {
+            if (player.getUser().getId() == user.getId()) {
+                game.removePlayer(player);
+            }
+        }
 
-      gameDAO.updateGame(game);
-   }
+        gameDAO.updateGame(game);
+    }
 
-   public void winGame(int id, String winnerName) {
-      Game game = gameDAO.findGameById(id);
-      if (game == null) {
-         throw new IllegalArgumentException("Game not found: " + id);
-      }
+    public void winGame(int id, String winnerName) {
+        Game game = gameDAO.findGameById(id);
+        if (game == null) {
+            throw new IllegalArgumentException("Game not found: " + id);
+        }
 
-      User user = userService.getUserByUserName(winnerName);
+        User user = userService.getUserByUserName(winnerName);
 
-      Player winner = gameDAO.findPlayer(game.getId(), user.getId());
+        Player winner = gameDAO.findPlayer(game.getId(), user.getId());
 
-      game.setWinner(winner);
+        game.setWinner(winner);
 
-      gameDAO.updateGame(game);
-   }
+        gameDAO.updateGame(game);
+    }
 
-   public void updateGameState(int id, GameState gameState) {
-      Game game = gameDAO.findGameById(id);
-      if (game == null) {
-         throw new IllegalArgumentException("Game not found: " + id);
-      }
-      game.setGameState(gameState);
-      gameDAO.updateGame(game);
-   }
+    public void updateGameState(int id, GameState gameState) {
+        Game game = gameDAO.findGameById(id);
+        if (game == null) {
+            throw new IllegalArgumentException("Game not found: " + id);
+        }
+        game.setGameState(gameState);
+        gameDAO.updateGame(game);
+    }
 
-   public List<Game> listAllGames() {
-      return gameDAO.getAllGames();
-   }
+    public List<Game> listAllGames() {
+        return gameDAO.getAllGames();
+    }
 
    public GameStatusResponseDTO makeMove(int gameId, Move move) {
       System.out.println("makeMove service method entered!");
@@ -165,7 +165,7 @@ public class GameService {
       // persist changes
       gameDAO.updateGame(game);
 
-      return getGameStatusResponseDTOFromGame(gameDAO.findGameById(gameId));
+      return getGameStatusResponseDTOFromGame(game);
    }
 
    public Player getPlayer(int gameId, String userName) {

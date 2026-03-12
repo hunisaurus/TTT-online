@@ -13,6 +13,8 @@ public interface GameDAO {
     List<Player> findPlayersByGameId(int id);
     Player findPlayer(int gameId, int userId);
     int addGame(Game game);
+    int countWinsByUserId(int userId);
+    int countTotalGamesByUserId(int userId);
     void removeGame(Game game);
     void updateGame(Game game);
     Position getActiveBoardByGameId(int id);

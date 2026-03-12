@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useAudio } from "../hooks/useAudio";
+import {useState} from "react";
+import {useAudio} from "../hooks/useAudio";
 import Login from "./Login";
 import Register from "./Register";
 import GameMenu from "./GameMenu";
@@ -7,6 +7,7 @@ import Game from "./game/Game";
 import "../StyleCSS/global.css";
 import "../StyleCSS/auth.css";
 import OnlineGame from "./game/OnlineGame";
+import {useUser} from "../state/UserContext";
 
 export default function Home() {
     const {play} = useAudio();
@@ -16,17 +17,23 @@ export default function Home() {
     const [authView, setAuthView] = useState("login");
     const [authEntering, setAuthEntering] = useState(false);
     const [gameConfig, setGameConfig] = useState(null);
+    const {user, refreshUser} = useUser();
 
-  const go = (next) => {
-    setStep(next);
-    setEntering(true);
-    setTimeout(() => setEntering(false), 30);
-    if (next === "login") {
-      setAuthView("login");
-      setAuthEntering(true);
-      setTimeout(() => setAuthEntering(false), 30);
-    }
-  };
+
+    const go = async (next) => {
+        if (next === "menu") {
+            await refreshUser();
+        }
+        setStep(next);
+        setEntering(true);
+        setTimeout(() => setEntering(false), 30);
+        if (next === "login") {
+            setAuthView("login");
+            setAuthEntering(true);
+            setTimeout(() => setAuthEntering(false), 30);
+        }
+
+    };
 
     return (
         <>
@@ -43,7 +50,21 @@ export default function Home() {
                                 <span className="user-name">{localStorage.getItem('userName') || 'Guest'}</span>
                             </div>
                             <div className="user-avatar">
-                                {localStorage.getItem('userName')?.charAt(0).toUpperCase() || 'P'}
+                                {user?.profileImage ? (
+                                    <img
+                                        src={`data:image/jpeg;base64,${user.profileImage}`}
+                                        alt="Profile"
+                                        style={{
+                                            width: '60px',
+                                            height: '60px',
+                                            borderRadius: '50%',
+                                            objectFit: 'cover',
+                                            display: 'block',
+                                        }}
+                                    />
+                                ) : (
+                                    user?.username?.charAt(0).toUpperCase() || 'P'
+                                )}
                             </div>
                         </div>
                     </div>
@@ -90,33 +111,36 @@ export default function Home() {
 
                     {step === "menu" && (
                         <div className="menu-container-fade-in">
-                            <GameMenu onStart={(cfg) => { setGameConfig(cfg); setStep("game"); }} />
+                            <GameMenu onStart={(cfg) => {
+                                setGameConfig(cfg);
+                                setStep("game");
+                            }}/>
                         </div>
                     )}
 
-        {step === "game" &&
-          gameConfig &&
-          (gameConfig.mode == "online" ? (
-            <OnlineGame
-              config={gameConfig}
-              setStep={setStep}
-              onExit={() => {
-                setStep("menu");
-              }}
-              go={go}
-            />
-          ) : (
-            <Game
-              config={gameConfig}
-              setStep={setStep}
-              onExit={() => {
-                setGameConfig(null);
-                setStep("menu");
-              }}
-            />
-          ))}
-            </div>
-      </main>
-    </>
-  );
+                    {step === "game" &&
+                        gameConfig &&
+                        (gameConfig.mode == "online" ? (
+                            <OnlineGame
+                                config={gameConfig}
+                                setStep={setStep}
+                                onExit={() => {
+                                    setStep("menu");
+                                }}
+                                go={go}
+                            />
+                        ) : (
+                            <Game
+                                config={gameConfig}
+                                setStep={setStep}
+                                onExit={() => {
+                                    setGameConfig(null);
+                                    setStep("menu");
+                                }}
+                            />
+                        ))}
+                </div>
+            </main>
+        </>
+    );
 }

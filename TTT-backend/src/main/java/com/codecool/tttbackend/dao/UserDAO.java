@@ -10,5 +10,7 @@ public abstract interface UserDAO {
     void addNewUser(User user);
     void updateUser (User user);
     void deleteUserById(int id);
+    void updateProfileImage(long userId, String base64Image);
+    void deleteProfileImage(long userId);
 
 }
