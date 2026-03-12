@@ -30,9 +30,11 @@ public class Game {
    @Column(name = "game_state", nullable = false)
    private GameState gameState;
 
+   // store winner as a User reference (DB column stores user id). Player has a composite PK and cannot be
+   // referenced by a single join column. Resolve Player objects from the players list when needed.
    @ManyToOne(fetch = FetchType.LAZY)
-   @JoinColumn(name = "winner_id")
-   private Player winner;
+   @JoinColumn(name = "winner")
+   private User winner;
 
    @Column(name = "max_players")
    private Integer maxPlayers;
@@ -40,9 +42,10 @@ public class Game {
    @Column(name = "board_state")
    private String boardState;
 
+   // store current player as User (user id in DB)
    @ManyToOne(fetch = FetchType.LAZY)
    @JoinColumn(name = "current_player")
-   private Player currentPlayer;
+   private User currentPlayer;
 
    @Column(name = "active_board")
    private String activeBoard;
@@ -129,13 +132,15 @@ public class Game {
       this.gameState = gameState;
    }
 
+   // Return the Player object corresponding to the stored winner User (if any)
    public Player getWinner() {
-      return winner;
+      if (winner == null || players == null) return null;
+      return players.stream()
+              .filter(p -> p.getUser() != null && p.getUser().getId().equals(winner.getId()))
+              .findFirst()
+              .orElse(null);
    }
 
-   public void setWinner(Player winner) {
-      this.winner = winner;
-   }
 
    public Integer getMaxPlayers() {
       return maxPlayers;
@@ -153,12 +158,18 @@ public class Game {
       this.boardState = boardState;
    }
 
+   // Return the Player object corresponding to the stored current-player User (if any)
    public Player getCurrentPlayer() {
-      return currentPlayer;
+      if (currentPlayer == null || players == null) return null;
+      return players.stream()
+              .filter(p -> p.getUser() != null && p.getUser().getId().equals(currentPlayer.getId()))
+              .findFirst()
+              .orElse(null);
    }
 
    public void setCurrentPlayer(Player currentPlayer) {
-      this.currentPlayer = currentPlayer;
+      // store only the user reference in the entity (DB contains user id)
+      this.currentPlayer = (currentPlayer == null) ? null : currentPlayer.getUser();
    }
 
    public String getActiveBoard() {
@@ -191,7 +202,7 @@ public class Game {
    }
 
    public void setWinner(Player winner) {
-      this.winner = winner;
+      this.winner = (winner == null) ? null : winner.getUser();
    }
 
    public List<String[]> getRotation() {

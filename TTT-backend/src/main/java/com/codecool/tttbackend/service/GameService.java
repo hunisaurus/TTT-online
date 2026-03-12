@@ -23,6 +23,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @Transactional
@@ -70,7 +71,7 @@ public class GameService {
 
       game.setGameState(GameState.IN_PROGRESS);
       if (game.getCurrentPlayer() == null && !game.getPlayers().isEmpty()) {
-         game.setCurrentPlayer(game.getPlayers().getFirst().getUser());
+         game.setCurrentPlayer(game.getPlayers().getFirst());
       }
 
       List<Player> players = game.getPlayers();
@@ -128,11 +129,12 @@ public class GameService {
       Game game = getGameOrThrow(id);
 
       User user = userService.getUserByUserName(winnerName);
-      if (user == null) {
-         throw new IllegalArgumentException("User not found: " + winnerName);
+      Optional<Player> winnerOpt = playerRepository.findByGame_IdAndUser_Id(id, user.getId());
+      if (winnerOpt.isEmpty()) {
+         throw new IllegalArgumentException("Winning player not found: " + winnerName);
       }
 
-      game.setWinner(user);
+      game.setWinner(winnerOpt.get());
       gameRepository.save(game);
    }
 
@@ -309,10 +311,10 @@ public class GameService {
       }
 
       Player currentPlayer = game.getCurrentPlayerAsPlayer();
-      game.setCurrentPlayer(currentPlayer == null ? null : currentPlayer.getUser());
+      game.setCurrentPlayer(currentPlayer);
 
       Player winner = GameLogic.getWinningPlayer(game);
-      game.setWinner(winner == null ? null : winner.getUser());
+      game.setWinner(winner);
    }
 
    private void updateBoardFields(Game game, BigBoard board) {

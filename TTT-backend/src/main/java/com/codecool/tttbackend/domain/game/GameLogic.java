@@ -62,7 +62,7 @@ public class GameLogic {
       }
 
       if (prevCurrentPlayer == null) {
-         game.setCurrentPlayer(players.get(0).getUser());
+         game.setCurrentPlayer(players.get(0));
          return;
       }
 
@@ -75,7 +75,7 @@ public class GameLogic {
          currentPlayer = players.get(i + 1);
       }
 
-      game.setCurrentPlayer(currentPlayer.getUser());
+      game.setCurrentPlayer(currentPlayer);
    }
 
    public static void setActiveBoardFromMove(Move move, Game game) {
