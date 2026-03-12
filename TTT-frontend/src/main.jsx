@@ -4,7 +4,7 @@ import { WebSocketProvider } from "./state/WebSocketContext.jsx";
 import { NotificationProvider } from "./state/NotificationContext.jsx";
 import App from "./App.jsx";
 import { UserProvider } from "./state/UserContext";
-import { AuthProvider } from "./state/AuthContext.jsx";
+import { AuthProvider } from "./state/AuthContext";
 
 
 window.global ||= window;
