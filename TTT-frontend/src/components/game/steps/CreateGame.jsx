@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { createOnlineGame } from "../../../service/gameService";
+import { useAuth } from "../../../state/AuthContext";
 
 const CHARSET = ["◯", "✖", "△"];
 
@@ -10,6 +11,7 @@ export default function CreateGame({ onContinue, onBack }) {
     character: "◯",
   });
   const [loading, setLoading] = useState(false);
+  const { accessToken } = useAuth();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -22,8 +24,9 @@ export default function CreateGame({ onContinue, onBack }) {
         formData.gameName,
         parseInt(formData.maxPlayerCount, 10),
         formData.character,
+        accessToken,
       );
-      onContinue(body.id);
+      onContinue(body.id, formData.gameName);
     } catch (error) {
       console.error("Cant reach the backend! :", error);
     } finally {

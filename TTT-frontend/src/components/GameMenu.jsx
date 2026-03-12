@@ -8,11 +8,13 @@ import OnlineLoadList from "./game/steps/OnlineLoadList";
 import { joinOnlineGame, startOnlineGame } from "../service/gameService.js";
 import Profile from "./game/steps/Profile";
 import profile from "./game/steps/Profile";
+import { useAuth } from "../state/AuthContext";
 
 const CHARSET = ["◯", "✖", "△"];
 
 export default function GameMenu({onStart}) {
     const {play} = useAudio();
+    const { accessToken } = useAuth();
 
     const [mode, setMode] = useState(null); // 'pvp' | 'pve'
     const [onlineType, setOnlineType] = useState(null); // 'quick' | 'browser'
@@ -29,32 +31,33 @@ export default function GameMenu({onStart}) {
     const [selectedOnlineChar, setSelectedOnlineChar] = useState(null);
     const [userData, setUserData] = useState({ wins: 0, losses: 0, gamesPlayed: 0 });
 
-    const requiredChars = mode === "pvp" ? playerCount : 2;
-    const takenOnlineChars = selectedServer?.characters || [];
-    const availableOnlineChars = CHARSET.filter(
-        (ch) => !takenOnlineChars.includes(ch),
-    );
+  const requiredChars = mode === "pvp" ? playerCount : 2;
+  const takenOnlineChars = selectedServer?.characters || [];
+  const availableOnlineChars = CHARSET.filter(
+    (ch) => !takenOnlineChars.includes(ch),
+  );
+  const userName = localStorage.getItem("userName");
 
-    const go = (next) => {
-        setStep(next);
-        setEntering(true);
-        setTimeout(() => setEntering(false), 30);
-    };
+  const go = (next) => {
+    setStep(next);
+    setEntering(true);
+    setTimeout(() => setEntering(false), 30);
+  };
 
-    const finishConfigAndStart = (finalRotation) => {
-        setLeaving(true);
-        setTimeout(() => {
-            play("gamestart");
-            go("game");
-            onStart({
-                mode,
-                playerCount,
-                difficulty,
-                chars,
-                rotation: finalRotation,
-            });
-        }, 400);
-    };
+  const finishConfigAndStart = (finalRotation) => {
+    setLeaving(true);
+    setTimeout(() => {
+      play("gamestart");
+      go("game");
+      onStart({
+        mode,
+        playerCount,
+        difficulty,
+        chars,
+        rotation: finalRotation,
+      });
+    }, 400);
+  };
 
     const startGame = () => {
         play("gamestart");
@@ -126,11 +129,12 @@ export default function GameMenu({onStart}) {
 
     const joinGame = async (chosenChar) => {
         try {
-            await joinOnlineGame(chosenChar, selectedServer.gameId);
+            await joinOnlineGame(accessToken, chosenChar, selectedServer.gameId);
             onStart({
                 mode: "online",
                 gameId: selectedServer.gameId,
                 character: chosenChar,
+                gameName: selectedServer.gameName
             });
             go("game");
         } catch (error) {
@@ -319,44 +323,46 @@ export default function GameMenu({onStart}) {
                 </div>
             )}
 
-            {step === "pvpCount" && (
-                <div className="menu-step-content">
-                    <h2 className="helptext">HOW MANY PLAYERS?</h2>
-                    <div className="menu-layout">
-                        <button
-                            className="game-btn"
-                            onClick={() => {
-                                setPlayerCount(2);
-                                go("char");
-                            }}
-                        >
-                            TWO PLAYER
-                        </button>
-                        <button
-                            className="game-btn"
-                            onClick={() => {
-                                setPlayerCount(3);
-                                go("char");
-                            }}
-                        >
-                            THREE PLAYER
-                        </button>
-                    </div>
-                </div>
-            )}
-            {step === "createGame" && (
-                <CreateGame
-                    onContinue={(gameId) => {
-                        play("click");
-                        setCurrentGameId(gameId);
-                        onStart({
-                            mode: "online",
-                            gameId: gameId,
-                        });
-                        go("game");
-                    }}
-                />
-            )}
+      {step === "pvpCount" && (
+        <div className="menu-step-content">
+          <h2 className="helptext">HOW MANY PLAYERS?</h2>
+          <div className="menu-layout">
+            <button
+              className="game-btn"
+              onClick={() => {
+                setPlayerCount(2);
+                go("char");
+              }}
+            >
+              TWO PLAYER
+            </button>
+            <button
+              className="game-btn"
+              onClick={() => {
+                setPlayerCount(3);
+                go("char");
+              }}
+            >
+              THREE PLAYER
+            </button>
+          </div>
+        </div>
+      )}
+      {step === "createGame" && (
+        <CreateGame
+          onContinue={(gameId, gameName) => {
+            play("click");
+            setCurrentGameId(gameId);
+            onStart({
+              mode: "online",
+              gameId: gameId,
+              creator: userName,
+              gameName: gameName
+            });
+            go("game");
+          }}
+        />
+      )}
 
             {step === "serverBrowser" && (
                 <ServerBrowser
@@ -442,7 +448,7 @@ export default function GameMenu({onStart}) {
           onStartGame={async (game) => {
             play("click");
             try {
-              await startOnlineGame(game.gameId);
+                            await startOnlineGame(accessToken, game.gameId);
             } catch (error) {
               console.log("Can't start online game: " + error);
             }

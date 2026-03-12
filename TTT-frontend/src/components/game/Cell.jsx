@@ -1,16 +1,16 @@
-export default function Cell({ value, isActive, onClick, onHover }) {
+export default function Cell({ value, isActive, isClickable = false, isPending = false, onClick, onHover }) {
   const className = [
     'SB',
     isActive ? 'activeCell' : '',
-  ].join(' ');
-  
+    isClickable ? 'clickableCell' : '',
+    isPending ? 'pendingCell' : '',
+  ]
+    .filter(Boolean)
+    .join(' ');
+
   return (
-    <td
-      className={className}
-      onClick={onClick}
-      onMouseOver={onHover}
-    >
+    <div className={className} onClick={onClick} onMouseOver={onHover}>
       {value}
-    </td>
+    </div>
   );
 }

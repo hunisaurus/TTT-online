@@ -4,18 +4,21 @@ import { WebSocketProvider } from "./state/WebSocketContext.jsx";
 import { NotificationProvider } from "./state/NotificationContext.jsx";
 import App from "./App.jsx";
 import { UserProvider } from "./state/UserContext";
+import { AuthProvider } from "./state/AuthContext";
 
 
 window.global ||= window;
 
 createRoot(document.getElementById("root")).render(
-  <StrictMode>
+  // <StrictMode>
+  <AuthProvider>
     <WebSocketProvider>
       <NotificationProvider>
-          <UserProvider>
-        <App />
-          </UserProvider>
+        <UserProvider>
+          <App />
+        </UserProvider>
       </NotificationProvider>
     </WebSocketProvider>
-  </StrictMode>,
+  </AuthProvider>
+  // </StrictMode>,
 );

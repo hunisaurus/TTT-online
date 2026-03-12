@@ -1,12 +1,14 @@
 import { createContext, useCallback, useContext, useRef } from "react";
 import { Client } from "@stomp/stompjs";
 import SockJS from "sockjs-client";
+import { useAuth } from "./AuthContext";
 
 const WebSocketContext = createContext(null);
 
 export function WebSocketProvider({ children }) {
   const clientRef = useRef(null);
   const subsRef = useRef(new Map()); // dest -> subscription
+  const { accessToken } = useAuth();
 
   const connect = useCallback(() => {
     if (clientRef.current) return;
@@ -15,7 +17,8 @@ export function WebSocketProvider({ children }) {
       webSocketFactory: () => new SockJS("http://localhost:8080/ws"),
       reconnectDelay: 5000,
       onConnect: () => {
-        const token = localStorage.getItem("jwt");
+        console.log("Connected to websocket, client:", client);
+        const token = accessToken;
         const headers = token ? { Authorization: `Bearer ${token}` } : {};
 
         for (const [dest, { callback }] of subsRef.current.entries()) {
@@ -23,6 +26,9 @@ export function WebSocketProvider({ children }) {
           subsRef.current.set(dest, { callback, sub });
         }
       },
+      onStompError: (frame) => {
+        console.error("STOMP error", frame);
+      }
     });
 
     client.activate();
@@ -42,8 +48,8 @@ export function WebSocketProvider({ children }) {
       return null;
     }
 
-    const token = localStorage.getItem("jwt");
-    const headers = { Authorization: `Bearer ${token}` };
+    const token = accessToken;
+    const headers = token ? { Authorization: `Bearer ${token}` } : {};
 
     const sub = clientRef.current.subscribe(destination, callback, headers);
     subsRef.current.set(destination, { callback, sub });
@@ -62,8 +68,7 @@ export function WebSocketProvider({ children }) {
 
   const send = useCallback((destination, body) => {
     if (!clientRef.current || !clientRef.current.connected) return;
-
-    const token = localStorage.getItem("jwt");
+    const token = accessToken;
     const headers = token ? { Authorization: `Bearer ${token}` } : {};
 
     clientRef.current.publish({

@@ -107,13 +107,22 @@ public class AuthService {
         String username = request.username();
         String password = request.password();
 
+        System.out.println("AuthService.login: attempt for username='" + username + "'");
+
+        // Defensive: trim incoming credentials to avoid accidental whitespace issues
+        if (username != null) username = username.trim();
+        if (password != null) password = password.trim();
+
         User user = userDAO.findByUsername(username);
         if (user == null) {
-            System.out.println("User not found in DB");
+            System.out.println("AuthService.login: user not found in DB for username='" + username + "'");
             throw new UnauthorizedException("Invalid credentials");
         }
 
+        System.out.println("AuthService.login: found user in DB username='" + user.getUsername() + "' passwordHashLength=" + (user.getPasswordHash() == null ? 0 : user.getPasswordHash().length()));
+
         boolean passwordMatches = encoder.matches(password, user.getPasswordHash());
+        System.out.println("AuthService.login: passwordMatches=" + passwordMatches + " for username='" + username + "'");
         if (!passwordMatches) {
             throw new UnauthorizedException("Invalid credentials");
         }

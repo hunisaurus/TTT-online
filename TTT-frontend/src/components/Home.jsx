@@ -125,7 +125,7 @@ export default function Home() {
                                 config={gameConfig}
                                 setStep={setStep}
                                 onExit={() => {
-                                    setStep("menu");
+                                    setStep("game");
                                 }}
                                 go={go}
                             />

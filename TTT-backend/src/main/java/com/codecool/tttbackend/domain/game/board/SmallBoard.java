@@ -15,7 +15,8 @@ public class SmallBoard implements Board {
       cells[row][column] = character;
    }
 
-   public char getCell(int row, int column){
+   public char getCell(int row, int column) {
+      if (cells[row][column] == null) return '_';
       return cells[row][column];
    }
 
@@ -51,16 +52,29 @@ public class SmallBoard implements Board {
    }
 
    public Character getWinningCharacter() {
+      // Use getCell which returns '_' for empty cells, compare primitive chars to avoid null/Character pitfalls
       for (int i = 0; i < 3; i++) {
-         if (cells[i][0] != null && cells[i][0] != '_' && cells[i][0] == cells[i][1] && cells[i][1] == cells[i][2])
-            return cells[i][0];
-         if (cells[0][i] != null && cells[0][i] != '_' && cells[0][i] == cells[1][i] && cells[1][i] == cells[2][i])
-            return cells[0][i];
+         char a = getCell(i, 0);
+         char b = getCell(i, 1);
+         char c = getCell(i, 2);
+         if (a != '_' && a == b && b == c) return a;
+
+         a = getCell(0, i);
+         b = getCell(1, i);
+         c = getCell(2, i);
+         if (a != '_' && a == b && b == c) return a;
       }
-      if (cells[0][0] != null && cells[0][0] != '_' && cells[0][0] == cells[1][1] && cells[1][1] == cells[2][2])
-         return cells[0][0];
-      if (cells[0][2] != null && cells[0][2] != '_' && cells[0][2] == cells[1][1] && cells[1][1] == cells[2][0])
-         return cells[0][2];
+
+      char d1 = getCell(0, 0);
+      char d2 = getCell(1, 1);
+      char d3 = getCell(2, 2);
+      if (d1 != '_' && d1 == d2 && d2 == d3) return d1;
+
+      char e1 = getCell(0, 2);
+      char e2 = getCell(1, 1);
+      char e3 = getCell(2, 0);
+      if (e1 != '_' && e1 == e2 && e2 == e3) return e1;
+
       if (isFull()) return 'D';
       return null;
    }

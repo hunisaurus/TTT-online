@@ -1,16 +1,18 @@
 import { useState, useEffect } from "react";
 import { getMyGames, startOnlineGame } from "../../../service/gameService";
+import { useAuth } from "../../../state/AuthContext";
 
 export default function OnlineLoadList({ onSelect, onStartGame }) {
   const [savedGames, setSavedGames] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const { accessToken } = useAuth();
 
   useEffect(() => {
     setLoading(true);
     const loadServers = async () => {
       try {
-        const games = await getMyGames();
+        const games = await getMyGames(accessToken);
         setSavedGames(games);
       } catch (e) {
         console.error("Failed to load user's games", e);

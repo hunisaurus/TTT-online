@@ -5,11 +5,13 @@ import {useWebSocket} from "../state/WebSocketContext";
 import '../StyleCSS/auth.css'
 import '../StyleCSS/global.css'
 import {useUser} from "../state/UserContext";
+import { useAuth } from "../state/AuthContext";
 
 function Login({className = "", style, onSubmit, onRegister}) {
     const {connect, subscribe} = useWebSocket();
     const {addNotification} = useNotifications();
     const {refreshUser} = useUser();
+    const { setAccessToken } = useAuth();
 
     const emptyData = {
         username: "",
@@ -57,6 +59,7 @@ function Login({className = "", style, onSubmit, onRegister}) {
                 headers: {
                     "Content-Type": "application/json",
                 },
+                credentials: "include",
                 body: JSON.stringify(data),
             });
 
@@ -71,7 +74,7 @@ function Login({className = "", style, onSubmit, onRegister}) {
 
 
                 localStorage.setItem("userName", data.username);
-                localStorage.setItem("jwt", jwt);
+                setAccessToken(jwt);
 
                 await refreshUser();
                 connect();
