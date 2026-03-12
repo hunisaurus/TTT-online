@@ -20,30 +20,22 @@ export default function BigBoard({
   const clickable = isActive && canPlay;
 
   return (
-    <td
+    <div
       className={`BB ${
         isActive ? (canPlay ? "activeBoard" : "activeBoard-other") : ""
       }`}
     >
-      <table className="MB">
-        <tbody>
-          {[0, 1, 2].map((rr) => (
-            <tr key={rr}>
-              {[0, 1, 2].map((cc) => (
-                <Cell
-                  key={cc}
-                  value={board[rr][cc]}
-                  isActive={isActive}
-                  onHover={onHover}
-                  onClick={() =>
-                    clickable && !board[rr][cc] && onCellClick(rr, cc)
-                  }
-                />
-              ))}
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </td>
+      {[0, 1, 2].map((rr) =>
+        [0, 1, 2].map((cc) => (
+          <Cell
+            key={`${rr}-${cc}`}
+            value={board[rr][cc]}
+            isActive={isActive}
+            onHover={onHover}
+            onClick={() => clickable && !board[rr][cc] && onCellClick(rr, cc)}
+          />
+        )),
+      )}
+    </div>
   );
 }

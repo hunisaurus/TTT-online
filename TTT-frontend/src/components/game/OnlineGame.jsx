@@ -183,14 +183,22 @@ export default function OnlineGame({ config, onExit }) {
             id="playerOneElement"
             className={`playerElement leftPlayer ${playersEntering ? "outLeft" : ""} ${state?.currentPlayer?.character === state.rotation[0][1] ? "activePlayer" : ""}`}
           >
-            {state.rotation[0][1]}
+            <div
+              className={`playerElement-character ${state?.currentPlayer?.character === state.rotation[0][1] ? "activePlayer-character" : ""}`}
+            >
+              {state.rotation[0][1]}
+            </div>
             <div>{state.rotation[0][0]}</div>
           </div>
           <div
             id="playerTwoElement"
             className={`playerElement rightPlayer ${playersEntering ? "outRight" : ""} ${state?.currentPlayer?.character === state.rotation[1][1] ? "activePlayer" : ""}`}
           >
-            {state.rotation[1][1]}
+            <div
+              className={`playerElement-character ${state?.currentPlayer?.character === state.rotation[1][1] ? "activePlayer-character" : ""}`}
+            >
+              {state.rotation[1][1]}
+            </div>
             <div>{state.rotation[1][0]}</div>
           </div>
           {state.rotation.length === 3 && (
@@ -199,7 +207,11 @@ export default function OnlineGame({ config, onExit }) {
               className={`playerElement rightPlayer ${playersEntering ? "outAbove" : ""} ${state?.currentPlayer?.character === state.rotation[2][1] ? "activePlayer" : ""}`}
               style={{ top: "12%" }}
             >
-              {state.rotation[2][1]}
+              <div
+                className={`playerElement-character ${state?.currentPlayer?.character === state.rotation[1][1] ? "activePlayer-character" : ""}`}
+              >
+                {state.rotation[2][1]}
+              </div>
               <div>{state.rotation[2][0]}</div>
             </div>
           )}
@@ -226,7 +238,9 @@ export default function OnlineGame({ config, onExit }) {
                 }, 500);
               }}
             >
-              {resolvedWinner ? resolvedWinner : Object.values(state.rotation || {}).join("/")}
+              {resolvedWinner
+                ? resolvedWinner
+                : Object.values(state.rotation || {}).join("/")}
             </div>
           )}
         </main>
@@ -270,6 +284,11 @@ export default function OnlineGame({ config, onExit }) {
           <span className="arrow-icon">←</span>
         </button>
       )}
+      <div className="game-name">{`${config.gameName}`}</div>
+      <div className="winner">
+        <div className="winner-name">{`winner: ${state.winner.username}`}</div>
+        <div className="winner-score">{`(small boards won: ${state.winner.numberOfWins})`}</div>
+      </div>
     </>
   );
 }

@@ -5,12 +5,8 @@ export default function Cell({ value, isActive, onClick, onHover }) {
   ].join(' ');
   
   return (
-    <td
-      className={className}
-      onClick={onClick}
-      onMouseOver={onHover}
-    >
+    <div className={className} onClick={onClick} onMouseOver={onHover}>
       {value}
-    </td>
+    </div>
   );
 }
