@@ -4,75 +4,98 @@ import com.codecool.tttbackend.controller.dto.request.CreateGameRequestDTO;
 import com.codecool.tttbackend.controller.dto.response.GameResponseDTO;
 import com.codecool.tttbackend.controller.dto.response.GameStatusResponseDTO;
 import com.codecool.tttbackend.controller.dto.response.PlayerResponseDTO;
-import com.codecool.tttbackend.dao.GameDAO;
-import com.codecool.tttbackend.dao.model.game.*;
 import com.codecool.tttbackend.dao.model.User;
+import com.codecool.tttbackend.dao.model.game.Game;
+import com.codecool.tttbackend.dao.model.game.GameState;
+import com.codecool.tttbackend.dao.model.game.Move;
+import com.codecool.tttbackend.dao.model.game.Player;
+import com.codecool.tttbackend.dao.model.game.Position;
+import com.codecool.tttbackend.dao.GameRepository;
+import com.codecool.tttbackend.dao.PlayerRepository;
 import com.codecool.tttbackend.domain.game.GameLogic;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.codecool.tttbackend.domain.game.board.BigBoard;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
 @Service
+@Transactional
 public class GameService {
 
-    private final GameDAO gameDAO;
+    private final GameRepository gameRepository;
+    private final PlayerRepository playerRepository;
     private final UserService userService;
 
-    @Autowired
-    public GameService(GameDAO gameDAO, UserService userService) {
-        this.gameDAO = gameDAO;
+    public GameService(GameRepository gameRepository,
+                       PlayerRepository playerRepository,
+                       UserService userService) {
+        this.gameRepository = gameRepository;
+        this.playerRepository = playerRepository;
         this.userService = userService;
     }
 
     public int createGame(CreateGameRequestDTO createGameRequestDTO) {
         User creator = userService.getUserByUserName(createGameRequestDTO.userName());
+        if (creator == null) {
+            throw new IllegalArgumentException("User not found: " + createGameRequestDTO.userName());
+        }
 
         Player creatorPlayer = new Player();
         creatorPlayer.setUser(creator);
         creatorPlayer.setCharacter(createGameRequestDTO.character());
 
         Game game = new Game();
-        game.addPlayer(creatorPlayer);
         game.setCreator(creator);
         game.setName(createGameRequestDTO.gameName());
         game.setMaxPlayers(createGameRequestDTO.maxPlayerCount());
         game.setTimeCreated(LocalDateTime.now());
         game.setGameState(GameState.WAITING);
-        return gameDAO.addGame(game);
+
+        updateBoardFields(game, new BigBoard());
+        game.addPlayer(creatorPlayer);
+
+        Game savedGame = gameRepository.save(game);
+        return savedGame.getId();
     }
 
     public void startGame(int id) {
-        Game game = gameDAO.findGameById(id);
-        if (game == null) {
-            throw new IllegalArgumentException("Game not found: " + id);
-        }
-        game.setGameState(GameState.IN_PROGRESS);
+        Game game = getGameOrThrow(id);
+        hydrateBoard(game);
 
-        gameDAO.updateGame(game);
+        game.setGameState(GameState.IN_PROGRESS);
+        if (game.getCurrentPlayer() == null && !game.getPlayers().isEmpty()) {
+            game.setCurrentPlayer(game.getPlayers().get(0).getUser());
+        }
+
+        syncPersistenceFieldsFromRuntimeState(game);
+        gameRepository.save(game);
     }
 
     public void endGame(int id) {
-        Game game = gameDAO.findGameById(id);
-        if (game == null) {
-            throw new IllegalArgumentException("Game not found: " + id);
-        }
-        game.setGameState(GameState.ENDED);
+        Game game = getGameOrThrow(id);
+        hydrateBoard(game);
 
-        gameDAO.updateGame(game);
+        game.setGameState(GameState.ENDED);
+        syncPersistenceFieldsFromRuntimeState(game);
+        gameRepository.save(game);
     }
 
     public void joinGame(int id, String userName, char character) {
-        Game game = gameDAO.findGameById(id);
-        if (game == null) {
-            throw new IllegalArgumentException("Game not found: " + id);
-        }
+        Game game = getGameOrThrow(id);
 
         User user = userService.getUserByUserName(userName);
         if (user == null) {
             throw new IllegalArgumentException("User not found: " + userName);
+        }
+
+        boolean alreadyJoined = game.getPlayers().stream()
+                .anyMatch(player -> player.getUser().getId().equals(user.getId()));
+
+        if (alreadyJoined) {
+            return;
         }
 
         Player player = new Player();
@@ -80,128 +103,237 @@ public class GameService {
         player.setCharacter(character);
 
         game.addPlayer(player);
-        gameDAO.updateGame(game);
+        gameRepository.save(game);
     }
 
-
     public void leaveGame(int id, String userName) {
-        Game game = gameDAO.findGameById(id);
-        if (game == null) {
-            throw new IllegalArgumentException("Game not found: " + id);
-        }
+        Game game = getGameOrThrow(id);
 
         User user = userService.getUserByUserName(userName);
-
-        List<Player> players = gameDAO.findPlayersByGameId(game.getId());
-
-        for (Player player : players) {
-            if (player.getUser().getId() == user.getId()) {
-                game.removePlayer(player);
-            }
+        if (user == null) {
+            throw new IllegalArgumentException("User not found: " + userName);
         }
 
-        gameDAO.updateGame(game);
+        game.getPlayers().removeIf(player -> player.getUser().getId().equals(user.getId()));
+        gameRepository.save(game);
     }
 
     public void winGame(int id, String winnerName) {
-        Game game = gameDAO.findGameById(id);
-        if (game == null) {
-            throw new IllegalArgumentException("Game not found: " + id);
-        }
+        Game game = getGameOrThrow(id);
 
         User user = userService.getUserByUserName(winnerName);
+        if (user == null) {
+            throw new IllegalArgumentException("User not found: " + winnerName);
+        }
 
-        Player winner = gameDAO.findPlayer(game.getId(), user.getId());
-
-        game.setWinner(winner);
-
-        gameDAO.updateGame(game);
+        game.setWinner(user);
+        gameRepository.save(game);
     }
 
     public void updateGameState(int id, GameState gameState) {
-        Game game = gameDAO.findGameById(id);
-        if (game == null) {
-            throw new IllegalArgumentException("Game not found: " + id);
-        }
+        Game game = getGameOrThrow(id);
         game.setGameState(gameState);
-        gameDAO.updateGame(game);
+        gameRepository.save(game);
     }
 
+    @Transactional(readOnly = true)
     public List<Game> listAllGames() {
-        return gameDAO.getAllGames();
+        return gameRepository.findAll();
     }
 
     public GameStatusResponseDTO makeMove(int gameId, Move move) {
-        Game game = gameDAO.findGameById(gameId);
-        if (!GameLogic.validateMove(game, move)) return null;
+        Game game = getGameOrThrow(gameId);
+        hydrateBoard(game);
+
+        if (!GameLogic.validateMove(game, move)) {
+            return null;
+        }
+
         GameLogic.applyMove(game, move);
         GameLogic.setNextCurrentPlayer(game);
         GameLogic.setActiveBoardFromMove(move, game);
-        gameDAO.updateGame(game);
+
+        syncPersistenceFieldsFromRuntimeState(game);
+        gameRepository.save(game);
 
         return getGameStatusResponseDTOFromGame(game);
     }
 
+    @Transactional(readOnly = true)
     public Player getPlayer(int gameId, String userName) {
         User user = userService.getUserByUserName(userName);
-        Player player = gameDAO.findPlayer(gameId, user.getId());
-        player.setUser(user);
-        return player;
+        if (user == null) {
+            throw new IllegalArgumentException("User not found: " + userName);
+        }
+
+        return playerRepository.findByGame_IdAndUser_Id(gameId, user.getId()).orElse(null);
     }
 
+    @Transactional(readOnly = true)
     public List<GameResponseDTO> getUserGameResponseDTOs(String username) {
         User user = userService.getUserByUserName(username);
-        if (user == null) return new ArrayList<>();
+        if (user == null) {
+            return new ArrayList<>();
+        }
 
-        return gameDAO
-                .getAllGamesByUserId(
-                        user.getId())
+        return gameRepository.findAllGamesByUserId(user.getId())
                 .stream()
                 .map(this::getGameResponseDTOFromGame)
                 .toList();
     }
 
+    @Transactional(readOnly = true)
     public List<GameResponseDTO> getAvailableGameResponseDTOs(String userName) {
         User user = userService.getUserByUserName(userName);
-        return gameDAO.getAvailableGames().stream().filter(game -> game.getCreator().getId() != user.getId() && game.getPlayers().stream().noneMatch(player -> player.getUser().getId() == user.getId()) && game.getMaxPlayers() > game.getPlayers().size()).map(this::getGameResponseDTOFromGame).toList();
+        if (user == null) {
+            return new ArrayList<>();
+        }
+
+        return gameRepository.findByGameState(GameState.WAITING)
+                .stream()
+                .filter(game -> !game.getCreator().getId().equals(user.getId()))
+                .filter(game -> game.getPlayers().stream()
+                        .noneMatch(player -> player.getUser().getId().equals(user.getId())))
+                .filter(game -> game.getMaxPlayers() > game.getPlayers().size())
+                .map(this::getGameResponseDTOFromGame)
+                .toList();
     }
 
+    @Transactional(readOnly = true)
     public List<GameResponseDTO> getActiveGameResponseDTOs(String userName) {
         User user = userService.getUserByUserName(userName);
-        return gameDAO.getAllGamesByUserId(user.getId()).stream().filter(game -> game.getGameState().equals(GameState.IN_PROGRESS)).map(this::getGameResponseDTOFromGame).toList();
+        if (user == null) {
+            return new ArrayList<>();
+        }
+
+        return gameRepository.findAllGamesByUserId(user.getId())
+                .stream()
+                .filter(game -> game.getGameState() == GameState.IN_PROGRESS)
+                .map(this::getGameResponseDTOFromGame)
+                .toList();
     }
 
+    @Transactional(readOnly = true)
     public List<GameResponseDTO> getJoinedGameResponseDTOs(String userName) {
         User user = userService.getUserByUserName(userName);
-        return gameDAO.getAllGamesByUserId(user.getId()).stream().filter(game -> game.getCreator().getId() != user.getId()).map(this::getGameResponseDTOFromGame).toList();
+        if (user == null) {
+            return new ArrayList<>();
+        }
+
+        return gameRepository.findAllGamesByUserId(user.getId())
+                .stream()
+                .filter(game -> !game.getCreator().getId().equals(user.getId()))
+                .map(this::getGameResponseDTOFromGame)
+                .toList();
     }
 
+    @Transactional(readOnly = true)
     public List<GameResponseDTO> getUser(String userName) {
         User user = userService.getUserByUserName(userName);
-        return gameDAO.getAllGamesByUserId(user.getId()).stream().filter(game -> game.getGameState().equals(GameState.IN_PROGRESS)).map(this::getGameResponseDTOFromGame).toList();
+        if (user == null) {
+            return new ArrayList<>();
+        }
+
+        return gameRepository.findAllGamesByUserId(user.getId())
+                .stream()
+                .filter(game -> game.getGameState() == GameState.IN_PROGRESS)
+                .map(this::getGameResponseDTOFromGame)
+                .toList();
     }
 
+    @Transactional(readOnly = true)
     public GameStatusResponseDTO getGameStatus(int id) {
-        Game game = gameDAO.findGameById(id);
+        Game game = getGameOrThrow(id);
+        hydrateBoard(game);
         return getGameStatusResponseDTOFromGame(game);
     }
 
+    @Transactional(readOnly = true)
+    public int countWinsByUserId(int userId) {
+        return (int) gameRepository.countByWinner_Id(userId);
+    }
+
+    @Transactional(readOnly = true)
+    public int countTotalGamesByUserId(int userId) {
+        return (int) playerRepository.countByUser_Id(userId);
+    }
+
+    private Game getGameOrThrow(int id) {
+        return gameRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Game not found: " + id));
+    }
+
+    private void hydrateBoard(Game game) {
+        if (game.getBoardState() == null || game.getBoardState().isBlank()) {
+            game.setBoard(new BigBoard());
+            return;
+        }
+
+        Position activePosition = game.getActiveBoard() == null
+                ? null
+                : Position.positionFromString(game.getActiveBoard());
+
+        game.setBoard(BigBoard.createBigBoard(game.getBoardState(), activePosition));
+    }
+
+    private void syncPersistenceFieldsFromRuntimeState(Game game) {
+        if (game.getBoard() != null) {
+            game.setBoardState(game.getBoard().toString());
+
+            Position activePosition = getActiveBoardPosition(game.getBoard());
+            game.setActiveBoard(activePosition == null ? null : activePosition.toString());
+        }
+
+        Player currentPlayer = game.getCurrentPlayerAsPlayer();
+        game.setCurrentPlayer(currentPlayer == null ? null : currentPlayer.getUser());
+
+        Player winner = GameLogic.getWinningPlayer(game);
+        game.setWinner(winner == null ? null : winner.getUser());
+    }
+
+    private void updateBoardFields(Game game, BigBoard board) {
+        game.setBoard(board);
+        game.setBoardState(board == null ? null : board.toString());
+
+        Position activePosition = getActiveBoardPosition(board);
+        game.setActiveBoard(activePosition == null ? null : activePosition.toString());
+    }
+
+    private Position getActiveBoardPosition(BigBoard bigBoard) {
+        if (bigBoard == null) {
+            return null;
+        }
+
+        List<Position> activeBoardPositions = bigBoard.getActiveBoardPositions();
+        if (activeBoardPositions == null || activeBoardPositions.size() != 1) {
+            return null;
+        }
+
+        return activeBoardPositions.get(0);
+    }
+
     private GameStatusResponseDTO getGameStatusResponseDTOFromGame(Game game) {
-        boolean started = game != null && game.getGameState() == GameState.IN_PROGRESS;
+        boolean started = game.getGameState() == GameState.IN_PROGRESS;
+
+        Player currentPlayer = game.getCurrentPlayerAsPlayer();
+        Player winner = GameLogic.getWinningPlayer(game);
 
         return new GameStatusResponseDTO(
-                getPlayerResponseDTOFromPlayer(game.getCurrentPlayer()),
+                getPlayerResponseDTOFromPlayer(currentPlayer),
                 game.getBoard().toSmallBoardsStrings(),
                 game.getBoard().toBigBoardStrings(),
                 getActiveBoardsFromGame(game),
-                getPlayerResponseDTOFromPlayer(GameLogic.getWinningPlayer(game)),
+                getPlayerResponseDTOFromPlayer(winner),
                 game.getRotation(),
                 started
         );
     }
 
     private PlayerResponseDTO getPlayerResponseDTOFromPlayer(Player player) {
-        if (player == null) return null;
+        if (player == null) {
+            return null;
+        }
+
         return new PlayerResponseDTO(
                 player.getUser().getId(),
                 player.getUser().getUsername(),
@@ -213,7 +345,11 @@ public class GameService {
     }
 
     private List<String> getActiveBoardsFromGame(Game game) {
-        return game.getBoard().getActiveBoardPositions().stream().map(Position::toString).toList();
+        return game.getBoard()
+                .getActiveBoardPositions()
+                .stream()
+                .map(Position::toString)
+                .toList();
     }
 
     private GameResponseDTO getGameResponseDTOFromGame(Game game) {
@@ -222,12 +358,10 @@ public class GameService {
                 game.getGameState().name(),
                 game.getName(),
                 game.getCreator().getUsername(),
-                // change public and private logic later:
                 "public",
                 game.getMaxPlayers(),
                 game.getPlayers().size(),
                 game.getPlayers().stream().map(Player::getCharacter).toList()
         );
     }
-
 }

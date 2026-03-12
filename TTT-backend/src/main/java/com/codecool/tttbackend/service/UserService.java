@@ -1,66 +1,72 @@
 package com.codecool.tttbackend.service;
 
 import com.codecool.tttbackend.controller.dto.response.PlayerResponseDTO;
-import com.codecool.tttbackend.dao.GameDAO;
-import com.codecool.tttbackend.dao.UserDAO;
+import com.codecool.tttbackend.dao.UserRepository;
 import com.codecool.tttbackend.dao.model.User;
-import com.codecool.tttbackend.security.PasswordHasher;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.codecool.tttbackend.dao.GameRepository;
+import com.codecool.tttbackend.dao.PlayerRepository;
 import org.springframework.stereotype.Service;
-
-import java.time.LocalDateTime;
-import java.util.Set;
 
 @Service
 public class UserService {
 
-    private final UserDAO userDAO;
-    private final PasswordHasher passwordHasher;
-    private final GameDAO gameDAO;
+    private final UserRepository userRepository;
+    private final GameRepository gameRepository;
+    private final PlayerRepository playerRepository;
 
-    @Autowired
-    public UserService(UserDAO userDAO, PasswordHasher passwordHasher, GameDAO gameDAO) {
-        this.userDAO = userDAO;
-        this.passwordHasher = passwordHasher;
-        this.gameDAO = gameDAO;
+    public UserService(UserRepository userRepository,
+                       GameRepository gameRepository,
+                       PlayerRepository playerRepository) {
+        this.userRepository = userRepository;
+        this.gameRepository = gameRepository;
+        this.playerRepository = playerRepository;
     }
 
     public User getUserByUserName(String userName) {
-        return userDAO.findByUsername(userName);
+        return userRepository.findByUsername(userName).orElse(null);
     }
 
     public User getUserById(int id) {
-        return userDAO.findUserById(id);
+        return userRepository.findById(id).orElse(null);
     }
 
     public PlayerResponseDTO getUserStats(String username) {
-        User user = userDAO.findByUsername(username);
+        User user = userRepository.findByUsername(username).orElse(null);
+
         if (user == null) {
             return null;
         }
 
-        int idForStats = (int) user.getId();
+        int wins = (int) gameRepository.countByWinner_Id(user.getId());
+        int totalGames = (int) playerRepository.countByUser_Id(user.getId());
 
-        int wins = gameDAO.countWinsByUserId((int) user.getId());
-        int totalGames = gameDAO.countTotalGamesByUserId((int) user.getId());
-
-        return new PlayerResponseDTO(idForStats, user.getUsername(), ' ', wins, totalGames, user.getProfileImage());
+        return new PlayerResponseDTO(
+                user.getId(),
+                user.getUsername(),
+                ' ',
+                wins,
+                totalGames,
+                user.getProfileImage()
+        );
     }
-    public void updateProfileImage(String username, String base64Image) {
-        User user = userDAO.findByUsername(username);
 
-        if (user != null) {
-            userDAO.updateProfileImage(user.getId(), base64Image);
-        } else {
-            throw new RuntimeException("User not found: " + username);
-        }
+    public void updateProfileImage(String username, String base64Image) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("User not found: " + username));
+
+        user.setProfileImage(base64Image);
+        userRepository.save(user);
     }
 
     public User findUserByUsername(String username) {
-        return userDAO.findByUsername(username);
+        return userRepository.findByUsername(username).orElse(null);
     }
 
     public void deleteProfileImage(long userId) {
-        userDAO.deleteProfileImage(userId);
+        User user = userRepository.findById((int) userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        user.setProfileImage(null);
+        userRepository.save(user);
     }
 }
