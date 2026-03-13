@@ -1,4 +1,4 @@
-import {useState} from "react";
+import {useState, useEffect} from "react";
 import {useAudio} from "../hooks/useAudio";
 import Login from "./Login";
 import Register from "./Register";
@@ -34,6 +34,10 @@ export default function Home() {
         }
 
     };
+
+    // useEffect(() => {
+    //     refreshUser();
+    //   }, []);
 
     return (
         <>
@@ -125,7 +129,8 @@ export default function Home() {
                                 config={gameConfig}
                                 setStep={setStep}
                                 onExit={() => {
-                                    setStep("game");
+                                    setGameConfig(null);
+                                    setStep("menu");
                                 }}
                                 go={go}
                             />
