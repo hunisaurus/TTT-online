@@ -4,12 +4,9 @@ let accessToken = null;
 let refreshPromise = null;
 
 export function initAccessTokenFromStorage() {
-  try {
-    const stored = localStorage.getItem("jwt");
-    accessToken = stored || null;
-  } catch {
-    accessToken = null;
-  }
+  // no-op: we intentionally do NOT persist the access token
+  // across reloads; it only lives in memory.
+  accessToken = null;
 }
 
 export function getAccessToken() {
@@ -18,15 +15,6 @@ export function getAccessToken() {
 
 export function setAccessToken(token) {
   accessToken = token || null;
-  try {
-    if (token) {
-      localStorage.setItem("jwt", token);
-    } else {
-      localStorage.removeItem("jwt");
-    }
-  } catch {
-    // ignore storage errors
-  }
 }
 
 export async function refreshAccessToken() {

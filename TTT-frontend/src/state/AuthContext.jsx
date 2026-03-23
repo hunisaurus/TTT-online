@@ -1,8 +1,8 @@
-import React, { createContext, useContext, useEffect, useState, useCallback } from "react";
+import { createContext, useCallback, useContext, useEffect, useState } from "react";
 import {
-  getAccessToken,
-  setAccessToken as coreSetAccessToken,
   refreshAccessToken as coreRefreshAccessToken,
+  setAccessToken as coreSetAccessToken,
+  getAccessToken,
   initAccessTokenFromStorage,
 } from "./auth";
 

@@ -22,7 +22,7 @@ export default function GameMenu({onStart}) {
     const [difficulty, setDifficulty] = useState("easy"); // easy|medium|hard|unbeatable
     const [chars, setChars] = useState([]); // chosen tokens in order
     const [rotation, setRotation] = useState([]); // chosen start order (tokens)
-    const [step, setStep] = useState("startMenu"); // mode | multiType | onlineType | pvpCount | pveDiff | serverBrowser | char | start | leaving
+    const [menuStep, setMenuStep] = useState("startMenu"); // mode | multiType | onlineType | pvpCount | pveDiff | serverBrowser | char | start | leaving
     const [leaving, setLeaving] = useState(false);
     const [entering, setEntering] = useState(false);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -39,7 +39,7 @@ export default function GameMenu({onStart}) {
   const userName = localStorage.getItem("userName");
 
   const go = (next) => {
-    setStep(next);
+    setMenuStep(next);
     setEntering(true);
     setTimeout(() => setEntering(false), 30);
   };
@@ -61,13 +61,13 @@ export default function GameMenu({onStart}) {
 
     const startGame = () => {
         play("gamestart");
-        setStep("game");
+        setMenuStep("game");
         onStart({mode, playerCount, difficulty, chars, rotation});
     };
     const back = () => {
         play("click");
 
-        switch (step) {
+        switch (menuStep) {
             case "mode":
                 go("startMenu");
                 break;
@@ -193,7 +193,7 @@ export default function GameMenu({onStart}) {
                 ></div>
             )}
 
-            {step === "startMenu" && (
+            {menuStep === "startMenu" && (
                 <div className="play-container">
                     <button
                         className="bigPlayButton"
@@ -207,7 +207,7 @@ export default function GameMenu({onStart}) {
                     </button>
                 </div>
             )}
-            {step === "mode" && (
+            {menuStep === "mode" && (
                 <div className="menu-step-content">
                     <h2 className={`helptext ${entering ? "outBelow" : ""}`}>
                         CHOOSE GAME MODE!
@@ -238,13 +238,13 @@ export default function GameMenu({onStart}) {
                 </div>
             )}
 
-            {step !== "startMenu" && step !== "leaving" && step !== "profile" &&(
+            {menuStep !== "startMenu" && menuStep !== "leaving" && menuStep !== "profile" &&(
                 <button className="back-button-modern" onClick={back}>
                     <span className="arrow-icon">←</span>
                 </button>
             )}
 
-            {step === "multiType" && (
+            {menuStep === "multiType" && (
                 <div className="menu-step-content">
                     <h2 className="helptext">MULTIPLAYER TYPE</h2>
                     <div className="menu-layout">
@@ -271,7 +271,7 @@ export default function GameMenu({onStart}) {
                 </div>
             )}
 
-            {step === "onlineType" && (
+            {menuStep === "onlineType" && (
                 <div className="meut-step-content">
                     <h2 className="helptext">ONLINE MATCHMAKING</h2>
                     <div className="menu-layout online-grid">
@@ -323,7 +323,7 @@ export default function GameMenu({onStart}) {
                 </div>
             )}
 
-      {step === "pvpCount" && (
+      {menuStep === "pvpCount" && (
         <div className="menu-step-content">
           <h2 className="helptext">HOW MANY PLAYERS?</h2>
           <div className="menu-layout">
@@ -348,7 +348,7 @@ export default function GameMenu({onStart}) {
           </div>
         </div>
       )}
-      {step === "createGame" && (
+      {menuStep === "createGame" && (
         <CreateGame
           onContinue={(gameId, gameName) => {
             play("click");
@@ -364,7 +364,7 @@ export default function GameMenu({onStart}) {
         />
       )}
 
-            {step === "serverBrowser" && (
+            {menuStep === "serverBrowser" && (
                 <ServerBrowser
                     onJoin={(game) => {
                         play("click");
@@ -376,7 +376,7 @@ export default function GameMenu({onStart}) {
                 />
             )}
 
-            {step === "onlineJoinChar" && selectedServer && (
+            {menuStep === "onlineJoinChar" && selectedServer && (
                 <div className="menu-step-container">
                     <h2 className="helptext">
                         {availableOnlineChars.length === 1
@@ -433,7 +433,7 @@ export default function GameMenu({onStart}) {
                 </div>
             )}
 
-      {step === "onlineLoadList" && (
+      {menuStep === "onlineLoadList" && (
         <OnlineLoadList
           currentUserId={localStorage.getItem("userName")}
           onSelect={(game) => {
@@ -462,7 +462,7 @@ export default function GameMenu({onStart}) {
         />
       )}
 
-            {step === "pveDiff" && (
+            {menuStep === "pveDiff" && (
                 <div className="menu-step-content">
                     <h2 className={`helptext ${entering ? "outBelow" : ""}`}>
                         HOW ADEPT SHOULD THE AI BE?
@@ -485,7 +485,7 @@ export default function GameMenu({onStart}) {
                 </div>
             )}
 
-            {step === "char" && (
+            {menuStep === "char" && (
                 <div className="menu-step-container">
                     <h2 className="helptext">
                         {mode === "pve" && chars.length === 0
@@ -518,7 +518,7 @@ export default function GameMenu({onStart}) {
                 </div>
             )}
 
-            {step === "start" && (
+            {menuStep === "start" && (
                 <div className="start-confirm-area">
                     <h2 className="helptext">WHO STARTS THE GAME?</h2>
 
@@ -547,11 +547,11 @@ export default function GameMenu({onStart}) {
                     )}
                 </div>
             )}
-            {step === "profile" && (
+            {menuStep === "profile" && (
                 <Profile onBack={() => go("startMenu")} />
             )}
 
-            {step === "game" && (
+            {menuStep === "game" && (
                 <button
                     className="game-exit-button"
                     style={{

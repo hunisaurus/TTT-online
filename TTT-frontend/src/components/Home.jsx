@@ -30,14 +30,10 @@ export default function Home() {
         if (next === "login") {
             setAuthView("login");
             setAuthEntering(true);
-            setTimeout(() => setAuthEntering(false), 30);
+            setTimeout(() => setAuthEntering(false), 700);
         }
 
     };
-
-    // useEffect(() => {
-    //     refreshUser();
-    //   }, []);
 
     return (
         <>

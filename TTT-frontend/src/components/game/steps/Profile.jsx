@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import "../../../StyleCSS/profile.css";
 import { useUser } from "../../../state/UserContext";
+import { useAuth } from "../../../state/AuthContext";
+import { fetchWithAuth } from "../../../state/auth";
 
 const Profile = ({ onBack }) => {
     const [userData, setUserData] = useState({
@@ -11,20 +13,18 @@ const Profile = ({ onBack }) => {
         profileImage: null
     });
     const { user, refreshUser } = useUser();
+    const { accessToken } = useAuth();
 
     const [loading, setLoading] = useState(true);
     const fileInputRef = React.useRef(null);
 
     const fetchProfileData = async () => {
         try {
-            const token = localStorage.getItem('jwt');
-            if (!token) return;
+            if (!accessToken) return;
 
-            const response = await fetch('http://localhost:8080/api/user/me', {
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                }
+            const response = await fetchWithAuth('/api/user/me', {
+                method: 'GET',
+                token: accessToken,
             });
 
             if (response.ok) {
@@ -57,15 +57,11 @@ const Profile = ({ onBack }) => {
         const formData = new FormData();
         formData.append('image', file);
 
-        const token = localStorage.getItem('jwt');
-
         try {
-            const response = await fetch('http://localhost:8080/api/user/upload-image', {
+            const response = await fetchWithAuth('/api/user/upload-image', {
                 method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                },
-                body: formData
+                body: formData,
+                token: accessToken,
             });
 
             if (response.ok) {
@@ -86,14 +82,10 @@ const Profile = ({ onBack }) => {
 
     const handleRemoveImage = async () => {
         if (!window.confirm("Are u sure deleting the image?")) return;
-
-        const token = localStorage.getItem('jwt');
         try {
-            const response = await fetch('http://localhost:8080/api/user/delete-image', {
+            const response = await fetchWithAuth('/api/user/delete-image', {
                 method: 'DELETE',
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
+                token: accessToken,
             });
 
             if (response.ok) {
