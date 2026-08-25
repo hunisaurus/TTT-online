@@ -33,7 +33,7 @@ public class Game {
    // store winner as a User reference (DB column stores user id). Player has a composite PK and cannot be
    // referenced by a single join column. Resolve Player objects from the players list when needed.
    @ManyToOne(fetch = FetchType.LAZY)
-   @JoinColumn(name = "winner")
+   @JoinColumn(name = "winner_id")
    private User winner;
 
    @Column(name = "max_players")
